@@ -1,0 +1,73 @@
+/* main grid element */
+.ebs-grid {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid black;
+
+	/* all tables */
+	table {
+		border-collapse: collapse;
+		width: 100%;
+		table-layout: fixed;
+
+		th, td {
+			border-spacing: 0;
+			border-collapse: collapse;
+		}
+	}
+	/* /all tables */
+
+	/* header table */
+	table.header {
+		width: calc(100% - 16px); // TODO fix that less thinks its a mathematical problem
+
+		tr {
+			background-color: #bbbbbb;
+
+			th {
+				border: 1px solid black;
+				border-top-width: 0;
+				border-collapse: collapse;
+				padding: 4px;
+			}
+		}
+	}
+	/* /header table */
+
+	/* data wrapper */
+	div.data-wrapper {
+		width: 100%;
+		overflow: auto;
+
+		/* data */
+		> div.data {
+			width: 100%;
+			overflow: hidden;
+			position: relative;
+
+			table {
+				position: absolute;
+				left: 0;
+
+				tbody > tr {
+					&:nth-child(odd) {
+						background-color: rgba(0,0,0,0.1);
+					}
+
+					> td {
+						border-width: 0 1px;
+						border-color: #a0a0a0;
+						border-style: solid;
+						border-collapse: collapse;
+						padding: 4px;
+
+						&:first-child { border-left-width: 0; }
+						&:last-child { border-right-width: 0; }
+					}
+				}
+			}
+		}
+		/* /data */
+	}
+	/* /data wrapper */
+}

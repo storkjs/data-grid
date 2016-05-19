@@ -4,7 +4,6 @@
 	<meta charset="utf-8">
 
 	<link rel="stylesheet" type="text/css" href="data-grid.css">
-	<script src="data.js"></script>
 	<script src="data-grid.js"></script>
 
 	<style type="text/css">
@@ -16,6 +15,28 @@
 			height: 800px;
 		}
 	</style>
+
+	<script src="data.js"></script>
+	<script>
+		loadBulk(999);
+		var grid;
+		document.addEventListener("DOMContentLoaded", function(e) {
+			grid = new storkGrid({
+				element: document.getElementById('grid'),
+				data: window.bigData,
+				rowHeight: 30,
+				headerHeight: 40,
+				columns: [
+					// { dataName: 'id', displayName: 'ID', width: 20 },
+					// { dataName: 'eretz', displayName: 'Eretz', width: 80 },
+					// { dataName: 'eer', displayName: 'Eer', width: 85 },
+					// { dataName: 'hai', displayName: 'Hai', width: 70 },
+					// { dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
+					// { dataName: 'domem', displayName: 'Domem', width: 80 }
+				]
+			});
+		});
+	</script>
 </head>
 <body>
 <div id="grid"></div>

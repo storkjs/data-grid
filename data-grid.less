@@ -1,5 +1,5 @@
 /* main grid element */
-.ebs-grid {
+.stork-grid {
 	position: relative;
 	overflow: hidden;
 	border: 1px solid black;
@@ -19,16 +19,25 @@
 
 	/* header table */
 	table.header {
-		width: calc(100% - 16px); // TODO fix that less thinks its a mathematical problem
+		width: 100%;
 
 		tr {
-			background-color: #bbbbbb;
+			background-color: #b6d0dd;
 
 			th {
-				border: 1px solid black;
-				border-top-width: 0;
+				border-left: 1px solid #a0a0a0;
 				border-collapse: collapse;
 				padding: 4px;
+
+				&:first-child {
+					border-left-width: 0;
+				}
+
+				&.scrollbar-offset {
+					border-left-width: 0;
+					padding: 0;
+					width: 15px;
+				}
 			}
 		}
 	}
@@ -55,14 +64,11 @@
 					}
 
 					> td {
-						border-width: 0 1px;
-						border-color: #a0a0a0;
-						border-style: solid;
+						border-left: 1px solid #a0a0a0;
 						border-collapse: collapse;
 						padding: 4px;
 
 						&:first-child { border-left-width: 0; }
-						&:last-child { border-right-width: 0; }
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /* main grid element */
-.ebs-grid {
+.stork-grid {
   position: relative;
   overflow: hidden;
   border: 1px solid black;
@@ -10,56 +10,58 @@
   /* data wrapper */
   /* /data wrapper */
 }
-.ebs-grid table {
+.stork-grid table {
   border-collapse: collapse;
   width: 100%;
   table-layout: fixed;
 }
-.ebs-grid table th,
-.ebs-grid table td {
+.stork-grid table th,
+.stork-grid table td {
   border-spacing: 0;
   border-collapse: collapse;
 }
-.ebs-grid table.header {
-  width: calc(84%);
+.stork-grid table.header {
+  width: 100%;
 }
-.ebs-grid table.header tr {
-  background-color: #bbbbbb;
+.stork-grid table.header tr {
+  background-color: #b6d0dd;
 }
-.ebs-grid table.header tr th {
-  border: 1px solid black;
-  border-top-width: 0;
+.stork-grid table.header tr th {
+  border-left: 1px solid #a0a0a0;
   border-collapse: collapse;
   padding: 4px;
 }
-.ebs-grid div.data-wrapper {
+.stork-grid table.header tr th:first-child {
+  border-left-width: 0;
+}
+.stork-grid table.header tr th.scrollbar-offset {
+  border-left-width: 0;
+  padding: 0;
+  width: 15px;
+}
+.stork-grid div.data-wrapper {
   width: 100%;
   overflow: auto;
   /* data */
   /* /data */
 }
-.ebs-grid div.data-wrapper > div.data {
+.stork-grid div.data-wrapper > div.data {
   width: 100%;
   overflow: hidden;
   position: relative;
 }
-.ebs-grid div.data-wrapper > div.data table {
+.stork-grid div.data-wrapper > div.data table {
   position: absolute;
   left: 0;
 }
-.ebs-grid div.data-wrapper > div.data table tbody > tr:nth-child(odd) {
+.stork-grid div.data-wrapper > div.data table tbody > tr:nth-child(odd) {
   background-color: rgba(0, 0, 0, 0.1);
 }
-.ebs-grid div.data-wrapper > div.data table tbody > tr > td {
-  border-width: 0 1px;
-  border-color: #a0a0a0;
-  border-style: solid;
+.stork-grid div.data-wrapper > div.data table tbody > tr > td {
+  border-left: 1px solid #a0a0a0;
   border-collapse: collapse;
   padding: 4px;
 }
-.ebs-grid div.data-wrapper > div.data table tbody > tr > td:first-child {
+.stork-grid div.data-wrapper > div.data table tbody > tr > td:first-child {
   border-left-width: 0;
-}
-.ebs-grid div.data-wrapper > div.data table tbody > tr > td:last-child {
-  border-right-width: 0;
 }

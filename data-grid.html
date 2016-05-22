@@ -18,14 +18,15 @@
 
 	<script src="data.js"></script>
 	<script>
-		loadBulk(999);
+		loadBulk(9999);
+
 		var grid;
 		document.addEventListener("DOMContentLoaded", function(e) {
 			grid = new storkGrid({
 				element: document.getElementById('grid'),
 				data: window.bigData,
-				rowHeight: 26,
-				headerHeight: 30,
+				rowHeight: 30,
+				headerHeight: 50,
 				columns: [
 					// { dataName: 'id', displayName: 'ID', width: 20 },
 					// { dataName: 'eretz', displayName: 'Eretz', width: 80 },

@@ -44,7 +44,8 @@
 		this.initDataView();
 
 		/** insert data into the data-tables */
-		this.updateData(0);
+		this.updateViewData(0, 0);
+		this.updateViewData(1, 1);
 
 		/** on scroll */
 		this.dataWrapper.addEventListener('scroll', this.onscroll.bind(this));
@@ -125,6 +126,7 @@
 			table.classList.add('body');
 			this.dataTables[counter] = {
 				table: table,
+				dataBlockIndex: null,
 				rows: []
 			};
 			tbody = document.createElement('tbody');
@@ -150,63 +152,15 @@
 	};
 
 	storkGrid.prototype.repositionTables = function repositionTables(currScrollTop, currScrollDirection, currDataBlock) {
-		var topTable, bottomTable, currViewBoundaries = {}, blockBoundaries = {};
+		var topTableIndex, topTable,
+			bottomTableIndex, bottomTable;
 
-		currViewBoundaries.top = currScrollTop;
-		currViewBoundaries.bottom = currViewBoundaries.top + this.dataViewHeight;
-
-		blockBoundaries.top = currDataBlock * this.dataTableHeight;
-		blockBoundaries.bottom = blockBoundaries.top + this.dataTableHeight;
-
-		if(currScrollDirection === 'down') {
-			// top boundary of data-table in view will be inside the viewport
-			if(currViewBoundaries.top < blockBoundaries.top && currViewBoundaries.bottom > blockBoundaries.top) {
-				topTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-				bottomTable = this.dataTables[(currDataBlock % 2)].table;
-
-				bottomTable.style.top = (blockBoundaries.top - this.dataTableHeight) + 'px';
-			}
-			else { // bottom boundary or no boundaries will be inside the viewport
-				topTable = this.dataTables[(currDataBlock % 2)].table;
-				bottomTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-
-				bottomTable.style.top = (blockBoundaries.top + this.dataTableHeight) + 'px';
-			}
-
-			topTable.style.top = blockBoundaries.top + 'px';
-		}
-		else if(currScrollDirection === 'up') {
-			// bottom boundary of data-table in view will be inside the viewport
-			if(currViewBoundaries.top < blockBoundaries.bottom && currViewBoundaries.bottom > blockBoundaries.bottom) {
-				console.log('bottom boundary is in');
-				topTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-				bottomTable = this.dataTables[(currDataBlock % 2)].table;
-
-				bottomTable.style.top = (blockBoundaries.top + this.dataTableHeight) + 'px';
-			}
-			else { // top boundary or no boundaries will be inside the viewport
-				console.log('bottom boundary is out');
-				topTable = this.dataTables[(currDataBlock % 2)].table;
-				bottomTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-
-				bottomTable.style.top = (blockBoundaries.top - this.dataTableHeight) + 'px';
-			}
-
-			topTable.style.top = blockBoundaries.top + 'px';
-		}
-		topTable.classList.remove('bottom');
-		topTable.classList.add('top');
-		bottomTable.classList.remove('top');
-		bottomTable.classList.add('bottom');
-	};
-
-	storkGrid.prototype.forceRepositionTables = function forceRepositionTables(currScrollTop, currScrollDirection, currDataBlock) {
-		var topTable, bottomTable;
+		topTableIndex = currDataBlock % 2;
+		topTable = this.dataTables[topTableIndex].table;
+		bottomTableIndex = (currDataBlock + 1) % 2;
+		bottomTable = this.dataTables[bottomTableIndex].table;
 
 		if(currScrollDirection === 'down') {
-			topTable = this.dataTables[(currDataBlock % 2)].table;
-			bottomTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-
 			topTable.style.top = (currDataBlock * this.dataTableHeight) + 'px';
 			bottomTable.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
 
@@ -220,9 +174,6 @@
 			}
 		}
 		else if(currScrollDirection === 'up') {
-			topTable = this.dataTables[(currDataBlock % 2)].table;
-			bottomTable = this.dataTables[((currDataBlock + 1) % 2)].table;
-
 			topTable.style.top = (currDataBlock * this.dataTableHeight) + 'px';
 			bottomTable.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
 
@@ -235,10 +186,18 @@
 				this.lastThreshold += this.dataTableHeight;
 			}
 		}
+
+		// both, scrolling down and up, should maintain the same position for the two data-tables
+		// thus updating the data on view (by data blocks) is always the same for both directions
+		if(this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock) {
+			this.updateViewData(topTableIndex, currDataBlock);
+		}
+		if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1) {
+			this.updateViewData(bottomTableIndex, currDataBlock + 1);
+		}
 	};
 
 	storkGrid.prototype.onscroll = function onscroll(e) {
-		console.log('SCROLLED');
 		var currScrollTop = this.dataWrapper.scrollTop;
 		var currScrollDirection = currScrollTop > this.lastScrollTop ? 'down' : 'up';
 		var currDataBlock = Math.floor(currScrollTop / this.dataTableHeight); // top data-block that is still in the viewable area
@@ -246,46 +205,39 @@
 		if(this.lastScrollDirection !== currScrollDirection
 			|| this.lastScrollDirection === 'down' && currScrollTop >= this.nextThreshold
 			|| this.lastScrollDirection === 'up' && currScrollTop <= this.nextThreshold) {
-			this.forceRepositionTables(currScrollTop, currScrollDirection, currDataBlock);
+			this.repositionTables(currScrollTop, currScrollDirection, currDataBlock);
 		}
-
-		//this.updateData(Math.floor(currScrollTop / this.dataTableHeight)); // TODO - this doesn't work as expected!!
 
 		this.lastScrollTop = currScrollTop;
 		this.lastScrollDirection = currScrollDirection;
 	};
 
-	storkGrid.prototype.updateData = function updateData(dataBlockIndex) {
-		var tableObj, firstBlockRow, lastBlockRow, row, rowElm, dataKeyName,
-			dataIndex, i;
+	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
+		var tableObj, firstBlockRow, lastBlockRow, row, rowElm, dataKeyName, dataIndex, i;
 
-		for(var counter=0; counter < 2; counter++) {
-			dataBlockIndex += counter;
-			tableObj = this.dataTables[counter];
+		tableObj = this.dataTables[tableIndex];
 
-			if(tableObj.table.getAttribute('data-block-index') !== dataBlockIndex) {
-				firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
-				lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
-				row = 0;
+		firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
+		lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
+		row = 0;
 
-				for(dataIndex = firstBlockRow; dataIndex <= lastBlockRow; dataIndex++) {
-					rowElm = tableObj.rows[row];
+		for(dataIndex = firstBlockRow; dataIndex <= lastBlockRow; dataIndex++) {
+			rowElm = tableObj.rows[row];
 
-					for(i=0; i < this.columns.length; i++) {
-						while(rowElm[i].firstChild) {
-							rowElm[i].removeChild(rowElm[i].firstChild);
-						}
+			for(i=0; i < this.columns.length; i++) {
+				dataKeyName = this.columns[i].dataName;
 
-						dataKeyName = this.columns[i].dataName;
-						rowElm[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
-					}
-
-					row++;
+				if(rowElm[i].firstChild) {
+					rowElm[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
+				} else {
+					rowElm[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
 				}
-
-				tableObj.table.setAttribute('data-block-index', dataBlockIndex);
 			}
+
+			row++;
 		}
+
+		tableObj.dataBlockIndex = dataBlockIndex;
 	};
 
 	root.storkGrid = storkGrid;

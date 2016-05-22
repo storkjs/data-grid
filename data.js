@@ -13,7 +13,7 @@ var i,
 	tmp;
 for(i=0; i < 10000; i++) {
 	tmp = {};
-	tmp[ window.columnNames[0] ] = i;
+	tmp[ window.columnNames[0] ] = (i+1);
 	tmp[ window.columnNames[1] ] = countries[ i % countries.length ];
 	tmp[ window.columnNames[2] ] = cities[ i % cities.length ];
 	tmp[ window.columnNames[3] ] = animals[ i % animals.length ];

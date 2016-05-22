@@ -55,10 +55,10 @@
   left: 0;
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr:nth-child(odd) {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr > td {
   border-left: 1px solid #a0a0a0;

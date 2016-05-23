@@ -1,5 +1,5 @@
 window.bigData = [];
-window.columnNames = ['id', 'eretz','eer','hai','tzomeah','domem','yeled','yalda','amount','other amount'];
+window.columnNames = ['id', 'eretz','eer','hai','tzomeah','domem','yeled','yalda','reg-amount','other_amount'];
 
 var i,
 	countries = ['israel','usa','germany','france','pitcairn'],

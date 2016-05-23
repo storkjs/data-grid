@@ -1,5 +1,10 @@
 (function(root) {
 	"use strict";
+	/**
+	 * construct for the StorkJS Data Grid.
+	 * this initializes all of the variable and then starts the DOM build up process
+	 * @param options
+	 */
 	var storkGrid = function storkGrid(options) {
 		this.grid = options.element;
 		this.data = options.data || [];
@@ -8,11 +13,13 @@
 		this.columns = options.columns || [];
 
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
-		this.tableExtraSize = 0.5; // how much is each data table bigger than the view port
+		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
 		this.dataTables = []; // will hold both data-tables and child elements
-		this.dataWrapper = null;
+		this.dataWrapperElm = null;
+		this.dataElm = null;
 
+		this.scrollY = 0; // will be defined upon building the dataWrapper div!
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
 
@@ -26,8 +33,12 @@
 
 		// if user didn't define columns and column names then let's try and fetch names from the keys of the first data object
 		if(this.columns.length === 0 && this.data.length > 0) {
+			var columnName;
 			for(var key in this.data[0]) {
-				this.columns.push({ dataName: key, displayName: key });
+				columnName = key.replace(/[-_]/, ' ');
+				// capitalize first letter of each word
+				columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+				this.columns.push({ dataName: key, displayName: columnName });
 			}
 		}
 
@@ -48,9 +59,12 @@
 		this.updateViewData(1, 1);
 
 		/** on scroll */
-		this.dataWrapper.addEventListener('scroll', this.onscroll.bind(this));
+		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
 	};
 
+	/**
+	 * makes or updates the css rule for the heights of the header rows and data rows
+	 */
 	storkGrid.prototype.makeHeightRule = function makeHeightRule() {
 		var style = document.getElementById('grid'+this.rnd+'_style');
 		if(!style) {
@@ -64,6 +78,9 @@
 			'.stork-grid'+this.rnd+' table.body tr { height: ' + this.rowHeight + 'px; }';
 	};
 
+	/**
+	 * builds the header table for the column names
+	 */
 	storkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
 		var table = document.getElementById('grid'+this.rnd+'_header');
 		if(!table) {
@@ -96,18 +113,46 @@
 		table.appendChild(thead);
 	};
 
+	/**
+	 * inits the whole data view, with wrappers for scrolling and tables for data
+	 */
 	storkGrid.prototype.initDataView = function initDataView() {
-		this.dataWrapper = document.createElement('div');
-		this.dataWrapper.classList.add('data-wrapper');
-		this.dataWrapper.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
+		this.dataWrapperElm = document.createElement('div');
+		this.dataWrapperElm.classList.add('data-wrapper');
+		this.dataWrapperElm.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
 
-		var div = document.createElement('div');
-		div.classList.add('data');
+		this.dataElm = document.createElement('div');
+		this.dataElm.classList.add('data');
 		this.totalDataHeight = this.rowHeight * this.data.length;
-		div.style.height = this.totalDataHeight + 'px';
+		this.dataElm.style.height = this.totalDataHeight + 'px';
 
-		this.grid.appendChild(this.dataWrapper);
-		this.dataViewHeight = this.dataWrapper.clientHeight; // the height of a viewport the client can see
+		this.dataWrapperElm.appendChild(this.dataElm);
+		this.grid.appendChild(this.dataWrapperElm);
+
+		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
+
+		var self = this;
+		Object.defineProperty(self, 'scrollY', {
+			configurable: false,
+			enumerable: true,
+			get: function() {
+				return self.dataWrapperElm.scrollTop || 0;
+			},
+			set: function(newValue) {
+				self.dataWrapperElm.scrollTop = newValue;
+			}
+		});
+
+		this.resizeCalculate();
+
+		this.buildDataTables();
+	};
+
+	/**
+	 * calculates the size of child elements upon resize
+	 */
+	storkGrid.prototype.resizeCalculate = function resizeCalculate() {
+		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
 		this.numDataRowsInTable = Math.ceil(this.dataViewHeight * (1 + this.tableExtraSize) / this.rowHeight);
 		if(this.numDataRowsInTable % 2 === 1) {
 			this.numDataRowsInTable++;
@@ -117,18 +162,33 @@
 		this.tableExtraPixelsForThreshold = Math.floor(this.dataTableHeight * (this.tableExtraSize / 2));
 		this.lastThreshold = this.tableExtraPixelsForThreshold;
 		this.nextThreshold = this.lastThreshold + this.dataTableHeight;
+	};
 
+	/**
+	 * builds two completely new <table> for the data
+	 */
+	storkGrid.prototype.buildDataTables = function buildDataTables() {
 		var table, tbody, tr, td, i, j;
 
 		for(var counter=0; counter < 2; counter++) { // counter for number of blocks
-			table = document.createElement('table');
-			table.id = 'grid' + this.rnd + '_dataTable' + counter;
-			table.classList.add('body');
+			table = document.getElementById('grid' + this.rnd + '_dataTable' + counter);
+			if(!table) {
+				table = document.createElement('table');
+				table.id = 'grid' + this.rnd + '_dataTable' + counter;
+				table.classList.add('body');
+				this.dataElm.appendChild(table);
+			}
+
+			while(table.firstChild) {
+				table.removeChild(table.firstChild);
+			}
+
 			this.dataTables[counter] = {
 				table: table,
 				dataBlockIndex: null,
 				rows: []
 			};
+
 			tbody = document.createElement('tbody');
 
 			for(i=0; i < this.numDataRowsInTable; i++) {
@@ -137,6 +197,7 @@
 
 				for(j=0; j < this.columns.length; j++) {
 					td = document.createElement('td');
+					td.setAttribute('data-column-index', this.columns[j].dataName);
 					this.dataTables[counter].rows[i].push(td);
 					tr.appendChild(td);
 				}
@@ -145,15 +206,14 @@
 
 			table.style.top = (this.dataTableHeight * counter) + 'px';
 			table.appendChild(tbody);
-			div.appendChild(table);
 		}
-
-		this.dataWrapper.appendChild(div);
 	};
 
-	storkGrid.prototype.repositionTables = function repositionTables(currScrollTop, currScrollDirection, currDataBlock) {
-		var topTableIndex, topTable,
-			bottomTableIndex, bottomTable;
+	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop) {
+		var topTableIndex, topTable, bottomTableIndex, bottomTable;
+		currScrollTop = currScrollTop || this.scrollY;
+		currScrollDirection = currScrollDirection || 'down';
+		var currDataBlock = Math.floor(currScrollTop / this.dataTableHeight); // top data-block that is still in the viewable area
 
 		topTableIndex = currDataBlock % 2;
 		topTable = this.dataTables[topTableIndex].table;
@@ -197,19 +257,22 @@
 		}
 	};
 
-	storkGrid.prototype.onscroll = function onscroll(e) {
-		var currScrollTop = this.dataWrapper.scrollTop;
+	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
+		var currScrollTop = this.dataWrapperElm.scrollTop;
 		var currScrollDirection = currScrollTop > this.lastScrollTop ? 'down' : 'up';
-		var currDataBlock = Math.floor(currScrollTop / this.dataTableHeight); // top data-block that is still in the viewable area
 
 		if(this.lastScrollDirection !== currScrollDirection
-			|| this.lastScrollDirection === 'down' && currScrollTop >= this.nextThreshold
-			|| this.lastScrollDirection === 'up' && currScrollTop <= this.nextThreshold) {
-			this.repositionTables(currScrollTop, currScrollDirection, currDataBlock);
+			|| (this.lastScrollDirection === 'down' && currScrollTop >= this.nextThreshold)
+			|| (this.lastScrollDirection === 'up' && currScrollTop <= this.nextThreshold)) {
+			this.repositionTables(currScrollDirection, currScrollTop);
 		}
 
 		this.lastScrollTop = currScrollTop;
 		this.lastScrollDirection = currScrollDirection;
+	};
+
+	storkGrid.prototype.onDataClick = function onDataClick(e) {
+		//console.log(e);
 	};
 
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
@@ -227,10 +290,17 @@
 			for(i=0; i < this.columns.length; i++) {
 				dataKeyName = this.columns[i].dataName;
 
-				if(rowElm[i].firstChild) {
-					rowElm[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
-				} else {
-					rowElm[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
+				if(this.data[ dataIndex ]) {
+					if(rowElm[i].firstChild) {
+						rowElm[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
+					} else {
+						rowElm[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
+					}
+				}
+				else {
+					if(rowElm[i].firstChild) {
+						rowElm[i].firstChild.nodeValue = '';
+					}
 				}
 			}
 
@@ -238,6 +308,12 @@
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;
+	};
+
+	storkGrid.prototype.resize = function resize() {
+		this.resizeCalculate();
+		this.buildDataTables();
+		this.repositionTables();
 	};
 
 	root.storkGrid = storkGrid;

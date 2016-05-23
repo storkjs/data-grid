@@ -49,6 +49,17 @@
   width: 100%;
   overflow: hidden;
   position: relative;
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Chrome/Safari/Opera */
+  -khtml-user-select: none;
+  /* Konqueror */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
 }
 .stork-grid div.data-wrapper > div.data table {
   position: absolute;
@@ -60,6 +71,9 @@
 .stork-grid div.data-wrapper > div.data table tbody > tr:nth-child(even) {
   background-color: rgba(0, 0, 0, 0.2);
 }
+.stork-grid div.data-wrapper > div.data table tbody > tr.selected {
+  background-color: #a3bbc6;
+}
 .stork-grid div.data-wrapper > div.data table tbody > tr > td {
   border-left: 1px solid #a0a0a0;
   border-collapse: collapse;
@@ -67,4 +81,7 @@
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr > td:first-child {
   border-left-width: 0;
+}
+.stork-grid div.data-wrapper > div.data table tbody > tr > td.selected {
+  background-color: rgba(0, 0, 0, 0.2);
 }

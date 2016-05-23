@@ -54,6 +54,13 @@
 			overflow: hidden;
 			position: relative;
 
+			-webkit-touch-callout: none; /* iOS Safari */
+			-webkit-user-select: none;   /* Chrome/Safari/Opera */
+			-khtml-user-select: none;    /* Konqueror */
+			-moz-user-select: none;      /* Firefox */
+			-ms-user-select: none;       /* Internet Explorer/Edge */
+			user-select: none;
+
 			table {
 				position: absolute;
 				left: 0;
@@ -65,6 +72,9 @@
 					&:nth-child(even) {
 						background-color: rgba(0,0,0,0.2);
 					}
+					&.selected {
+						background-color: #a3bbc6;
+					}
 
 					> td {
 						border-left: 1px solid #a0a0a0;
@@ -72,6 +82,10 @@
 						padding: 4px;
 
 						&:first-child { border-left-width: 0; }
+
+						&.selected {
+							background-color: rgba(0,0,0,0.2);
+						}
 					}
 				}
 			}

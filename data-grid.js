@@ -10,14 +10,19 @@
 		this.data = options.data || [];
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
+		this.multiSelect = options.multiSelect || false;
 		this.columns = options.columns || [];
 
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
-		this.dataTables = []; // will hold both data-tables and child elements
+		this.dataTables = []; // will hold both data-tables elements and child elements and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
+		this.selectedItems = {
+			rows: new Set(),
+			tds: new Set()
+		};
 
 		this.scrollY = 0; // will be defined upon building the dataWrapper div!
 		this.lastScrollTop = 0;
@@ -193,12 +198,15 @@
 
 			for(i=0; i < this.numDataRowsInTable; i++) {
 				tr = document.createElement('tr');
-				this.dataTables[counter].rows[i] = [];
+				this.dataTables[counter].rows[i] = {
+					row: tr,
+					tds: []
+				};
 
 				for(j=0; j < this.columns.length; j++) {
 					td = document.createElement('td');
-					td.setAttribute('data-column-index', this.columns[j].dataName);
-					this.dataTables[counter].rows[i].push(td);
+					td.setAttribute('data-column', this.columns[j].dataName);
+					this.dataTables[counter].rows[i].tds.push(td);
 					tr.appendChild(td);
 				}
 				tbody.appendChild(tr);
@@ -209,10 +217,16 @@
 		}
 	};
 
-	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop) {
+	/**
+	 * repositions the two data tables and then updates the data in them
+	 * @param [currScrollDirection]
+	 * @param [currScrollTop]
+	 */
+	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
 		var topTableIndex, topTable, bottomTableIndex, bottomTable;
 		currScrollTop = currScrollTop || this.scrollY;
 		currScrollDirection = currScrollDirection || 'down';
+		forceUpdateViewData = forceUpdateViewData || false;
 		var currDataBlock = Math.floor(currScrollTop / this.dataTableHeight); // top data-block that is still in the viewable area
 
 		topTableIndex = currDataBlock % 2;
@@ -249,10 +263,10 @@
 
 		// both, scrolling down and up, should maintain the same position for the two data-tables
 		// thus updating the data on view (by data blocks) is always the same for both directions
-		if(this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock) {
+		if(this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock || forceUpdateViewData) {
 			this.updateViewData(topTableIndex, currDataBlock);
 		}
-		if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1) {
+		if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
 			this.updateViewData(bottomTableIndex, currDataBlock + 1);
 		}
 	};
@@ -272,11 +286,40 @@
 	};
 
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
-		//console.log(e);
+		var target = e.target,
+			i = 0,
+			setItr;
+
+		while(target.tagName.toUpperCase() !== 'TD') {
+			if(i++ >= 2) {
+				return; // user clicked on something that is too far from our table-cell
+			}
+			target = target.parentNode;
+		}
+
+		if(!this.multiSelect) {
+			setItr = this.selectedItems.tds.values(); // for TDs
+			for(i of setItr) {
+				i.classList.remove('selected');
+			}
+
+			setItr = this.selectedItems.rows.values(); // for TRs
+			for(i of setItr) {
+				i.classList.remove('selected');
+			}
+
+			this.selectedItems.tds.clear();
+			this.selectedItems.rows.clear();
+		}
+
+		this.selectedItems.tds.add(target);
+		this.selectedItems.rows.add(target.parentNode);
+
+		this.repositionTables(null, null, true);
 	};
 
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-		var tableObj, firstBlockRow, lastBlockRow, row, rowElm, dataKeyName, dataIndex, i;
+		var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -284,27 +327,36 @@
 		lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
 		row = 0;
 
-		for(dataIndex = firstBlockRow; dataIndex <= lastBlockRow; dataIndex++) {
-			rowElm = tableObj.rows[row];
+		for(dataIndex = firstBlockRow; dataIndex <= lastBlockRow; dataIndex++, row++) {
+			rowObj = tableObj.rows[row];
+			rowObj.row.setAttribute('data-index', dataIndex);
+
+			// select the TR if needed
+			if(this.selectedItems.rows.has(rowObj.row)) {
+				rowObj.row.classList.add('selected');
+			}
 
 			for(i=0; i < this.columns.length; i++) {
 				dataKeyName = this.columns[i].dataName;
 
 				if(this.data[ dataIndex ]) {
-					if(rowElm[i].firstChild) {
-						rowElm[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
+					// select the TD if needed
+					if(this.selectedItems.tds.has(rowObj.tds[i])) {
+						rowObj.tds[i].classList.add('selected');
+					}
+
+					if(rowObj.tds[i].firstChild) {
+						rowObj.tds[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
 					} else {
-						rowElm[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
+						rowObj.tds[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
 					}
 				}
 				else {
-					if(rowElm[i].firstChild) {
-						rowElm[i].firstChild.nodeValue = '';
+					if(rowObj.tds[i].firstChild) {
+						rowObj.tds[i].firstChild.nodeValue = '';
 					}
 				}
 			}
-
-			row++;
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;
@@ -313,7 +365,7 @@
 	storkGrid.prototype.resize = function resize() {
 		this.resizeCalculate();
 		this.buildDataTables();
-		this.repositionTables();
+		this.repositionTables(null, null, true);
 	};
 
 	root.storkGrid = storkGrid;

@@ -10,7 +10,12 @@
 		this.data = options.data || [];
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
-		this.multiSelect = options.multiSelect || false;
+
+		this.selection = {};
+		options.selection = options.selection || {};
+		this.selection.multi = options.selection.multi || false;
+		this.selection.type = options.selection.type === 'cell' ? 'cell' : 'row';
+
 		this.columns = options.columns || [];
 
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
@@ -19,10 +24,7 @@
 		this.dataTables = []; // will hold both data-tables elements and child elements and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
-		this.selectedItems = {
-			rows: new Set(),
-			tds: new Set()
-		};
+		this.selectedItems = new Map();/*ES6*/
 
 		this.scrollY = 0; // will be defined upon building the dataWrapper div!
 		this.lastScrollTop = 0;
@@ -198,6 +200,11 @@
 
 			for(i=0; i < this.numDataRowsInTable; i++) {
 				tr = document.createElement('tr');
+				tr.storkGridProps = { // our custom object on the DOM object
+					dataIndex: null,
+					selected: false
+				};
+
 				this.dataTables[counter].rows[i] = {
 					row: tr,
 					tds: []
@@ -205,7 +212,11 @@
 
 				for(j=0; j < this.columns.length; j++) {
 					td = document.createElement('td');
-					td.setAttribute('data-column', this.columns[j].dataName);
+					td.storkGridProps = { // our custom object on the DOM object
+						column: this.columns[j].dataName,
+						selected: false
+					};
+
 					this.dataTables[counter].rows[i].tds.push(td);
 					tr.appendChild(td);
 				}
@@ -221,6 +232,7 @@
 	 * repositions the two data tables and then updates the data in them
 	 * @param [currScrollDirection]
 	 * @param [currScrollTop]
+	 * @param [forceUpdateViewData] - forces updating dom elements even if scroll hasn't passed to the next data block
 	 */
 	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
 		var topTableIndex, topTable, bottomTableIndex, bottomTable;
@@ -286,40 +298,60 @@
 	};
 
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
-		var target = e.target,
+		var TD = e.target,
 			i = 0,
-			setItr;
+			dataIndex, TR, selectedCellColumn, selectedItem;
 
-		while(target.tagName.toUpperCase() !== 'TD') {
+		while(TD.tagName.toUpperCase() !== 'TD') {
 			if(i++ >= 2) {
 				return; // user clicked on something that is too far from our table-cell
 			}
-			target = target.parentNode;
+			TD = TD.parentNode;
 		}
 
-		if(!this.multiSelect) {
-			setItr = this.selectedItems.tds.values(); // for TDs
-			for(i of setItr) {
-				i.classList.remove('selected');
-			}
+		TR = TD.parentNode;
 
-			setItr = this.selectedItems.rows.values(); // for TRs
-			for(i of setItr) {
-				i.classList.remove('selected');
-			}
-
-			this.selectedItems.tds.clear();
-			this.selectedItems.rows.clear();
+		if(!this.selection.multi) {
+			this.selectedItems.clear();
 		}
 
-		this.selectedItems.tds.add(target);
-		this.selectedItems.rows.add(target.parentNode);
+		dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
+		selectedCellColumn = TD.storkGridProps.column;
+
+		if(dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+			if(this.selectedItems.has(this.data[dataIndex])) {
+				if(this.selection.type === 'row') {
+					this.selectedItems.delete(this.data[dataIndex]); // unselect row
+				}
+				else {
+					selectedItem = this.selectedItems.get(this.data[dataIndex]);
+
+					var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
+					if(indexOfColumn === -1) {
+						selectedItem.push(selectedCellColumn);
+					}
+					else {
+						selectedItem.splice(indexOfColumn, 1); // unselect cell
+
+						if(selectedItem.length === 0) {
+							this.selectedItems.delete(this.data[dataIndex]); // unselect row
+						}
+					}
+				}
+			}
+			else {
+				this.selectedItems.set(this.data[dataIndex], [selectedCellColumn]);
+			}
+		}
+		else {
+			console.warn('selected row is not pointing to a valid data');
+		}
 
 		this.repositionTables(null, null, true);
 	};
 
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-		var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i;
+		var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -329,11 +361,21 @@
 
 		for(dataIndex = firstBlockRow; dataIndex <= lastBlockRow; dataIndex++, row++) {
 			rowObj = tableObj.rows[row];
-			rowObj.row.setAttribute('data-index', dataIndex);
+			rowObj.row.storkGridProps.dataIndex = dataIndex;
 
 			// select the TR if needed
-			if(this.selectedItems.rows.has(rowObj.row)) {
+			if(this.selectedItems.has(this.data[dataIndex])) {
+				selectedItem = this.selectedItems.get(this.data[dataIndex]);
 				rowObj.row.classList.add('selected');
+				rowObj.row.storkGridProps.selected = true;
+			}
+			else {
+				selectedItem = null;
+
+				if(rowObj.row.storkGridProps.selected) {
+					rowObj.row.classList.remove('selected');
+					rowObj.row.storkGridProps.selected = false;
+				}
 			}
 
 			for(i=0; i < this.columns.length; i++) {
@@ -341,8 +383,13 @@
 
 				if(this.data[ dataIndex ]) {
 					// select the TD if needed
-					if(this.selectedItems.tds.has(rowObj.tds[i])) {
+					if(selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
 						rowObj.tds[i].classList.add('selected');
+						rowObj.tds[i].storkGridProps.selected = true;
+					}
+					else if(rowObj.tds[i].storkGridProps.selected) {
+						rowObj.tds[i].classList.remove('selected');
+						rowObj.tds[i].storkGridProps.selected = false;
 					}
 
 					if(rowObj.tds[i].firstChild) {
@@ -357,6 +404,8 @@
 					}
 				}
 			}
+
+			selectedItem = null;
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;

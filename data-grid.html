@@ -37,8 +37,8 @@
 				rowHeight: 30,
 				headerHeight: 50,
 				selection: {
-					multi: true,
-					type: 'cell'
+					multi: false,
+					type: 'row'
 				},
 				columns: [
 //					 { dataName: 'id', displayName: 'ID', width: 20 },
@@ -47,7 +47,8 @@
 //					 { dataName: 'hai', displayName: 'Hai', width: 70 },
 //					 { dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
 //					 { dataName: 'domem', displayName: 'Domem', width: 80 }
-				]
+				],
+				trackBy: 'eretz'
 			});
 		});
 	</script>

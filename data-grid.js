@@ -10,13 +10,13 @@
 		this.data = options.data || [];
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
+		this.columns = options.columns || [];
+		this.trackBy = options.trackBy || null;
 
 		this.selection = {};
 		options.selection = options.selection || {};
 		this.selection.multi = options.selection.multi || false;
 		this.selection.type = options.selection.type === 'cell' ? 'cell' : 'row';
-
-		this.columns = options.columns || [];
 
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
@@ -130,8 +130,8 @@
 
 		this.dataElm = document.createElement('div');
 		this.dataElm.classList.add('data');
-		this.totalDataHeight = this.rowHeight * this.data.length;
-		this.dataElm.style.height = this.totalDataHeight + 'px';
+
+		this.calculateDataHeight();
 
 		this.dataWrapperElm.appendChild(this.dataElm);
 		this.grid.appendChild(this.dataWrapperElm);
@@ -156,6 +156,14 @@
 	};
 
 	/**
+	 * calculates and sets the needed height for the data
+	 */
+	storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
+		this.totalDataHeight = this.rowHeight * this.data.length;
+		this.dataElm.style.height = this.totalDataHeight + 'px';
+	};
+
+	/**
 	 * calculates the size of child elements upon resize
 	 */
 	storkGrid.prototype.resizeCalculate = function resizeCalculate() {
@@ -169,6 +177,15 @@
 		this.tableExtraPixelsForThreshold = Math.floor(this.dataTableHeight * (this.tableExtraSize / 2));
 		this.lastThreshold = this.tableExtraPixelsForThreshold;
 		this.nextThreshold = this.lastThreshold + this.dataTableHeight;
+	};
+
+	/**
+	 * refreshes the data height and viewport.
+	 * use this when grid.data has changed
+	 */
+	storkGrid.prototype.refreshData = function refreshData() {
+		this.calculateDataHeight();
+		this.onDataScroll();
 	};
 
 	/**
@@ -285,7 +302,7 @@
 
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
 		var currScrollTop = this.dataWrapperElm.scrollTop;
-		var currScrollDirection = currScrollTop > this.lastScrollTop ? 'down' : 'up';
+		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
 
 		if(this.lastScrollDirection !== currScrollDirection
 			|| (this.lastScrollDirection === 'down' && currScrollTop >= this.nextThreshold)
@@ -300,7 +317,7 @@
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
 		var TD = e.target,
 			i = 0,
-			dataIndex, TR, selectedCellColumn, selectedItem;
+			dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
 
 		while(TD.tagName.toUpperCase() !== 'TD') {
 			if(i++ >= 2) {
@@ -319,12 +336,18 @@
 		selectedCellColumn = TD.storkGridProps.column;
 
 		if(dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
-			if(this.selectedItems.has(this.data[dataIndex])) {
+			if(this.trackBy) { // tracking by a specific column data or by the whole row's data object
+				trackByData = this.data[dataIndex][this.trackBy];
+			} else {
+				trackByData = this.data[dataIndex];
+			}
+
+			if(this.selectedItems.has(trackByData)) {
 				if(this.selection.type === 'row') {
-					this.selectedItems.delete(this.data[dataIndex]); // unselect row
+					this.selectedItems.delete(trackByData); // unselect row
 				}
 				else {
-					selectedItem = this.selectedItems.get(this.data[dataIndex]);
+					selectedItem = this.selectedItems.get(trackByData);
 
 					var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
 					if(indexOfColumn === -1) {
@@ -334,13 +357,13 @@
 						selectedItem.splice(indexOfColumn, 1); // unselect cell
 
 						if(selectedItem.length === 0) {
-							this.selectedItems.delete(this.data[dataIndex]); // unselect row
+							this.selectedItems.delete(trackByData); // unselect row
 						}
 					}
 				}
 			}
 			else {
-				this.selectedItems.set(this.data[dataIndex], [selectedCellColumn]);
+				this.selectedItems.set(trackByData, [selectedCellColumn]);
 			}
 		}
 		else {
@@ -351,7 +374,8 @@
 	};
 
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-		var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem;
+		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
+			dataKeyName, dataIndex, i, selectedItem, trackByData;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -364,8 +388,14 @@
 			rowObj.row.storkGridProps.dataIndex = dataIndex;
 
 			// select the TR if needed
-			if(this.selectedItems.has(this.data[dataIndex])) {
-				selectedItem = this.selectedItems.get(this.data[dataIndex]);
+			if(this.trackBy) { // tracking by a specific column data or by the whole row's data object
+				trackByData = this.data[dataIndex][this.trackBy];
+			} else {
+				trackByData = this.data[dataIndex];
+			}
+
+			if(this.selectedItems.has(trackByData)) {
+				selectedItem = this.selectedItems.get(trackByData);
 				rowObj.row.classList.add('selected');
 				rowObj.row.storkGridProps.selected = true;
 			}

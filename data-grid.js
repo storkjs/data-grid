@@ -96,6 +96,24 @@
 	};
 
 	/**
+	 * sets the height of each row
+	 * @param num
+	 */
+	storkGrid.prototype.setRowHeight = function setRowHeight(num) {
+		this.rowHeight = num;
+		this.makeHeightRule();
+	};
+
+	/**
+	 * sets the height of the header
+	 * @param num
+	 */
+	storkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
+		this.headerHeight = num;
+		this.makeHeightRule();
+	};
+
+	/**
 	 * builds the header table for the column names
 	 */
 	storkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
@@ -411,49 +429,51 @@
 			rowObj = tableObj.rows[row];
 			rowObj.row.storkGridProps.dataIndex = dataIndex;
 
-			// select the TR if needed
-			if(this.trackBy) { // tracking by a specific column data or by the whole row's data object
-				trackByData = this.data[dataIndex][this.trackBy];
-			} else {
-				trackByData = this.data[dataIndex];
-			}
-
-			if(this.selectedItems.has(trackByData)) {
-				selectedItem = this.selectedItems.get(trackByData);
-				rowObj.row.classList.add('selected');
-				rowObj.row.storkGridProps.selected = true;
-			}
-			else {
-				selectedItem = null;
-
-				if(rowObj.row.storkGridProps.selected) {
-					rowObj.row.classList.remove('selected');
-					rowObj.row.storkGridProps.selected = false;
+			if(this.data[ dataIndex ]) {
+				// select the TR if needed
+				if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
+					trackByData = this.data[dataIndex][this.trackBy];
+				} else {
+					trackByData = this.data[dataIndex];
 				}
-			}
 
-			for(i=0; i < this.columns.length; i++) {
-				dataKeyName = this.columns[i].dataName;
+				if (this.selectedItems.has(trackByData)) {
+					selectedItem = this.selectedItems.get(trackByData);
+					rowObj.row.classList.add('selected');
+					rowObj.row.storkGridProps.selected = true;
+				}
+				else {
+					selectedItem = null;
 
-				if(this.data[ dataIndex ]) {
+					if (rowObj.row.storkGridProps.selected) {
+						rowObj.row.classList.remove('selected');
+						rowObj.row.storkGridProps.selected = false;
+					}
+				}
+
+				for (i = 0; i < this.columns.length; i++) {
+					dataKeyName = this.columns[i].dataName;
+
 					// select the TD if needed
-					if(selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
+					if (selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
 						rowObj.tds[i].classList.add('selected');
 						rowObj.tds[i].storkGridProps.selected = true;
 					}
-					else if(rowObj.tds[i].storkGridProps.selected) {
+					else if (rowObj.tds[i].storkGridProps.selected) {
 						rowObj.tds[i].classList.remove('selected');
 						rowObj.tds[i].storkGridProps.selected = false;
 					}
 
-					if(rowObj.tds[i].firstChild) {
-						rowObj.tds[i].firstChild.nodeValue = this.data[ dataIndex ][ dataKeyName ];
+					if (rowObj.tds[i].firstChild) {
+						rowObj.tds[i].firstChild.nodeValue = this.data[dataIndex][dataKeyName];
 					} else {
-						rowObj.tds[i].appendChild(document.createTextNode(this.data[ dataIndex ][ dataKeyName ]));
+						rowObj.tds[i].appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
 					}
 				}
-				else {
-					if(rowObj.tds[i].firstChild) {
+			}
+			else {
+				for (i = 0; i < this.columns.length; i++) {
+					if (rowObj.tds[i].firstChild) {
 						rowObj.tds[i].firstChild.nodeValue = '';
 					}
 				}

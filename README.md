@@ -15,7 +15,7 @@ Initiate a grid with `new storkGrid(options)`. This will return a grid object fo
 _element_: the HTML DOM Element that will hold the grid. Example: `{ element: document.getElementById('my_grid') }`
 
 _data_: an Array of Objects. Every item is a Key-Value pairs where the Key indicates the column the value belongs to. Example:
-```json
+```javascript
 { data: [
   {name: "John", age: 20, weight: 70 },
   {name: "Ben", age: 23, weight: 80 },
@@ -43,7 +43,7 @@ _columns_ [optional]: an Array of Object. Every item in the array defines a colu
 - _columns.displayName_: the display name of the column (the text in the table headers).
 - _columns.width_: a user defined width for the column.
 Example:
-```json
+```javascript
 { columns: [
   { dataName: 'name', displayName: 'Full Name', width: 75 },
   { dataName: 'age', displayName: 'Age' },

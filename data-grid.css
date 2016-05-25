@@ -22,6 +22,16 @@
 }
 .stork-grid table.header {
   width: 100%;
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Chrome/Safari/Opera */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
 }
 .stork-grid table.header tr {
   background-color: #b6d0dd;
@@ -53,13 +63,12 @@
   /* iOS Safari */
   -webkit-user-select: none;
   /* Chrome/Safari/Opera */
-  -khtml-user-select: none;
-  /* Konqueror */
   -moz-user-select: none;
   /* Firefox */
   -ms-user-select: none;
   /* Internet Explorer/Edge */
   user-select: none;
+  cursor: default;
 }
 .stork-grid div.data-wrapper > div.data table {
   position: absolute;

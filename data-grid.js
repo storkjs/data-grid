@@ -70,6 +70,16 @@
 	};
 
 	/**
+	 * a function for passing an addEventListener from the grid-instance to the grid-dom-element
+	 * @param type
+	 * @param listener
+	 * @param [options_or_useCapture]
+	 */
+	storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
+		this.grid.addEventListener(type, listener, options_or_useCapture);
+	};
+
+	/**
 	 * makes or updates the css rule for the heights of the header rows and data rows
 	 */
 	storkGrid.prototype.makeHeightRule = function makeHeightRule() {
@@ -328,18 +338,20 @@
 
 		TR = TD.parentNode;
 
-		if(!this.selection.multi) {
-			this.selectedItems.clear();
-		}
-
 		dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
 		selectedCellColumn = TD.storkGridProps.column;
 
 		if(dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
-			if(this.trackBy) { // tracking by a specific column data or by the whole row's data object
+			if (this.trackBy) { // tracking by a specific column data
 				trackByData = this.data[dataIndex][this.trackBy];
-			} else {
+			} else { // tracking by the whole row's data object
 				trackByData = this.data[dataIndex];
+			}
+
+			// when not on multi select clear previous selection, unless re-selecting the same row
+			// which we should let the next code unselect it
+			if(!this.selection.multi && !this.selectedItems.has(trackByData)) {
+				this.selectedItems.clear();
 			}
 
 			if(this.selectedItems.has(trackByData)) {
@@ -365,8 +377,20 @@
 			else {
 				this.selectedItems.set(trackByData, [selectedCellColumn]);
 			}
+
+			var evnt = new CustomEvent('select', {detail:
+				{
+					/* this primitive values will help us get the selected row's data by using `this.data[dataIndex]`
+					 * and getting the selected cell's data by using `this.data[dataIndex][column]`
+					 */
+					column: selectedCellColumn,
+					dataIndex: dataIndex
+				}
+			});
+			this.grid.dispatchEvent(evnt);
 		}
 		else {
+			this.selectedItems.clear();
 			console.warn('selected row is not pointing to a valid data');
 		}
 

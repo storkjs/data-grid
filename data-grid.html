@@ -53,7 +53,19 @@
 
 			testGrid.addEventListener('select', function(e) {
 				console.log(e.detail);
-			}, false)
+			}, false);
+
+			testGrid.addScrollEvent('down1000', 1000);
+
+			testGrid.addEventListener('down1000', function(e) {
+				console.log('we are 1000px or less from the bottom!');
+			}, false);
+
+			testGrid.addScrollEvent('up1000', 1000, false);
+
+			testGrid.addEventListener('up1000', function(e) {
+				console.log('we are 1000px or less from the top!');
+			}, false);
 		});
 	</script>
 </head>

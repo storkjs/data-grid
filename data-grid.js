@@ -25,8 +25,10 @@
 		this.dataWrapperElm = null;
 		this.dataElm = null;
 		this.selectedItems = new Map();/*ES6*/
+		this.customScrollEvents = [];
 
 		this.scrollY = 0; // will be defined upon building the dataWrapper div!
+		this.maxScrollY = 0;
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
 
@@ -67,6 +69,17 @@
 
 		/** on scroll */
 		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
+	};
+
+	/**
+	 * will add an event that will be emitted when passing the defined threshold while scrolling
+	 * @param {string} type - the name for the event
+	 * @param {number} amount
+	 * @param {boolean} [fromBottom] - relative to the bottom of the grid or else to the top of it. defaults to True
+	 */
+	storkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
+		fromBottom = fromBottom !== false;
+		this.customScrollEvents.push({type: type, amount: amount, fromBottom: fromBottom});
 	};
 
 	/**
@@ -196,6 +209,8 @@
 	 */
 	storkGrid.prototype.resizeCalculate = function resizeCalculate() {
 		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
+		this.maxScrollY = this.dataWrapperElm.scrollHeight - this.dataViewHeight;
+
 		this.numDataRowsInTable = Math.ceil(this.dataViewHeight * (1 + this.tableExtraSize) / this.rowHeight);
 		if(this.numDataRowsInTable % 2 === 1) {
 			this.numDataRowsInTable++;
@@ -331,11 +346,23 @@
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
 		var currScrollTop = this.dataWrapperElm.scrollTop;
 		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
+		var scrollEvent, i, evnt;
 
 		if(this.lastScrollDirection !== currScrollDirection
 			|| (this.lastScrollDirection === 'down' && currScrollTop >= this.nextThreshold)
 			|| (this.lastScrollDirection === 'up' && currScrollTop <= this.nextThreshold)) {
 			this.repositionTables(currScrollDirection, currScrollTop);
+		}
+
+		// custom scroll events
+		for(i=0; i < this.customScrollEvents.length; i++) {
+			scrollEvent = this.customScrollEvents[i];
+
+			if((scrollEvent.fromBottom && this.lastScrollTop < this.maxScrollY - scrollEvent.amount && currScrollTop >= this.maxScrollY - scrollEvent.amount)
+				|| (!scrollEvent.fromBottom && this.lastScrollTop > scrollEvent.amount && currScrollTop <= scrollEvent.amount)) {
+				evnt = new Event(scrollEvent.type);
+				this.grid.dispatchEvent(evnt);
+			}
 		}
 
 		this.lastScrollTop = currScrollTop;

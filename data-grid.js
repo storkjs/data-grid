@@ -202,6 +202,7 @@
 	storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
 		this.totalDataHeight = this.rowHeight * this.data.length;
 		this.dataElm.style.height = this.totalDataHeight + 'px';
+		this.maxScrollY = this.dataWrapperElm.scrollHeight - this.dataViewHeight;
 	};
 
 	/**
@@ -220,15 +221,6 @@
 		this.tableExtraPixelsForThreshold = Math.floor(this.dataTableHeight * (this.tableExtraSize / 2));
 		this.lastThreshold = this.tableExtraPixelsForThreshold;
 		this.nextThreshold = this.lastThreshold + this.dataTableHeight;
-	};
-
-	/**
-	 * refreshes the data height and viewport.
-	 * use this when grid.data has changed
-	 */
-	storkGrid.prototype.refreshData = function refreshData() {
-		this.calculateDataHeight();
-		this.onDataScroll();
 	};
 
 	/**
@@ -354,19 +346,31 @@
 			this.repositionTables(currScrollDirection, currScrollTop);
 		}
 
+		// save these variables for next script
+		var lastScrollTop = this.lastScrollTop;
+		var lastScrollDirection = this.lastScrollDirection;
+
+		// this 'onDataScroll' method ends here.
+		// next script is for events and it may invoke a call to this method again so we "finish" our code here to prevent an infinite recursion
+		this.lastScrollTop = currScrollTop;
+		this.lastScrollDirection = currScrollDirection;
+
 		// custom scroll events
 		for(i=0; i < this.customScrollEvents.length; i++) {
 			scrollEvent = this.customScrollEvents[i];
 
-			if((scrollEvent.fromBottom && this.lastScrollTop < this.maxScrollY - scrollEvent.amount && currScrollTop >= this.maxScrollY - scrollEvent.amount)
-				|| (!scrollEvent.fromBottom && this.lastScrollTop > scrollEvent.amount && currScrollTop <= scrollEvent.amount)) {
+			/*script for dispatching event once when passing through the threshold*/
+			// if((scrollEvent.fromBottom && lastScrollTop < this.maxScrollY - scrollEvent.amount && currScrollTop >= this.maxScrollY - scrollEvent.amount)
+			// 	|| (!scrollEvent.fromBottom && lastScrollTop > scrollEvent.amount && currScrollTop <= scrollEvent.amount)) {
+			// 	evnt = new Event(scrollEvent.type);
+			// 	this.grid.dispatchEvent(evnt);
+			// }
+			if((scrollEvent.fromBottom && currScrollTop >= this.maxScrollY - scrollEvent.amount)
+				|| (!scrollEvent.fromBottom && currScrollTop <= scrollEvent.amount)) {
 				evnt = new Event(scrollEvent.type);
 				this.grid.dispatchEvent(evnt);
 			}
 		}
-
-		this.lastScrollTop = currScrollTop;
-		this.lastScrollDirection = currScrollDirection;
 	};
 
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
@@ -512,9 +516,21 @@
 		tableObj.dataBlockIndex = dataBlockIndex;
 	};
 
+	/**
+	 * a method for completely calculating and rebuilding new tables when the grid's main element has changed size
+	 */
 	storkGrid.prototype.resize = function resize() {
 		this.resizeCalculate();
 		this.buildDataTables();
+		this.repositionTables(null, null, true);
+	};
+
+	/**
+	 * refreshes the data height and viewport.
+	 * use this when grid.data has changed
+	 */
+	storkGrid.prototype.refreshData = function refreshData() {
+		this.calculateDataHeight();
 		this.repositionTables(null, null, true);
 	};
 

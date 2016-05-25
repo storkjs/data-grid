@@ -34,10 +34,13 @@ var loadBulk = (function() {
 		var bulkData = allData.slice(amountFetched, amountFetched + amount);
 		amountFetched += amount;
 
-		if(prepend) {
-			window.bigData = bulkData.concat(window.bigData);
-		} else {
-			window.bigData = window.bigData.concat(bulkData);
+		var i, spliceCounter=0;
+		for(i=0; i < bulkData.length; i++) {
+			if (prepend) {
+				window.bigData.splice(spliceCounter++, 0, bulkData[i]);
+			} else {
+				window.bigData.push(bulkData[i]);
+			}
 		}
 	};
 })();

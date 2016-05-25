@@ -27,7 +27,7 @@
 
 	<script src="data.js"></script>
 	<script>
-		loadBulk(999);
+		loadBulk(100);
 
 		var testGrid;
 		document.addEventListener("DOMContentLoaded", function(e) {
@@ -55,16 +55,24 @@
 				console.log(e.detail);
 			}, false);
 
-			testGrid.addScrollEvent('down1000', 1000);
+			testGrid.addScrollEvent('almostHitBottom', 100);
 
-			testGrid.addEventListener('down1000', function(e) {
-				console.log('we are 1000px or less from the bottom!');
+			testGrid.addEventListener('almostHitBottom', function(e) {
+				var dataLength = testGrid.data.length;
+				loadBulk(40);
+				if(testGrid.data.length > dataLength) {
+					testGrid.refreshData();
+				}
 			}, false);
 
-			testGrid.addScrollEvent('up1000', 1000, false);
-
-			testGrid.addEventListener('up1000', function(e) {
-				console.log('we are 1000px or less from the top!');
+			testGrid.addScrollEvent('almostHitTop', 100, false);
+			testGrid.addEventListener('almostHitTop', function(e) {
+				var dataLength = testGrid.data.length;
+				loadBulk(40, true);
+				if(testGrid.data.length > dataLength) {
+					testGrid.scrollY += 1200;
+					testGrid.refreshData();
+				}
 			}, false);
 		});
 	</script>

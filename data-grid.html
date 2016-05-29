@@ -39,7 +39,7 @@
 		var testGrid;
 		document.addEventListener("DOMContentLoaded", function(e) {
 			document.getElementById('grid').addEventListener('grid-loaded', function(e) {
-				e.detail.gridObj.scrollY += 400;
+				e.detail.gridObj.scrollY += 500;
 			}, { capture: false });
 
 			testGrid = new storkGrid({
@@ -52,10 +52,10 @@
 					type: 'row'
 				},
 				columns: [
-					{ dataName: 'id', displayName: 'ID', width: 46 },
+					{ dataName: 'id', displayName: 'ID', width: 46, fixed: true },
 					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
-					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: false },
-					{ dataName: 'hai', displayName: 'Hai', width: 70, fixed: false },
+					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: true },
+					{ dataName: 'hai', displayName: 'Hai', width: 70, fixed: true },
 					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
 					{ dataName: 'domem', displayName: 'Domem', width: 75 },
 					{ dataName: 'yeled', displayName: 'Yeled', width: 80 },
@@ -66,7 +66,7 @@
 				minColumnWidth: 90,
 				trackBy: 'eretz',
 				onload: function(e) { // another way to add onLoad listener
-					e.detail.gridObj.scrollY += 5000;
+					e.detail.gridObj.scrollY += 2000;
 				}
 			});
 
@@ -84,14 +84,14 @@
 			}, false);
 
 			testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
-			testGrid.addEventListener('almostHitTop', function(e) {
-				var dataLength = testGrid.data.length;
-				loadBulk(40, true);
-				if(testGrid.data.length > dataLength) {
-					testGrid.scrollY += 1200;
-					testGrid.refreshData();
-				}
-			}, false);
+//			testGrid.addEventListener('almostHitTop', function(e) {
+//				var dataLength = testGrid.data.length;
+//				loadBulk(40, true);
+//				if(testGrid.data.length > dataLength) {
+//					testGrid.scrollY += 1200;
+//					testGrid.refreshData();
+//				}
+//			}, false);
 		});
 	</script>
 </head>

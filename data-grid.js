@@ -26,7 +26,7 @@
 		this.dataTables = []; // will hold both data-tables elements and child elements and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
-		this.headerTable = null;
+		this.headerTable = null; // loose table, not fixed/static
 		this.selectedItems = new Map();/*ES6*/
 		this.customScrollEvents = [];
 
@@ -34,11 +34,12 @@
 		this.maxScrollY = 0;
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
-		this.lastScrollLeft = 0;
 
 		this.lastThreshold = 0;
 		this.nextThreshold = 0;
 
+		this.totalDataWidthFixed = 0;
+		this.totalDataWidthLoose = 0;
 		this.totalDataHeight = 0;
 		this.dataViewHeight = 0;
 		this.dataTableHeight = 0;
@@ -110,6 +111,9 @@
 	 * populated 'width' property for all columns
 	 */
 	storkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
+		this.totalDataWidthLoose = 0;
+		this.totalDataWidthFixed = 0;
+
 		for(var i=0; i < this.columns.length; i++) {
 			if(!this.columns[i].width) {
 				if(this.columns[i].minWidth) {
@@ -117,6 +121,12 @@
 				} else {
 					this.columns[i].width = this.minColumnWidth;
 				}
+			}
+
+			if(this.columns[i].fixed) {
+				this.totalDataWidthFixed += this.columns[i].width;
+			} else {
+				this.totalDataWidthLoose += this.columns[i].width;
 			}
 		}
 	};
@@ -136,8 +146,6 @@
 		var html = '.stork-grid'+this.rnd+' div.header, .stork-grid'+this.rnd+' div.header > table tr { height: ' + this.headerHeight + 'px; }';
 		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
 
-		var totalWidth = 0;
-
 		for(var i=0; i < this.columns.length; i++) {
 			if(!this.columns[i].width) {
 				if(this.columns[i].minWidth) {
@@ -146,12 +154,11 @@
 					this.columns[i].width = this.minColumnWidth;
 				}
 			}
-			totalWidth += this.columns[i].width;
 			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + this.columns[i].width + 'px; }';
 		}
 
-		html += '.stork-grid'+this.rnd+' div.header > table.static { width: ' + totalWidth + 'px; }';
-		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + totalWidth + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table.loose { width: ' + this.totalDataWidthLoose + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
 
 		style.innerHTML = html;
 	};
@@ -188,7 +195,7 @@
 
 			table = document.createElement('table');
 			table.id = 'grid'+this.rnd+'_headerTable';
-			table.classList.add('static');
+			table.classList.add('loose');
 			this.headerTable = table;
 
 			tableFixed = document.createElement('table');
@@ -237,6 +244,7 @@
 		tableFixed.appendChild(colgroupFixed);
 		tableFixed.appendChild(theadFixed);
 
+		table.style.marginLeft = this.totalDataWidthFixed + 'px';
 		thead.appendChild(tr);
 		table.appendChild(colgroup);
 		table.appendChild(thead);
@@ -308,39 +316,56 @@
 	 * builds two completely new <table> for the data
 	 */
 	storkGrid.prototype.buildDataTables = function buildDataTables() {
-		var table, tbody, tr, td, i, j, colgroup, col;
+		var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, i, j, colgroup, colgroupFixed, col;
 
 		for(var counter=0; counter < 2; counter++) { // counter for number of blocks
 			table = document.getElementById('grid' + this.rnd + '_dataTable' + counter);
+			tableFixed = document.getElementById('grid' + this.rnd + '_dataTable_fixed' + counter);
+
 			if(!table) {
+				tableFixed = document.createElement('table');
+				tableFixed.id = 'grid' + this.rnd + '_dataTable_fixed' + counter;
+				tableFixed.classList.add('fixed');
+
 				table = document.createElement('table');
 				table.id = 'grid' + this.rnd + '_dataTable' + counter;
-				table.classList.add('static');
+				table.classList.add('loose');
+
+				this.dataElm.appendChild(tableFixed);
 				this.dataElm.appendChild(table);
 			}
 
+			while(tableFixed.firstChild) {
+				tableFixed.removeChild(tableFixed.firstChild);
+			}
 			while(table.firstChild) {
 				table.removeChild(table.firstChild);
 			}
 
 			this.dataTables[counter] = {
 				table: table,
+				tableFixed: tableFixed,
 				dataBlockIndex: null,
 				rows: []
 			};
 
 			tbody = document.createElement('tbody');
+			tbodyFixed = document.createElement('tbody');
 			colgroup = document.createElement('colgroup');
+			colgroupFixed = document.createElement('colgroup');
 
 			for(i=0; i < this.numDataRowsInTable; i++) {
 				tr = document.createElement('tr');
+				trFixed = document.createElement('tr');
 				tr.storkGridProps = { // our custom object on the DOM object
 					dataIndex: null,
 					selected: false
 				};
+				trFixed.storkGridProps = tr.storkGridProps;
 
 				this.dataTables[counter].rows[i] = {
 					row: tr,
+					rowFixed: trFixed,
 					tds: []
 				};
 
@@ -352,17 +377,33 @@
 					};
 
 					this.dataTables[counter].rows[i].tds.push(td);
-					tr.appendChild(td);
+					if(this.columns[j].fixed) {
+						trFixed.appendChild(td);
+					} else {
+						tr.appendChild(td);
+					}
 
 					if(i === 0) { // add cols to colgroup only once
 						col = document.createElement('col');
 						col.classList.add('col-'+this.columns[j].dataName);
-						colgroup.appendChild(col);
+
+						if(this.columns[j].fixed) {
+							colgroupFixed.appendChild(col);
+						} else {
+							colgroup.appendChild(col);
+						}
 					}
 				}
+
+				tbodyFixed.appendChild(trFixed);
 				tbody.appendChild(tr);
 			}
 
+			tableFixed.style.top = (this.dataTableHeight * counter) + 'px';
+			tableFixed.appendChild(colgroupFixed);
+			tableFixed.appendChild(tbodyFixed);
+
+			table.style.marginLeft = this.totalDataWidthFixed + 'px';
 			table.style.top = (this.dataTableHeight * counter) + 'px';
 			table.appendChild(colgroup);
 			table.appendChild(tbody);
@@ -376,7 +417,7 @@
 	 * @param [forceUpdateViewData] - forces updating dom elements even if scroll hasn't passed to the next data block
 	 */
 	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
-		var topTableIndex, topTable, bottomTableIndex, bottomTable;
+		var topTableIndex, topTable, topTableFixed, bottomTableIndex, bottomTable, bottomTableFixed;
 		currScrollTop = currScrollTop || this.scrollY;
 		currScrollDirection = currScrollDirection || 'down';
 		forceUpdateViewData = forceUpdateViewData || false;
@@ -384,12 +425,14 @@
 
 		topTableIndex = currDataBlock % 2;
 		topTable = this.dataTables[topTableIndex].table;
+		topTableFixed = this.dataTables[topTableIndex].tableFixed;
 		bottomTableIndex = (currDataBlock + 1) % 2;
 		bottomTable = this.dataTables[bottomTableIndex].table;
+		bottomTableFixed = this.dataTables[bottomTableIndex].tableFixed;
 
 		if(currScrollDirection === 'down') {
-			topTable.style.top = (currDataBlock * this.dataTableHeight) + 'px';
-			bottomTable.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
+			topTable.style.top = topTableFixed.style.top = (currDataBlock * this.dataTableHeight) + 'px';
+			bottomTable.style.top = bottomTableFixed.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
 
 			this.lastThreshold = currDataBlock * this.dataTableHeight + this.tableExtraPixelsForThreshold;
 			if(currScrollTop >= this.lastThreshold) {
@@ -401,8 +444,8 @@
 			}
 		}
 		else if(currScrollDirection === 'up') {
-			topTable.style.top = (currDataBlock * this.dataTableHeight) + 'px';
-			bottomTable.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
+			topTable.style.top = topTableFixed.style.top = (currDataBlock * this.dataTableHeight) + 'px';
+			bottomTable.style.top = bottomTableFixed.style.top = ((currDataBlock + 1) * this.dataTableHeight) + 'px';
 
 			this.lastThreshold = (currDataBlock + 1) * this.dataTableHeight + this.tableExtraPixelsForThreshold;
 			if(currScrollTop <= this.lastThreshold) {
@@ -482,6 +525,8 @@
 	 */
 	storkGrid.prototype.onScrollX = function onScrollX(e) {
 		this.headerTable.style.left = -this.dataWrapperElm.scrollLeft + 'px';
+		this.dataTables[0].tableFixed.style.left = this.dataWrapperElm.scrollLeft + 'px';
+		this.dataTables[1].tableFixed.style.left = this.dataWrapperElm.scrollLeft + 'px';
 	};
 
 	/**
@@ -591,14 +636,16 @@
 				if (this.selectedItems.has(trackByData)) {
 					selectedItem = this.selectedItems.get(trackByData);
 					rowObj.row.classList.add('selected');
-					rowObj.row.storkGridProps.selected = true;
+					rowObj.rowFixed.classList.add('selected');
+					rowObj.row.storkGridProps.selected = true; // storkGridProps is a referenced object between fixed and loose dom elements
 				}
 				else {
 					selectedItem = null;
 
 					if (rowObj.row.storkGridProps.selected) {
 						rowObj.row.classList.remove('selected');
-						rowObj.row.storkGridProps.selected = false;
+						rowObj.rowFixed.classList.remove('selected');
+						rowObj.row.storkGridProps.selected = false; // storkGridProps is a referenced object between fixed and loose dom elements
 					}
 				}
 

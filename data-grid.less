@@ -7,7 +7,6 @@
 	/* all tables */
 	table {
 		border-collapse: collapse;
-		width: 100%;
 		table-layout: fixed;
 
 		th, td {
@@ -18,32 +17,35 @@
 	/* /all tables */
 
 	/* header table */
-	table.header {
+	div.header {
+		position: relative;
 		width: 100%;
-		cursor: pointer;
+		overflow: hidden;
+		background-color: #b6d0dd;
 
-		-webkit-touch-callout: none; /* iOS Safari */
-		-webkit-user-select: none;   /* Chrome/Safari/Opera */
-		-moz-user-select: none;      /* Firefox */
-		-ms-user-select: none;       /* Internet Explorer/Edge */
-		user-select: none;
+		> table {
+			position: absolute;
+			top: 0;
+			left: 0;
+			cursor: pointer;
 
-		tr {
-			background-color: #b6d0dd;
+			-webkit-touch-callout: none; /* iOS Safari */
+			-webkit-user-select: none;   /* Chrome/Safari/Opera */
+			-moz-user-select: none;      /* Firefox */
+			-ms-user-select: none;       /* Internet Explorer/Edge */
+			user-select: none;
 
-			th {
-				border-left: 1px solid #a0a0a0;
-				border-collapse: collapse;
-				padding: 4px;
+			tr {
+				background-color: #b6d0dd;
 
-				&:first-child {
-					border-left-width: 0;
-				}
+				th {
+					border-left: 1px solid #a0a0a0;
+					border-collapse: collapse;
+					padding: 4px;
 
-				&.scrollbar-offset {
-					border-left-width: 0;
-					padding: 0;
-					width: 15px;
+					&:first-child {
+						border-left-width: 0;
+					}
 				}
 			}
 		}

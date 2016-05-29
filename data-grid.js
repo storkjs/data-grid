@@ -11,7 +11,7 @@
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
 		this.columns = options.columns || [];
-		this.minColumnWidth = options.minColumnWidth || 40;
+		this.minColumnWidth = options.minColumnWidth || 50;
 		this.trackBy = options.trackBy || null;
 		this.onload = options.onload || null;
 
@@ -26,6 +26,7 @@
 		this.dataTables = []; // will hold both data-tables elements and child elements and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
+		this.headerTable = null;
 		this.selectedItems = new Map();/*ES6*/
 		this.customScrollEvents = [];
 
@@ -33,6 +34,7 @@
 		this.maxScrollY = 0;
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
+		this.lastScrollLeft = 0;
 
 		this.lastThreshold = 0;
 		this.nextThreshold = 0;
@@ -42,16 +44,20 @@
 		this.dataTableHeight = 0;
 		this.numDataRowsInTable = 0;
 
-		// if user didn't define columns and column names then let's try and fetch names from the keys of the first data object
+		/** if user didn't define columns and column names then let's try and fetch names from the keys of the first data object */
 		if(this.columns.length === 0 && this.data.length > 0) {
 			var columnName;
 			for(var key in this.data[0]) {
-				columnName = key.replace(/[-_]/, ' ');
-				// capitalize first letter of each word
-				columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-				this.columns.push({ dataName: key, displayName: columnName });
+				if(this.data[0].hasOwnProperty(key)) {
+					columnName = key.replace(/[-_]/, ' ');
+					// capitalize first letter of each word
+					columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+					this.columns.push({ dataName: key, displayName: columnName });
+				}
 			}
 		}
+		/** determine column widths */
+		this.calculateColumnsWidths();
 
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
@@ -101,6 +107,21 @@
 	};
 
 	/**
+	 * populated 'width' property for all columns
+	 */
+	storkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
+		for(var i=0; i < this.columns.length; i++) {
+			if(!this.columns[i].width) {
+				if(this.columns[i].minWidth) {
+					this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth);
+				} else {
+					this.columns[i].width = this.minColumnWidth;
+				}
+			}
+		}
+	};
+
+	/**
 	 * makes or updates the css rule for the heights of the header rows and data rows
 	 */
 	storkGrid.prototype.makeCssRules = function makeCssRules() {
@@ -112,17 +133,24 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		var html = '.stork-grid'+this.rnd+' table.header tr { height: ' + this.headerHeight + 'px; }' +
-			'.stork-grid'+this.rnd+' table.body tr { height: ' + this.rowHeight + 'px; }';
+		var html = '.stork-grid'+this.rnd+' div.header, .stork-grid'+this.rnd+' div.header > table tr { height: ' + this.headerHeight + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
 
-		var colWidth, totalWidth = 0;
+		var totalWidth = 0;
 
 		for(var i=0; i < this.columns.length; i++) {
-			colWidth = this.columns[i].width || this.minColumnWidth;
-			totalWidth += colWidth;
-			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + colWidth + 'px; }';
+			if(!this.columns[i].width) {
+				if(this.columns[i].minWidth) {
+					this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth);
+				} else {
+					this.columns[i].width = this.minColumnWidth;
+				}
+			}
+			totalWidth += this.columns[i].width;
+			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + this.columns[i].width + 'px; }';
 		}
 
+		html += '.stork-grid'+this.rnd+' div.header > table.static { width: ' + totalWidth + 'px; }';
 		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + totalWidth + 'px; }';
 
 		style.innerHTML = html;
@@ -143,46 +171,71 @@
 	 */
 	storkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
 		this.headerHeight = num;
-		this.makeHeightRule();
+		this.makeCssRules();
 	};
 
 	/**
 	 * builds the header table for the column names
 	 */
 	storkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
-		var table = document.getElementById('grid'+this.rnd+'_header');
+		var table = document.getElementById('grid'+this.rnd+'_headerTable');
+		var tableFixed = document.getElementById('grid'+this.rnd+'_headerTable_fixed');
+		var i;
+
 		if(!table) {
+			var headerDiv = document.createElement('div');
+			headerDiv.classList.add('header');
+
 			table = document.createElement('table');
-			table.id = 'grid'+this.rnd+'_header';
-			table.classList.add('header');
-			this.grid.appendChild(table);
+			table.id = 'grid'+this.rnd+'_headerTable';
+			table.classList.add('static');
+			this.headerTable = table;
+
+			tableFixed = document.createElement('table');
+			tableFixed.id = 'grid'+this.rnd+'_headerTable_fixed';
+			tableFixed.classList.add('fixed');
+
+			headerDiv.appendChild(tableFixed);
+			headerDiv.appendChild(table);
+			this.grid.appendChild(headerDiv);
 		}
 
 		while(table.firstChild) {
 			table.removeChild(table.firstChild);
 		}
+		while(tableFixed.firstChild) {
+			tableFixed.removeChild(tableFixed.firstChild);
+		}
 
 		var colgroup = document.createElement('colgroup');
+		var colgroupFixed = document.createElement('colgroup');
 		var col;
 
 		var thead = document.createElement('thead');
+		var theadFixed = document.createElement('thead');
 		var tr = document.createElement('tr');
+		var trFixed = document.createElement('tr');
 		var th;
 
-		for(var i=0; i < this.columns.length; i++) {
+		for(i=0; i < this.columns.length; i++) {
 			col = document.createElement('col');
 			col.classList.add('col-'+this.columns[i].dataName);
-			colgroup.appendChild(col);
 
 			th = document.createElement('th');
 			th.appendChild(document.createTextNode(this.columns[i].displayName));
-			tr.appendChild(th);
+
+			if(this.columns[i].fixed) {
+				colgroupFixed.appendChild(col);
+				trFixed.appendChild(th);
+			} else {
+				colgroup.appendChild(col);
+				tr.appendChild(th);
+			}
 		}
 
-		// extra th for offseting the scrollbar area
-		th = document.createElement('th');
-		th.classList.add('scrollbar-offset');
-		tr.appendChild(th);
+		theadFixed.appendChild(trFixed);
+		tableFixed.appendChild(colgroupFixed);
+		tableFixed.appendChild(theadFixed);
 
 		thead.appendChild(tr);
 		table.appendChild(colgroup);
@@ -195,7 +248,7 @@
 	storkGrid.prototype.initDataView = function initDataView() {
 		this.dataWrapperElm = document.createElement('div');
 		this.dataWrapperElm.classList.add('data-wrapper');
-		this.dataWrapperElm.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
+		this.dataWrapperElm.style.height = 'calc(100% - ' + (this.headerHeight - 2) + 'px)';
 
 		this.dataElm = document.createElement('div');
 		this.dataElm.classList.add('data');
@@ -262,7 +315,7 @@
 			if(!table) {
 				table = document.createElement('table');
 				table.id = 'grid' + this.rnd + '_dataTable' + counter;
-				table.classList.add('body');
+				table.classList.add('static');
 				this.dataElm.appendChild(table);
 			}
 
@@ -376,6 +429,16 @@
 	 * @param e
 	 */
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
+		this.onScrollY(e); // vertical
+
+		this.onScrollX(e); // horizontal
+	};
+
+	/**
+	 * when scrolling vertically on Y axis
+	 * @param e
+	 */
+	storkGrid.prototype.onScrollY = function onScrollY(e) {
 		var currScrollTop = this.dataWrapperElm.scrollTop;
 		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
 		var scrollEvent, i, evnt;
@@ -387,10 +450,10 @@
 		}
 
 		// save these variables for next script
-		var lastScrollTop = this.lastScrollTop;
-		var lastScrollDirection = this.lastScrollDirection;
+		// var lastScrollTop = this.lastScrollTop;
+		// var lastScrollDirection = this.lastScrollDirection;
 
-		// this 'onDataScroll' method ends here.
+		// this 'onScrollY' method ends here.
 		// next script is for events and it may invoke a call to this method again so we "finish" our code here to prevent an infinite recursion
 		this.lastScrollTop = currScrollTop;
 		this.lastScrollDirection = currScrollDirection;
@@ -411,6 +474,14 @@
 				this.grid.dispatchEvent(evnt);
 			}
 		}
+	};
+
+	/**
+	 * when scrolling horizontally on X axis
+	 * @param e
+	 */
+	storkGrid.prototype.onScrollX = function onScrollX(e) {
+		this.headerTable.style.left = -this.dataWrapperElm.scrollLeft + 'px';
 	};
 
 	/**

@@ -34,7 +34,7 @@
 
 	<script src="data.js"></script>
 	<script>
-		loadBulk(100);
+		loadBulk(1000);
 
 		var testGrid;
 		document.addEventListener("DOMContentLoaded", function(e) {
@@ -52,17 +52,21 @@
 					type: 'row'
 				},
 				columns: [
-//					 { dataName: 'id', displayName: 'ID', width: 20 },
-//					 { dataName: 'eretz', displayName: 'Eretz', width: 80 },
-//					 { dataName: 'eer', displayName: 'Eer', width: 85 },
-//					 { dataName: 'hai', displayName: 'Hai', width: 70 },
-//					 { dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
-//					 { dataName: 'domem', displayName: 'Domem', width: 80 }
+					{ dataName: 'id', displayName: 'ID', width: 46 },
+					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
+					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: false },
+					{ dataName: 'hai', displayName: 'Hai', width: 70, fixed: false },
+					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
+					{ dataName: 'domem', displayName: 'Domem', width: 75 },
+					{ dataName: 'yeled', displayName: 'Yeled', width: 80 },
+					{ dataName: 'yalda', displayName: 'Yalda', width: 80 },
+					{ dataName: 'reg-amount', displayName: 'Reg Amount', width: 80 },
+					{ dataName: 'other_amount', displayName: 'Other Amount', width: 80 }
 				],
 				minColumnWidth: 90,
 				trackBy: 'eretz',
 				onload: function(e) { // another way to add onLoad listener
-					e.detail.gridObj.scrollY += 500;
+					e.detail.gridObj.scrollY += 5000;
 				}
 			});
 

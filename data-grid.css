@@ -12,7 +12,6 @@
 }
 .stork-grid table {
   border-collapse: collapse;
-  width: 100%;
   table-layout: fixed;
 }
 .stork-grid table th,
@@ -20,8 +19,16 @@
   border-spacing: 0;
   border-collapse: collapse;
 }
-.stork-grid table.header {
+.stork-grid div.header {
+  position: relative;
   width: 100%;
+  overflow: hidden;
+  background-color: #b6d0dd;
+}
+.stork-grid div.header > table {
+  position: absolute;
+  top: 0;
+  left: 0;
   cursor: pointer;
   -webkit-touch-callout: none;
   /* iOS Safari */
@@ -33,21 +40,16 @@
   /* Internet Explorer/Edge */
   user-select: none;
 }
-.stork-grid table.header tr {
+.stork-grid div.header > table tr {
   background-color: #b6d0dd;
 }
-.stork-grid table.header tr th {
+.stork-grid div.header > table tr th {
   border-left: 1px solid #a0a0a0;
   border-collapse: collapse;
   padding: 4px;
 }
-.stork-grid table.header tr th:first-child {
+.stork-grid div.header > table tr th:first-child {
   border-left-width: 0;
-}
-.stork-grid table.header tr th.scrollbar-offset {
-  border-left-width: 0;
-  padding: 0;
-  width: 15px;
 }
 .stork-grid div.data-wrapper {
   width: 100%;

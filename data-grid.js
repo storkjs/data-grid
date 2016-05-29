@@ -11,7 +11,9 @@
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
 		this.columns = options.columns || [];
+		this.minColumnWidth = options.minColumnWidth || 40;
 		this.trackBy = options.trackBy || null;
+		this.onload = options.onload || null;
 
 		this.selection = {};
 		options.selection = options.selection || {};
@@ -54,9 +56,6 @@
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
 
-		/** add css rules */
-		this.makeHeightRule();
-
 		/** init HEADER table */
 		this.makeHeaderTable();
 
@@ -67,8 +66,17 @@
 		this.updateViewData(0, 0);
 		this.updateViewData(1, 1);
 
+		/** add css rules */
+		this.makeCssRules();
+
 		/** on scroll */
 		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
+
+		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
+		if(this.onload) {
+			this.onload(evnt);
+		}
+		this.grid.dispatchEvent(evnt);
 	};
 
 	/**
@@ -95,7 +103,7 @@
 	/**
 	 * makes or updates the css rule for the heights of the header rows and data rows
 	 */
-	storkGrid.prototype.makeHeightRule = function makeHeightRule() {
+	storkGrid.prototype.makeCssRules = function makeCssRules() {
 		var style = document.getElementById('grid'+this.rnd+'_style');
 		if(!style) {
 			style = document.createElement('style');
@@ -104,8 +112,20 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		style.innerHTML = '.stork-grid'+this.rnd+' table.header tr { height: ' + this.headerHeight + 'px; }' +
+		var html = '.stork-grid'+this.rnd+' table.header tr { height: ' + this.headerHeight + 'px; }' +
 			'.stork-grid'+this.rnd+' table.body tr { height: ' + this.rowHeight + 'px; }';
+
+		var colWidth, totalWidth = 0;
+
+		for(var i=0; i < this.columns.length; i++) {
+			colWidth = this.columns[i].width || this.minColumnWidth;
+			totalWidth += colWidth;
+			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + colWidth + 'px; }';
+		}
+
+		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + totalWidth + 'px; }';
+
+		style.innerHTML = html;
 	};
 
 	/**
@@ -142,11 +162,18 @@
 			table.removeChild(table.firstChild);
 		}
 
+		var colgroup = document.createElement('colgroup');
+		var col;
+
 		var thead = document.createElement('thead');
 		var tr = document.createElement('tr');
 		var th;
 
 		for(var i=0; i < this.columns.length; i++) {
+			col = document.createElement('col');
+			col.classList.add('col-'+this.columns[i].dataName);
+			colgroup.appendChild(col);
+
 			th = document.createElement('th');
 			th.appendChild(document.createTextNode(this.columns[i].displayName));
 			tr.appendChild(th);
@@ -158,6 +185,7 @@
 		tr.appendChild(th);
 
 		thead.appendChild(tr);
+		table.appendChild(colgroup);
 		table.appendChild(thead);
 	};
 
@@ -227,7 +255,7 @@
 	 * builds two completely new <table> for the data
 	 */
 	storkGrid.prototype.buildDataTables = function buildDataTables() {
-		var table, tbody, tr, td, i, j;
+		var table, tbody, tr, td, i, j, colgroup, col;
 
 		for(var counter=0; counter < 2; counter++) { // counter for number of blocks
 			table = document.getElementById('grid' + this.rnd + '_dataTable' + counter);
@@ -249,6 +277,7 @@
 			};
 
 			tbody = document.createElement('tbody');
+			colgroup = document.createElement('colgroup');
 
 			for(i=0; i < this.numDataRowsInTable; i++) {
 				tr = document.createElement('tr');
@@ -271,11 +300,18 @@
 
 					this.dataTables[counter].rows[i].tds.push(td);
 					tr.appendChild(td);
+
+					if(i === 0) { // add cols to colgroup only once
+						col = document.createElement('col');
+						col.classList.add('col-'+this.columns[j].dataName);
+						colgroup.appendChild(col);
+					}
 				}
 				tbody.appendChild(tr);
 			}
 
 			table.style.top = (this.dataTableHeight * counter) + 'px';
+			table.appendChild(colgroup);
 			table.appendChild(tbody);
 		}
 	};
@@ -335,6 +371,10 @@
 		}
 	};
 
+	/**
+	 * the onscroll handler when scrolling
+	 * @param e
+	 */
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
 		var currScrollTop = this.dataWrapperElm.scrollTop;
 		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
@@ -367,12 +407,16 @@
 			// }
 			if((scrollEvent.fromBottom && currScrollTop >= this.maxScrollY - scrollEvent.amount)
 				|| (!scrollEvent.fromBottom && currScrollTop <= scrollEvent.amount)) {
-				evnt = new Event(scrollEvent.type);
+				evnt = new Event(scrollEvent.type, { bubbles: true, cancelable: true });
 				this.grid.dispatchEvent(evnt);
 			}
 		}
 	};
 
+	/**
+	 * the onclick handler when clicking on the data viewport
+	 * @param e
+	 */
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
 		var TD = e.target,
 			i = 0,
@@ -427,7 +471,7 @@
 				this.selectedItems.set(trackByData, [selectedCellColumn]);
 			}
 
-			var evnt = new CustomEvent('select', {detail:
+			var evnt = new CustomEvent('select', { bubbles: true, cancelable: true, detail:
 				{
 					/* this primitive values will help us get the selected row's data by using `this.data[dataIndex]`
 					 * and getting the selected cell's data by using `this.data[dataIndex][column]`
@@ -435,7 +479,7 @@
 					column: selectedCellColumn,
 					dataIndex: dataIndex
 				}
-			});
+			} );
 			this.grid.dispatchEvent(evnt);
 		}
 		else {
@@ -446,6 +490,11 @@
 		this.repositionTables(null, null, true);
 	};
 
+	/**
+	 * updates the data inside one of the tables according to the given data-block-index
+	 * @param tableIndex
+	 * @param dataBlockIndex
+	 */
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
 			dataKeyName, dataIndex, i, selectedItem, trackByData;

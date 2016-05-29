@@ -19,8 +19,15 @@
 			align-items: center;
 			justify-content: center;
 		}
+		#parentDiv {
+			height: 100%;
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 		#grid {
-			width: 90%;
+			width: 30%;
 			height: 90%;
 		}
 	</style>
@@ -31,6 +38,10 @@
 
 		var testGrid;
 		document.addEventListener("DOMContentLoaded", function(e) {
+			document.getElementById('grid').addEventListener('grid-loaded', function(e) {
+				e.detail.gridObj.scrollY += 400;
+			}, { capture: false });
+
 			testGrid = new storkGrid({
 				element: document.getElementById('grid'),
 				data: window.bigData,
@@ -48,15 +59,18 @@
 //					 { dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
 //					 { dataName: 'domem', displayName: 'Domem', width: 80 }
 				],
-				trackBy: 'eretz'
+				minColumnWidth: 90,
+				trackBy: 'eretz',
+				onload: function(e) { // another way to add onLoad listener
+					e.detail.gridObj.scrollY += 500;
+				}
 			});
 
 			testGrid.addEventListener('select', function(e) {
 				console.log(e.detail);
 			}, false);
 
-			testGrid.addScrollEvent('almostHitBottom', 100);
-
+			testGrid.addScrollEvent('almostHitBottom', 100); // when to emit
 			testGrid.addEventListener('almostHitBottom', function(e) {
 				var dataLength = testGrid.data.length;
 				loadBulk(40);
@@ -65,7 +79,7 @@
 				}
 			}, false);
 
-			testGrid.addScrollEvent('almostHitTop', 100, false);
+			testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
 			testGrid.addEventListener('almostHitTop', function(e) {
 				var dataLength = testGrid.data.length;
 				loadBulk(40, true);
@@ -78,5 +92,7 @@
 	</script>
 </head>
 <body>
-<div id="grid"></div>
+<div id="parentDiv">
+	<div id="grid"></div>
+</div>
 </body>

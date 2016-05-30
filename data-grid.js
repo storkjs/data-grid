@@ -670,15 +670,20 @@
 		}
 
 		for(i=0; i < this.headerTable.ths.length; i++) {
+			if(this.headerTable.ths[i] === TH) {
+				continue;
+			}
 			this.headerTable.ths[i].classList.remove('ascending');
 			this.headerTable.ths[i].classList.remove('descending');
 			this.headerTable.ths[i].storkGridProps.sortState = null;
 		}
 
 		if(TH.storkGridProps.sortState === 'ascending') {
+			TH.classList.remove('ascending');
 			TH.classList.add('descending');
 			TH.storkGridProps.sortState = 'descending';
 		} else if(TH.storkGridProps.sortState === 'descending') {
+			TH.classList.remove('descending');
 			TH.storkGridProps.sortState = null;
 		} else {
 			TH.classList.add('ascending');

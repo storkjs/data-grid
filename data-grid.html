@@ -51,7 +51,7 @@
 					multi: false,
 					type: 'row'
 				},
-				columns: [
+				/*columns: [
 					{ dataName: 'id', displayName: 'ID', width: 46, fixed: true },
 					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
 					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: true },
@@ -62,6 +62,12 @@
 					{ dataName: 'yalda', displayName: 'Yalda', width: 80 },
 					{ dataName: 'reg-amount', displayName: 'Reg Amount', width: 80 },
 					{ dataName: 'other_amount', displayName: 'Other Amount', width: 80 }
+				],*/
+				columns: [
+					{ dataName: 'id', displayName: 'ID', width: 46 },
+					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
+					{ dataName: 'eer', displayName: 'Eer', minWidth: 75 },
+					{ dataName: 'hai', displayName: 'Hai' }
 				],
 				minColumnWidth: 90,
 				trackBy: 'eretz',

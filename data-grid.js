@@ -23,10 +23,11 @@
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
-		this.dataTables = []; // will hold both data-tables elements and child elements and some properties
+		this.headerElm = null;
+		this.headerTables = { loose: null, fixed: null }; // will hold loose table and fixed (static) table
+		this.dataTables = []; // will hold top and bottom data-tables (as objects) and within it its elements and children and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
-		this.headerTable = null; // loose table, not fixed/static
 		this.selectedItems = new Map();/*ES6*/
 		this.customScrollEvents = [];
 
@@ -34,6 +35,7 @@
 		this.maxScrollY = 0;
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
+		this.lastScrollLeft = 0;
 
 		this.lastThreshold = 0;
 		this.nextThreshold = 0;
@@ -68,6 +70,10 @@
 
 		/** handle data rows blocks */
 		this.initDataView();
+
+		/** onClick events */
+		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
+		this.headerElm.addEventListener('click', this.onHeaderClick.bind(this));
 
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
@@ -192,15 +198,17 @@
 		if(!table) {
 			var headerDiv = document.createElement('div');
 			headerDiv.classList.add('header');
+			this.headerElm = headerDiv;
 
 			table = document.createElement('table');
 			table.id = 'grid'+this.rnd+'_headerTable';
 			table.classList.add('loose');
-			this.headerTable = table;
+			this.headerTables.loose = table;
 
 			tableFixed = document.createElement('table');
 			tableFixed.id = 'grid'+this.rnd+'_headerTable_fixed';
 			tableFixed.classList.add('fixed');
+			this.headerTables.fixed = tableFixed;
 
 			headerDiv.appendChild(tableFixed);
 			headerDiv.appendChild(table);
@@ -265,8 +273,6 @@
 
 		this.dataWrapperElm.appendChild(this.dataElm);
 		this.grid.appendChild(this.dataWrapperElm);
-
-		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
 
 		var self = this;
 		Object.defineProperty(self, 'scrollY', {
@@ -472,17 +478,25 @@
 	 * @param e
 	 */
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
-		this.onScrollY(e); // vertical
+		var currScrollTop = e.target.scrollTop;
+		// trigger only when scroll vertically
+		if(currScrollTop !== this.lastScrollTop
+			|| (currScrollTop === 0 && this.lastScrollTop === 0)/*fixes a bug for infinite scroll up*/) {
+			this.onScrollY(currScrollTop); // vertical
+		}
 
-		this.onScrollX(e); // horizontal
+		var currScrollLeft = e.target.scrollLeft;
+		// trigger only when scroll horizontally
+		if(currScrollLeft !== this.lastScrollLeft) {
+			this.onScrollX(currScrollLeft); // horizontal
+		}
 	};
 
 	/**
 	 * when scrolling vertically on Y axis
-	 * @param e
+	 * @param currScrollTop
 	 */
-	storkGrid.prototype.onScrollY = function onScrollY(e) {
-		var currScrollTop = this.dataWrapperElm.scrollTop;
+	storkGrid.prototype.onScrollY = function onScrollY(currScrollTop) {
 		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
 		var scrollEvent, i, evnt;
 
@@ -511,6 +525,7 @@
 			// 	evnt = new Event(scrollEvent.type);
 			// 	this.grid.dispatchEvent(evnt);
 			// }
+			/*script for dispatching event whenever we are beyond the threshold*/
 			if((scrollEvent.fromBottom && currScrollTop >= this.maxScrollY - scrollEvent.amount)
 				|| (!scrollEvent.fromBottom && currScrollTop <= scrollEvent.amount)) {
 				evnt = new Event(scrollEvent.type, { bubbles: true, cancelable: true });
@@ -521,21 +536,36 @@
 
 	/**
 	 * when scrolling horizontally on X axis
-	 * @param e
+	 * @param currScrollLeft
 	 */
-	storkGrid.prototype.onScrollX = function onScrollX(e) {
-		this.headerTable.style.left = -this.dataWrapperElm.scrollLeft + 'px';
-		this.dataTables[0].tableFixed.style.left = this.dataWrapperElm.scrollLeft + 'px';
-		this.dataTables[1].tableFixed.style.left = this.dataWrapperElm.scrollLeft + 'px';
+	storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
+		this.headerTables.loose.style.left = -currScrollLeft + 'px';
+		this.dataTables[0].tableFixed.style.left = currScrollLeft + 'px';
+		this.dataTables[1].tableFixed.style.left = currScrollLeft + 'px';
+
+		if(this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
+			this.dataTables[0].tableFixed.classList.add('covering');
+			this.dataTables[1].tableFixed.classList.add('covering');
+			this.headerTables.fixed.classList.add('covering');
+		}
+		else if(currScrollLeft < 5 && this.lastScrollLeft >= 5) {
+			this.dataTables[0].tableFixed.classList.remove('covering');
+			this.dataTables[1].tableFixed.classList.remove('covering');
+			this.headerTables.fixed.classList.remove('covering');
+		}
+
+		this.lastScrollLeft = currScrollLeft;
 	};
 
 	/**
 	 * the onclick handler when clicking on the data viewport
 	 * @param e
 	 */
+	var lastClickTime = 0;
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
 		var TD = e.target,
 			i = 0,
+			eventName = 'select',
 			dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
 
 		while(TD.tagName.toUpperCase() !== 'TD') {
@@ -551,59 +581,86 @@
 		selectedCellColumn = TD.storkGridProps.column;
 
 		if(dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
-			if (this.trackBy) { // tracking by a specific column data
-				trackByData = this.data[dataIndex][this.trackBy];
-			} else { // tracking by the whole row's data object
-				trackByData = this.data[dataIndex];
-			}
-
-			// when not on multi select clear previous selection, unless re-selecting the same row
-			// which we should let the next code unselect it
-			if(!this.selection.multi && !this.selectedItems.has(trackByData)) {
-				this.selectedItems.clear();
-			}
-
-			if(this.selectedItems.has(trackByData)) {
-				if(this.selection.type === 'row') {
-					this.selectedItems.delete(trackByData); // unselect row
+			// should emit a double-click-select?
+			var now = Date.now();
+			if(now - lastClickTime > 300) {
+				if (this.trackBy) { // tracking by a specific column data
+					trackByData = this.data[dataIndex][this.trackBy];
+				} else { // tracking by the whole row's data object
+					trackByData = this.data[dataIndex];
 				}
-				else {
-					selectedItem = this.selectedItems.get(trackByData);
 
-					var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
-					if(indexOfColumn === -1) {
-						selectedItem.push(selectedCellColumn);
+				// when not on multi select clear previous selection, unless re-selecting the same row
+				// which we should let the next code unselect it
+				if(!this.selection.multi && !this.selectedItems.has(trackByData)) {
+					this.selectedItems.clear();
+				}
+
+				if(this.selectedItems.has(trackByData)) {
+					if(this.selection.type === 'row') {
+						this.selectedItems.delete(trackByData); // unselect row
 					}
 					else {
-						selectedItem.splice(indexOfColumn, 1); // unselect cell
+						selectedItem = this.selectedItems.get(trackByData);
 
-						if(selectedItem.length === 0) {
-							this.selectedItems.delete(trackByData); // unselect row
+						var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
+						if(indexOfColumn === -1) {
+							selectedItem.push(selectedCellColumn);
+						}
+						else {
+							selectedItem.splice(indexOfColumn, 1); // unselect cell
+
+							if(selectedItem.length === 0) {
+								this.selectedItems.delete(trackByData); // unselect row
+							}
 						}
 					}
 				}
+				else {
+					this.selectedItems.set(trackByData, [selectedCellColumn]);
+				}
+
+				this.repositionTables(null, null, true);
 			}
-			else {
-				this.selectedItems.set(trackByData, [selectedCellColumn]);
+			else { // it's a double click
+				eventName = 'dblselect';
 			}
 
-			var evnt = new CustomEvent('select', { bubbles: true, cancelable: true, detail:
-				{
-					/* this primitive values will help us get the selected row's data by using `this.data[dataIndex]`
-					 * and getting the selected cell's data by using `this.data[dataIndex][column]`
-					 */
-					column: selectedCellColumn,
-					dataIndex: dataIndex
+			lastClickTime = now;
+
+			var evnt = new CustomEvent(eventName, {
+				bubbles: true,
+				cancelable: true,
+				detail: {
+					dataIndex: dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
+					column: selectedCellColumn /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
 				}
-			} );
+			});
 			this.grid.dispatchEvent(evnt);
 		}
 		else {
 			this.selectedItems.clear();
 			console.warn('selected row is not pointing to a valid data');
+			this.repositionTables(null, null, true);
+		}
+	};
+
+	/**
+	 *
+	 * @param e
+	 */
+	storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
+		var TH = e.target,
+			i = 0;
+
+		while(TH.tagName.toUpperCase() !== 'TH') {
+			if(i++ >= 2) {
+				return; // user clicked on something that is too far from our table-cell
+			}
+			TH = TH.parentNode;
 		}
 
-		this.repositionTables(null, null, true);
+		console.log(TH);
 	};
 
 	/**

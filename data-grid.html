@@ -55,7 +55,7 @@
 					{ dataName: 'id', displayName: 'ID', width: 46, fixed: true },
 					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
 					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: true },
-					{ dataName: 'hai', displayName: 'Hai', width: 70, fixed: true },
+					{ dataName: 'hai', displayName: 'Hai', width: 70 },
 					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
 					{ dataName: 'domem', displayName: 'Domem', width: 75 },
 					{ dataName: 'yeled', displayName: 'Yeled', width: 80 },
@@ -71,7 +71,10 @@
 			});
 
 			testGrid.addEventListener('select', function(e) {
-				console.log(e.detail);
+				console.log('select: ', e.detail);
+			}, false);
+			testGrid.addEventListener('dblselect', function(e) {
+				console.log('double select: ', e.detail);
 			}, false);
 
 			testGrid.addScrollEvent('almostHitBottom', 100); // when to emit
@@ -84,14 +87,14 @@
 			}, false);
 
 			testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
-//			testGrid.addEventListener('almostHitTop', function(e) {
-//				var dataLength = testGrid.data.length;
-//				loadBulk(40, true);
-//				if(testGrid.data.length > dataLength) {
-//					testGrid.scrollY += 1200;
-//					testGrid.refreshData();
-//				}
-//			}, false);
+			testGrid.addEventListener('almostHitTop', function(e) {
+				var dataLength = testGrid.data.length;
+				loadBulk(40, true);
+				if(testGrid.data.length > dataLength) {
+					testGrid.scrollY += 1200;
+					testGrid.refreshData();
+				}
+			}, false);
 		});
 	</script>
 </head>

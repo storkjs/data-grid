@@ -14,6 +14,9 @@
   border-collapse: collapse;
   table-layout: fixed;
 }
+.stork-grid table.fixed.covering {
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
+}
 .stork-grid table th,
 .stork-grid table td {
   border-spacing: 0;

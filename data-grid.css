@@ -51,6 +51,12 @@
   border-collapse: collapse;
   padding: 4px;
 }
+.stork-grid div.header > table tr th.ascending::after {
+  content: " ↓";
+}
+.stork-grid div.header > table tr th.descending::after {
+  content: " ↑";
+}
 .stork-grid div.header > table.fixed {
   z-index: 2;
 }

@@ -95,6 +95,10 @@
 					testGrid.refreshData();
 				}
 			}, false);
+
+			testGrid.addEventListener('sort', function(e) {
+				console.log(e.detail);
+			}, false);
 		});
 	</script>
 </head>

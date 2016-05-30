@@ -23,8 +23,12 @@
 		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
-		this.headerElm = null;
-		this.headerTables = { loose: null, fixed: null }; // will hold loose table and fixed (static) table
+		this.headerTable = {
+			wrapper: null,
+			loose: null,
+			fixed: null,
+			ths: []
+		};
 		this.dataTables = []; // will hold top and bottom data-tables (as objects) and within it its elements and children and some properties
 		this.dataWrapperElm = null;
 		this.dataElm = null;
@@ -73,7 +77,7 @@
 
 		/** onClick events */
 		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
-		this.headerElm.addEventListener('click', this.onHeaderClick.bind(this));
+		this.headerTable.wrapper.addEventListener('click', this.onHeaderClick.bind(this));
 
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
@@ -198,17 +202,17 @@
 		if(!table) {
 			var headerDiv = document.createElement('div');
 			headerDiv.classList.add('header');
-			this.headerElm = headerDiv;
+			this.headerTable.wrapper = headerDiv;
 
 			table = document.createElement('table');
 			table.id = 'grid'+this.rnd+'_headerTable';
 			table.classList.add('loose');
-			this.headerTables.loose = table;
+			this.headerTable.loose = table;
 
 			tableFixed = document.createElement('table');
 			tableFixed.id = 'grid'+this.rnd+'_headerTable_fixed';
 			tableFixed.classList.add('fixed');
-			this.headerTables.fixed = tableFixed;
+			this.headerTable.fixed = tableFixed;
 
 			headerDiv.appendChild(tableFixed);
 			headerDiv.appendChild(table);
@@ -238,6 +242,11 @@
 
 			th = document.createElement('th');
 			th.appendChild(document.createTextNode(this.columns[i].displayName));
+			th.storkGridProps = {
+				column: this.columns[i].dataName,
+				sortState: null
+			};
+			this.headerTable.ths.push(th);
 
 			if(this.columns[i].fixed) {
 				colgroupFixed.appendChild(col);
@@ -539,19 +548,19 @@
 	 * @param currScrollLeft
 	 */
 	storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
-		this.headerTables.loose.style.left = -currScrollLeft + 'px';
+		this.headerTable.loose.style.left = -currScrollLeft + 'px';
 		this.dataTables[0].tableFixed.style.left = currScrollLeft + 'px';
 		this.dataTables[1].tableFixed.style.left = currScrollLeft + 'px';
 
 		if(this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
 			this.dataTables[0].tableFixed.classList.add('covering');
 			this.dataTables[1].tableFixed.classList.add('covering');
-			this.headerTables.fixed.classList.add('covering');
+			this.headerTable.fixed.classList.add('covering');
 		}
 		else if(currScrollLeft < 5 && this.lastScrollLeft >= 5) {
 			this.dataTables[0].tableFixed.classList.remove('covering');
 			this.dataTables[1].tableFixed.classList.remove('covering');
-			this.headerTables.fixed.classList.remove('covering');
+			this.headerTable.fixed.classList.remove('covering');
 		}
 
 		this.lastScrollLeft = currScrollLeft;
@@ -646,7 +655,7 @@
 	};
 
 	/**
-	 *
+	 * handler for when clicking a column header to sort it
 	 * @param e
 	 */
 	storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
@@ -660,7 +669,30 @@
 			TH = TH.parentNode;
 		}
 
-		console.log(TH);
+		for(i=0; i < this.headerTable.ths.length; i++) {
+			this.headerTable.ths[i].classList.remove('ascending');
+			this.headerTable.ths[i].classList.remove('descending');
+		}
+
+		if(TH.storkGridProps.sortState === 'ascending') {
+			TH.classList.add('descending');
+			TH.storkGridProps.sortState = 'descending';
+		} else if(TH.storkGridProps.sortState === 'descending') {
+			TH.storkGridProps.sortState = null;
+		} else {
+			TH.classList.add('ascending');
+			TH.storkGridProps.sortState = 'ascending';
+		}
+
+		var evnt = new CustomEvent('sort', {
+			bubbles: true,
+			cancelable: true,
+			detail: {
+				column: TH.storkGridProps.column,
+				state: TH.storkGridProps.sortState
+			}
+		});
+		this.grid.dispatchEvent(evnt);
 	};
 
 	/**

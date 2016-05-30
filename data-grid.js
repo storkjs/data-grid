@@ -672,6 +672,7 @@
 		for(i=0; i < this.headerTable.ths.length; i++) {
 			this.headerTable.ths[i].classList.remove('ascending');
 			this.headerTable.ths[i].classList.remove('descending');
+			this.headerTable.ths[i].storkGridProps.sortState = null;
 		}
 
 		if(TH.storkGridProps.sortState === 'ascending') {

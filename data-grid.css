@@ -43,42 +43,52 @@
   /* Internet Explorer/Edge */
   user-select: none;
 }
-.stork-grid div.header > table tr {
+.stork-grid div.header > table.columns tr {
   background-color: #b6d0dd;
 }
-.stork-grid div.header > table tr th {
+.stork-grid div.header > table.columns tr th {
   border-right: 1px solid #a0a0a0;
   border-collapse: collapse;
   padding: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.stork-grid div.header > table tr th.ascending::after {
+.stork-grid div.header > table.columns tr th.ascending::after {
   content: " ↓";
 }
-.stork-grid div.header > table tr th.descending::after {
+.stork-grid div.header > table.columns tr th.descending::after {
   content: " ↑";
 }
-.stork-grid div.header > table.fixed {
+.stork-grid div.header > table.columns.fixed {
   z-index: 2;
 }
-.stork-grid div.header > table.loose {
+.stork-grid div.header > table.columns.loose {
   z-index: 1;
 }
-.stork-grid div.header > table.loose tr th:last-child {
+.stork-grid div.header > table.columns.loose tr th:last-child {
   border-right-width: 0;
 }
-.stork-grid div.header > table.column-resizers td {
+.stork-grid div.header > table.resizers {
+  pointer-events: none;
+}
+.stork-grid div.header > table.resizers.fixed {
+  z-index: 4;
+}
+.stork-grid div.header > table.resizers.loose {
+  z-index: 3;
+}
+.stork-grid div.header > table.resizers td {
   position: relative;
 }
-.stork-grid div.header > table.column-resizers td > a {
+.stork-grid div.header > table.resizers td > a {
+  pointer-events: auto;
   position: absolute;
   top: 0;
   width: 4px;
   z-index: 3;
   cursor: col-resize;
 }
-.stork-grid div.header > table.column-resizers td > a.dragging {
+.stork-grid div.header > table.resizers td > a.dragging {
   background-color: #a0a0a0;
   border: 1px dotted #b6d0dd;
   border-top-width: 0;

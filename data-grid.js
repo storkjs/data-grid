@@ -28,6 +28,8 @@
 			wrapper: null,
 			loose: null,
 			fixed: null,
+			resizer_loose: null,
+			resizer_fixed: null,
 			ths: []
 		};
 		this.dataTables = []; // will hold top and bottom data-tables (as objects) and within it its elements and children and some properties
@@ -94,16 +96,16 @@
 		this.updateViewData(0, 0);
 		this.updateViewData(1, 1);
 
+		/** add column resizing buttons */
+		if(this.resizableColumns) {
+			this.makeColumnsResizable();
+		}
+
 		/** determine column widths */
 		this.calculateColumnsWidths();
 
 		/** add css rules */
 		this.makeCssRules();
-
-		/** add column resizing buttons */
-		if(this.resizableColumns) {
-			this.makeColumnsResizable();
-		}
 
 		/** on scroll */
 		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
@@ -198,7 +200,7 @@
 
 		var html = '.stork-grid'+this.rnd+' div.header,' +
 			'.stork-grid'+this.rnd+' div.header > table tr,' +
-			'.stork-grid'+this.rnd+' div.header > table.column-resizers a { height: ' + this.headerHeight + 'px; }';
+			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + this.headerHeight + 'px; }';
 		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
@@ -212,13 +214,13 @@
 			'.stork-grid'+this.rnd+' div.data-wrapper > div.data > table.fixed { width: ' + this.totalDataWidthFixed + 'px; }';
 
 		// force a 'width' for the data div so it will overflow and trigger a horizontal scrollbar
-		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data,' +
-			'.stork-grid'+this.rnd+' div.header > table.column-resizers { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
 
 		style.innerHTML = html;
 
 		/** extra styles */
 		this.headerTable.loose.style.marginLeft = this.totalDataWidthFixed + 'px';
+		this.headerTable.resizer_loose.style.marginLeft = this.totalDataWidthFixed + 'px';
 		this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 		this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 	};
@@ -257,11 +259,13 @@
 			table = document.createElement('table');
 			table.id = 'grid'+this.rnd+'_headerTable';
 			table.classList.add('loose');
+			table.classList.add('columns');
 			this.headerTable.loose = table;
 
 			tableFixed = document.createElement('table');
 			tableFixed.id = 'grid'+this.rnd+'_headerTable_fixed';
 			tableFixed.classList.add('fixed');
+			tableFixed.classList.add('columns');
 			this.headerTable.fixed = tableFixed;
 
 			headerDiv.appendChild(tableFixed);
@@ -608,6 +612,7 @@
 	 */
 	storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
 		this.headerTable.loose.style.left = -currScrollLeft + 'px';
+		this.headerTable.resizer_loose.style.left = -currScrollLeft + 'px';
 		this.dataTables[0].tableFixed.style.left = currScrollLeft + 'px';
 		this.dataTables[1].tableFixed.style.left = currScrollLeft + 'px';
 
@@ -842,34 +847,57 @@
 	 */
 	storkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
 		var colResizers = document.getElementById('grid'+this.rnd+'_columnResizers');
-		var resizer, i, tbody, tr, td, colgroup, col;
+		var colResizersFixed = document.getElementById('grid'+this.rnd+'_columnResizers_fixed');
+		var resizer, i, tbody, tr, trFixed, td,
+			colgroup, colgroupFixed, col;
 
 		if(!colResizers) {
 			colResizers = document.createElement('table');
 			colResizers.id = 'grid'+this.rnd+'_columnResizers';
-			colResizers.classList.add('column-resizers');
+			colResizers.classList.add('loose');
+			colResizers.classList.add('resizers');
+			this.headerTable.resizer_loose = colResizers;
+
+			colResizersFixed = document.createElement('table');
+			colResizersFixed.id = 'grid'+this.rnd+'_columnResizers_fixed';
+			colResizersFixed.classList.add('fixed');
+			colResizersFixed.classList.add('resizers');
+			this.headerTable.resizer_fixed = colResizersFixed;
 
 			colgroup = document.createElement('colgroup');
-
 			tbody = document.createElement('tbody');
 			tr = document.createElement('tr');
 
-			colResizers.appendChild(colgroup);
-
 			tbody.appendChild(tr);
+			colResizers.appendChild(colgroup);
 			colResizers.appendChild(tbody);
-			this.headerTable.wrapper.appendChild(colResizers);
+			this.headerTable.wrapper.insertBefore(colResizers, this.headerTable.wrapper.firstChild);
 
-			col = document.createElement('span'); // tmp
+			colgroupFixed = document.createElement('colgroup');
+			tbody = document.createElement('tbody');
+			trFixed = document.createElement('tr');
+
+			tbody.appendChild(trFixed);
+			colResizersFixed.appendChild(colgroupFixed);
+			colResizersFixed.appendChild(tbody);
+			this.headerTable.wrapper.insertBefore(colResizersFixed, this.headerTable.wrapper.firstChild);
+
+			col = document.createElement('span'); // temporarily use of 'col' var
 			col.id = 'grid'+this.rnd+'_dragPlaceholder';
 			this.headerTable.wrapper.appendChild(col);
 		}
 		else {
 			colgroup = colResizers.querySelector('colgroup');
+			colgroupFixed = colResizersFixed.querySelector('colgroup');
+
 			tr = colResizers.querySelector('tr');
+			trFixed = colResizersFixed.querySelector('tr');
 
 			while(tr.firstChild) {
 				tr.removeChild(tr.firstChild);
+			}
+			while(trFixed.firstChild) {
+				trFixed.removeChild(trFixed.firstChild);
 			}
 		}
 
@@ -889,9 +917,14 @@
 			this.setResizeByDragging(resizer, this.columns[i]);
 
 			td.appendChild(resizer);
-			tr.appendChild(td);
-
-			colgroup.appendChild(col);
+			if(this.columns[i].fixed) {
+				trFixed.appendChild(td);
+				colgroupFixed.appendChild(col);
+			}
+			else {
+				tr.appendChild(td);
+				colgroup.appendChild(col);
+			}
 		}
 	};
 

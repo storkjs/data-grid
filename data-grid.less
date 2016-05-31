@@ -39,40 +39,52 @@
 			-ms-user-select: none;       /* Internet Explorer/Edge */
 			user-select: none;
 
-			tr {
-				background-color: #b6d0dd;
+			&.columns {
+				tr {
+					background-color: #b6d0dd;
 
-				th {
-					border-right: 1px solid #a0a0a0;
-					border-collapse: collapse;
-					padding: 4px;
-					overflow: hidden;
-					text-overflow: ellipsis;
+					th {
+						border-right: 1px solid #a0a0a0;
+						border-collapse: collapse;
+						padding: 4px;
+						overflow: hidden;
+						text-overflow: ellipsis;
 
-					&.ascending::after {
-						content: " ↓";
+						&.ascending::after {
+							content: " ↓";
+						}
+						&.descending::after {
+							content: " ↑";
+						}
 					}
-					&.descending::after {
-						content: " ↑";
+				}
+
+				&.fixed {
+					z-index: 2;
+				}
+				&.loose {
+					z-index: 1;
+					tr th:last-child {
+						border-right-width: 0;
 					}
 				}
 			}
 
-			&.fixed {
-				z-index: 2;
-			}
-			&.loose {
-				z-index: 1;
-				tr th:last-child {
-					border-right-width: 0;
-				}
-			}
+			&.resizers {
+				pointer-events: none;
 
-			&.column-resizers {
+				&.fixed {
+					z-index: 4;
+				}
+				&.loose {
+					z-index: 3;
+				}
+
 				td {
 					position: relative;
 
 					> a {
+						pointer-events: auto;
 						position: absolute;
 						top: 0;
 						width: 4px;

@@ -12,6 +12,7 @@
 		this.headerHeight = options.headerHeight || this.rowHeight;
 		this.columns = options.columns || [];
 		this.minColumnWidth = options.minColumnWidth || 50;
+		this.resizableColumns = options.resizableColumns || true;
 		this.trackBy = options.trackBy || null;
 		this.onload = options.onload || null;
 
@@ -63,6 +64,18 @@
 				}
 			}
 		}
+		else { // sort columns by 'fixed' first
+			var fixedColumns = [], looseColumns = [], i;
+			for(i=0; i < this.columns.length; i++) {
+				if(this.columns[i].fixed) {
+					fixedColumns.push(this.columns[i]);
+				} else {
+					looseColumns.push(this.columns[i]);
+				}
+			}
+
+			this.columns = fixedColumns.concat(looseColumns);
+		}
 
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
@@ -86,6 +99,11 @@
 
 		/** add css rules */
 		this.makeCssRules();
+
+		/** add column resizing buttons */
+		if(this.resizableColumns) {
+			this.makeColumnsResizable();
+		}
 
 		/** on scroll */
 		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
@@ -178,7 +196,9 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		var html = '.stork-grid'+this.rnd+' div.header, .stork-grid'+this.rnd+' div.header > table tr { height: ' + this.headerHeight + 'px; }';
+		var html = '.stork-grid'+this.rnd+' div.header,' +
+			'.stork-grid'+this.rnd+' div.header > table tr,' +
+			'.stork-grid'+this.rnd+' div.header > table.column-resizers a { height: ' + this.headerHeight + 'px; }';
 		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
@@ -186,11 +206,14 @@
 		}
 
 		// when table-layout is 'fixed' then the tables must have a 'width' style
-		html += '.stork-grid'+this.rnd+' div.header > table.loose, .stork-grid'+this.rnd+' div.data-wrapper > div.data > table.loose { width: ' + this.totalDataWidthLoose + 'px; }';
-		html += '.stork-grid'+this.rnd+' div.header > table.fixed, .stork-grid'+this.rnd+' div.data-wrapper > div.data > table.fixed { width: ' + this.totalDataWidthFixed + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table.loose,' +
+			'.stork-grid'+this.rnd+' div.data-wrapper > div.data > table.loose { width: ' + this.totalDataWidthLoose + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table.fixed,' +
+			'.stork-grid'+this.rnd+' div.data-wrapper > div.data > table.fixed { width: ' + this.totalDataWidthFixed + 'px; }';
 
 		// force a 'width' for the data div so it will overflow and trigger a horizontal scrollbar
-		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data,' +
+			'.stork-grid'+this.rnd+' div.header > table.column-resizers { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
 
 		style.innerHTML = html;
 
@@ -245,12 +268,13 @@
 			headerDiv.appendChild(table);
 			this.grid.appendChild(headerDiv);
 		}
-
-		while(table.firstChild) {
-			table.removeChild(table.firstChild);
-		}
-		while(tableFixed.firstChild) {
-			tableFixed.removeChild(tableFixed.firstChild);
+		else {
+			while(table.firstChild) {
+				table.removeChild(table.firstChild);
+			}
+			while(tableFixed.firstChild) {
+				tableFixed.removeChild(tableFixed.firstChild);
+			}
 		}
 
 		var colgroup = document.createElement('colgroup');
@@ -811,6 +835,102 @@
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;
+	};
+
+	/**
+	 * add dragable elements to resize the columns + emit events
+	 */
+	storkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
+		var colResizers = document.getElementById('grid'+this.rnd+'_columnResizers');
+		var resizer, i, tbody, tr, td, colgroup, col;
+
+		if(!colResizers) {
+			colResizers = document.createElement('table');
+			colResizers.id = 'grid'+this.rnd+'_columnResizers';
+			colResizers.classList.add('column-resizers');
+
+			colgroup = document.createElement('colgroup');
+
+			tbody = document.createElement('tbody');
+			tr = document.createElement('tr');
+
+			colResizers.appendChild(colgroup);
+
+			tbody.appendChild(tr);
+			colResizers.appendChild(tbody);
+			this.headerTable.wrapper.appendChild(colResizers);
+
+			col = document.createElement('span'); // tmp
+			col.id = 'grid'+this.rnd+'_dragPlaceholder';
+			this.headerTable.wrapper.appendChild(col);
+		}
+		else {
+			colgroup = colResizers.querySelector('colgroup');
+			tr = colResizers.querySelector('tr');
+
+			while(tr.firstChild) {
+				tr.removeChild(tr.firstChild);
+			}
+		}
+
+		for(i=0; i < this.columns.length; i++) {
+			col = document.createElement('col');
+			col.classList.add('col-'+this.columns[i].dataName);
+
+			td = document.createElement('td');
+
+			resizer = document.createElement('a');
+			resizer.style.right = '-2px';
+			resizer.setAttribute('draggable', 'true');
+			resizer.storkGridProps = {
+				dragStartX: 0
+			};
+
+			this.setResizeByDragging(resizer, this.columns[i]);
+
+			td.appendChild(resizer);
+			tr.appendChild(td);
+
+			colgroup.appendChild(col);
+		}
+	};
+
+	/**
+	 * sets the dragging events for the resizing element
+	 * @param {HTMLElement} elm
+	 * @param {Object} columnObj
+	 */
+	storkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm, columnObj) {
+		var self = this;
+
+		elm.addEventListener('dragstart', function(e) {
+			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
+			elm.storkGridProps.dragStartX = e.screenX;
+			elm.classList.add('dragging');
+		});
+		elm.addEventListener('drag', function(e) {
+			if(e.screenX !== 0) { // fixes annoying bug when ending drag
+				var delta = e.screenX - elm.storkGridProps.dragStartX;
+				var newColumnWidth = columnObj.width + delta;
+				var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
+
+				if(newColumnWidth < minWidth) {
+					delta = minWidth - columnObj.width;
+				}
+
+				elm.style.right = (-2 - delta) + 'px';
+			}
+		});
+		elm.addEventListener('dragend', function(e) {
+			elm.classList.remove('dragging');
+			elm.style.right = '-2px';
+			var delta = e.screenX - elm.storkGridProps.dragStartX;
+
+			columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
+
+			self.calculateColumnsWidths();
+			self.makeCssRules();
+		});
 	};
 
 	/**

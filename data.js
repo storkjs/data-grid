@@ -22,7 +22,7 @@ for(i=0; i < 10000; i++) {
 	tmp[ window.columnNames[6] ] = boy[ i % boy.length ];
 	tmp[ window.columnNames[7] ] = girl[ i % girl.length ];
 	tmp[ window.columnNames[8] ] = Math.ceil(Math.random() * 999999) / 100;
-	tmp[ window.columnNames[9] ] = Math.ceil(Math.random() * 9999);
+	tmp[ window.columnNames[9] ] = Math.ceil(Math.random() * 99);
 	allData.push(tmp);
 }
 

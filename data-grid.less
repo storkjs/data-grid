@@ -67,6 +67,27 @@
 					border-right-width: 0;
 				}
 			}
+
+			&.column-resizers {
+				td {
+					position: relative;
+
+					> a {
+						position: absolute;
+						top: 0;
+						width: 4px;
+						z-index: 3;
+						cursor: col-resize;
+
+						&.dragging {
+							background-color: #a0a0a0;
+							border: 1px dotted #b6d0dd;
+							border-top-width: 0;
+							border-bottom-width: 0;
+						}
+					}
+				}
+			}
 		}
 	}
 	/* /header table */

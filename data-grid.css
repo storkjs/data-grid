@@ -68,6 +68,22 @@
 .stork-grid div.header > table.loose tr th:last-child {
   border-right-width: 0;
 }
+.stork-grid div.header > table.column-resizers td {
+  position: relative;
+}
+.stork-grid div.header > table.column-resizers td > a {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  z-index: 3;
+  cursor: col-resize;
+}
+.stork-grid div.header > table.column-resizers td > a.dragging {
+  background-color: #a0a0a0;
+  border: 1px dotted #b6d0dd;
+  border-top-width: 0;
+  border-bottom-width: 0;
+}
 .stork-grid div.data-wrapper {
   width: 100%;
   overflow: auto;

@@ -59,12 +59,10 @@
 					columnName = key.replace(/[-_]/, ' ');
 					// capitalize first letter of each word
 					columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-					this.columns.push({ dataName: key, displayName: columnName });
+					this.columns.push({ dataName: key, displayName: columnName, width: 0, minWidth: 0, fixed: false });
 				}
 			}
 		}
-		/** determine column widths */
-		this.calculateColumnsWidths();
 
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
@@ -82,6 +80,9 @@
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
 		this.updateViewData(1, 1);
+
+		/** determine column widths */
+		this.calculateColumnsWidths();
 
 		/** add css rules */
 		this.makeCssRules();
@@ -124,12 +125,36 @@
 		this.totalDataWidthLoose = 0;
 		this.totalDataWidthFixed = 0;
 
-		for(var i=0; i < this.columns.length; i++) {
-			if(!this.columns[i].width) {
-				if(this.columns[i].minWidth) {
-					this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth);
-				} else {
-					this.columns[i].width = this.minColumnWidth;
+		var userDefinedWidth = 0,
+			numColumnsNotDefined = 0,
+			i, availableWidth, availableWidthPerColumn, roundedPixels;
+
+		for(i=0; i < this.columns.length; i++) {
+			this.columns[i].width = this.columns[i].width || 0;
+			this.columns[i].minWidth = this.columns[i].minWidth || 0;
+
+			if(this.columns[i].width) {
+				// user has set an initial width but let's make sure it's not smaller than the allowed minimum
+				this.columns[i].width = Math.max(this.columns[i].width, this.columns[i].minWidth, this.minColumnWidth);
+
+				userDefinedWidth += this.columns[i].width;
+			}
+			else {
+				numColumnsNotDefined++;
+			}
+		}
+
+		availableWidth = this.dataWrapperElm.clientWidth - userDefinedWidth;
+		availableWidthPerColumn = Math.floor(availableWidth / numColumnsNotDefined);
+		roundedPixels = availableWidth % numColumnsNotDefined;
+
+		for(i=0; i < this.columns.length; i++) {
+			if(!this.columns[i].width) { // user didn't set any initial width so let's choose the largest minimum or fill the empty space of the wrapper if there is any
+				this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth, availableWidthPerColumn);
+
+				if(roundedPixels && this.columns[i].width === availableWidthPerColumn) {
+					this.columns[i].width += roundedPixels;
+					roundedPixels = 0; // add the missing pixels only once - to the first element
 				}
 			}
 
@@ -157,20 +182,22 @@
 		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
-			if(!this.columns[i].width) {
-				if(this.columns[i].minWidth) {
-					this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth);
-				} else {
-					this.columns[i].width = this.minColumnWidth;
-				}
-			}
 			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + this.columns[i].width + 'px; }';
 		}
 
-		html += '.stork-grid'+this.rnd+' div.header > table.loose { width: ' + this.totalDataWidthLoose + 'px; }';
+		// when table-layout is 'fixed' then the tables must have a 'width' style
+		html += '.stork-grid'+this.rnd+' div.header > table.loose, .stork-grid'+this.rnd+' div.data-wrapper > div.data > table.loose { width: ' + this.totalDataWidthLoose + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table.fixed, .stork-grid'+this.rnd+' div.data-wrapper > div.data > table.fixed { width: ' + this.totalDataWidthFixed + 'px; }';
+
+		// force a 'width' for the data div so it will overflow and trigger a horizontal scrollbar
 		html += '.stork-grid'+this.rnd+' div.data-wrapper > div.data { width: ' + (this.totalDataWidthLoose + this.totalDataWidthFixed) + 'px; }';
 
 		style.innerHTML = html;
+
+		/** extra styles */
+		this.headerTable.loose.style.marginLeft = this.totalDataWidthFixed + 'px';
+		this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + 'px';
+		this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 	};
 
 	/**
@@ -179,7 +206,7 @@
 	 */
 	storkGrid.prototype.setRowHeight = function setRowHeight(num) {
 		this.rowHeight = num;
-		this.makeHeightRule();
+		this.makeCssRules();
 	};
 
 	/**
@@ -261,7 +288,6 @@
 		tableFixed.appendChild(colgroupFixed);
 		tableFixed.appendChild(theadFixed);
 
-		table.style.marginLeft = this.totalDataWidthFixed + 'px';
 		thead.appendChild(tr);
 		table.appendChild(colgroup);
 		table.appendChild(thead);
@@ -292,6 +318,16 @@
 			},
 			set: function(newValue) {
 				self.dataWrapperElm.scrollTop = newValue;
+			}
+		});
+		Object.defineProperty(self, 'scrollX', {
+			configurable: false,
+			enumerable: true,
+			get: function() {
+				return self.dataWrapperElm.scrollLeft || 0;
+			},
+			set: function(newValue) {
+				self.dataWrapperElm.scrollLeft = newValue;
 			}
 		});
 
@@ -418,7 +454,6 @@
 			tableFixed.appendChild(colgroupFixed);
 			tableFixed.appendChild(tbodyFixed);
 
-			table.style.marginLeft = this.totalDataWidthFixed + 'px';
 			table.style.top = (this.dataTableHeight * counter) + 'px';
 			table.appendChild(colgroup);
 			table.appendChild(tbody);

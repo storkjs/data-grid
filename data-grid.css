@@ -50,6 +50,8 @@
   border-right: 1px solid #a0a0a0;
   border-collapse: collapse;
   padding: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .stork-grid div.header > table tr th.ascending::after {
   content: " ↓";

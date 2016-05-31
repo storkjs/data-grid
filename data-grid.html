@@ -26,7 +26,7 @@
 			align-items: center;
 			justify-content: center;
 		}
-		#grid {
+		#grid, #grid2, #grid3 {
 			width: 30%;
 			height: 90%;
 		}
@@ -36,7 +36,7 @@
 	<script>
 		loadBulk(1000);
 
-		var testGrid;
+		var testGrid, testGrid2, testGrid3;
 		document.addEventListener("DOMContentLoaded", function(e) {
 			document.getElementById('grid').addEventListener('grid-loaded', function(e) {
 				e.detail.gridObj.scrollY += 500;
@@ -51,25 +51,19 @@
 					multi: false,
 					type: 'row'
 				},
-				/*columns: [
-					{ dataName: 'id', displayName: 'ID', width: 46, fixed: true },
+				columns: [
+					{ dataName: 'id', displayName: 'ID', width: 46, fixed: false },
 					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
-					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: true },
+					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: false },
 					{ dataName: 'hai', displayName: 'Hai', width: 70 },
 					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
 					{ dataName: 'domem', displayName: 'Domem', width: 75 },
-					{ dataName: 'yeled', displayName: 'Yeled', width: 80 },
-					{ dataName: 'yalda', displayName: 'Yalda', width: 80 },
+					{ dataName: 'yeled', displayName: 'Yeled' },
+					{ dataName: 'yalda', displayName: 'Yalda' },
 					{ dataName: 'reg-amount', displayName: 'Reg Amount', width: 80 },
 					{ dataName: 'other_amount', displayName: 'Other Amount', width: 80 }
-				],*/
-				columns: [
-					{ dataName: 'id', displayName: 'ID', width: 46 },
-					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
-					{ dataName: 'eer', displayName: 'Eer', minWidth: 75 },
-					{ dataName: 'hai', displayName: 'Hai' }
 				],
-				minColumnWidth: 90,
+				minColumnWidth: 50,
 				trackBy: 'eretz',
 				onload: function(e) { // another way to add onLoad listener
 					e.detail.gridObj.scrollY += 2000;
@@ -105,11 +99,60 @@
 			testGrid.addEventListener('sort', function(e) {
 				console.log(e.detail);
 			}, false);
+
+			testGrid2 = new storkGrid({
+				element: document.getElementById('grid2'),
+				data: window.bigData,
+				rowHeight: 30,
+				headerHeight: 50,
+				selection: {
+					multi: false,
+					type: 'row'
+				},
+				columns: [
+					{ dataName: 'id', displayName: 'ID', width: 46, fixed: true },
+					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
+					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: true },
+					{ dataName: 'hai', displayName: 'Hai', width: 70 },
+					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 80 },
+					{ dataName: 'domem', displayName: 'Domem', width: 75 },
+					{ dataName: 'yeled', displayName: 'Yeled', width: 100 },
+					{ dataName: 'yalda', displayName: 'Yalda', width: 95 },
+					{ dataName: 'reg-amount', displayName: 'Reg Amount', width: 80 },
+					{ dataName: 'other_amount', displayName: 'Other Amount', width: 80 }
+				],
+				minColumnWidth: 50,
+				onload: function(e) { // another way to add onLoad listener
+					e.detail.gridObj.scrollX += 50;
+				}
+			});
+
+			testGrid3 = new storkGrid({
+				element: document.getElementById('grid3'),
+				data: window.bigData,
+				rowHeight: 30,
+				headerHeight: 50,
+				selection: {
+					multi: false,
+					type: 'row'
+				},
+				columns: [
+					{ dataName: 'id', displayName: 'ID', width: 46, fixed: false },
+					{ dataName: 'eretz', displayName: 'Eretz', width: 80, minWidth: 70 },
+					{ dataName: 'eer', displayName: 'Eer', width: 85, minWidth: 75, fixed: false },
+					{ dataName: 'hai', displayName: 'Hai', width: 70 },
+					{ dataName: 'yeled', displayName: 'Yeled' },
+					{ dataName: 'yalda', displayName: 'Yalda' }
+				],
+				minColumnWidth: 50
+			});
 		});
 	</script>
 </head>
 <body>
 <div id="parentDiv">
 	<div id="grid"></div>
+	<div id="grid2"></div>
+	<div id="grid3"></div>
 </div>
 </body>

@@ -2,7 +2,7 @@
   "name": "storkjs-datagrid",
   "version": "1.0.0",
   "description": "worlds most efficient and smooth big data grid",
-  "license": "MIT License",
+  "license": "MIT",
   "author": {
     "name": "Noam Lin",
     "email": "noam.lin@ebs.com"

@@ -1,11 +1,15 @@
 {
   "name": "stork-grid",
   "description": "worlds most efficient and smooth big data grid",
-  "main": "dist/data-grid.min.js",
+  "private": false,
+  "main": [
+    "dist/data-grid.min.js",
+    "dist/data-grid.min.css"
+  ],
   "authors": [
     "Noam Lin <noamlin@gmail.com>"
   ],
-  "license": "MIT License",
+  "license": "MIT",
   "keywords": [
     "data",
     "grid",

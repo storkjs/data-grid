@@ -911,7 +911,8 @@
 			resizer.style.right = '-2px';
 			resizer.setAttribute('draggable', 'true');
 			resizer.storkGridProps = {
-				dragStartX: 0
+				dragStartX: 0,
+				columnIndex: i
 			};
 
 			this.setResizeByDragging(resizer, this.columns[i]);
@@ -931,10 +932,10 @@
 	/**
 	 * sets the dragging events for the resizing element
 	 * @param {HTMLElement} elm
-	 * @param {Object} columnObj
 	 */
-	storkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm, columnObj) {
+	storkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
 		var self = this;
+		var columnObj = self.columns[elm.storkGridProps.columnIndex];
 
 		elm.addEventListener('dragstart', function(e) {
 			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
@@ -963,6 +964,16 @@
 
 			self.calculateColumnsWidths();
 			self.makeCssRules();
+
+			var evnt = new CustomEvent('resize-column', {
+				bubbles: true,
+				cancelable: true,
+				detail: {
+					columnIndex: elm.storkGridProps.columnIndex,
+					width: columnObj.width
+				}
+			});
+			self.grid.dispatchEvent(evnt);
 		});
 	};
 

@@ -1,0 +1,24 @@
+{
+  "name": "stork-grid",
+  "description": "worlds most efficient and smooth big data grid",
+  "main": "dist/data-grid.min.js",
+  "authors": [
+    "Noam Lin <noamlin@gmail.com>"
+  ],
+  "license": "MIT License",
+  "keywords": [
+    "data",
+    "grid",
+    "datagrid",
+    "infinite",
+    "scroll"
+  ],
+  "homepage": "https://github.com/storkjs/data-grid",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

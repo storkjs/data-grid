@@ -12,7 +12,8 @@
 		this.headerHeight = options.headerHeight || this.rowHeight;
 		this.columns = options.columns || [];
 		this.minColumnWidth = options.minColumnWidth || 50;
-		this.resizableColumns = options.resizableColumns || true;
+		this.resizableColumns = options.resizableColumns !== false;
+		this.sortable = options.sortable !== false;
 		this.trackBy = options.trackBy || null;
 		this.onload = options.onload || null;
 
@@ -90,7 +91,9 @@
 
 		/** onClick events */
 		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
-		this.headerTable.wrapper.addEventListener('click', this.onHeaderClick.bind(this));
+		if(this.sortable) {
+			this.headerTable.wrapper.addEventListener('click', this.onHeaderClick.bind(this));
+		}
 
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
@@ -220,7 +223,9 @@
 
 		/** extra styles */
 		this.headerTable.loose.style.marginLeft = this.totalDataWidthFixed + 'px';
-		this.headerTable.resizer_loose.style.marginLeft = this.totalDataWidthFixed + 'px';
+		if(this.headerTable.resizer_loose) {
+			this.headerTable.resizer_loose.style.marginLeft = this.totalDataWidthFixed + 'px';
+		}
 		this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 		this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 	};
@@ -612,7 +617,9 @@
 	 */
 	storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
 		this.headerTable.loose.style.left = -currScrollLeft + 'px';
-		this.headerTable.resizer_loose.style.left = -currScrollLeft + 'px';
+		if(this.headerTable.resizer_loose) {
+			this.headerTable.resizer_loose.style.left = -currScrollLeft + 'px';
+		}
 		this.dataTables[0].tableFixed.style.left = currScrollLeft + 'px';
 		this.dataTables[1].tableFixed.style.left = currScrollLeft + 'px';
 

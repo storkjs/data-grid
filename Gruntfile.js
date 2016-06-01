@@ -10,7 +10,8 @@ module.exports = function(grunt) {
 					optimization: 2
 				},
 				files: {
-					"dist/data-grid.css": "src/data-grid.less" // destination file and source file
+					"dist/data-grid.css": "src/data-grid.less", // destination file and source file
+					"dist/simple-theme.css": "src/simple-theme.less" // destination file and source file
 				}
 			},
 			production: {
@@ -20,7 +21,8 @@ module.exports = function(grunt) {
 					optimization: 2
 				},
 				files: {
-					"dist/data-grid.min.css": "src/data-grid.less" // destination file and source file
+					"dist/data-grid.min.css": "src/data-grid.less", // destination file and source file
+					"dist/simple-theme.min.css": "src/simple-theme.less" // destination file and source file
 				}
 			}
 		},

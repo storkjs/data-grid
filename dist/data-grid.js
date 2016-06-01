@@ -7,7 +7,8 @@
     this.headerHeight = options.headerHeight || this.rowHeight;
     this.columns = options.columns || [];
     this.minColumnWidth = options.minColumnWidth || 50;
-    this.resizableColumns = options.resizableColumns || true;
+    this.resizableColumns = options.resizableColumns !== false;
+    this.sortable = options.sortable !== false;
     this.trackBy = options.trackBy || null;
     this.onload = options.onload || null;
     this.selection = {};
@@ -75,7 +76,9 @@
     this.makeHeaderTable();
     this.initDataView();
     this.dataWrapperElm.addEventListener("click", this.onDataClick.bind(this));
-    this.headerTable.wrapper.addEventListener("click", this.onHeaderClick.bind(this));
+    if (this.sortable) {
+      this.headerTable.wrapper.addEventListener("click", this.onHeaderClick.bind(this));
+    }
     this.updateViewData(0, 0);
     this.updateViewData(1, 1);
     if (this.resizableColumns) {
@@ -157,7 +160,9 @@
     html += ".stork-grid" + this.rnd + " div.data-wrapper > div.data { width: " + (this.totalDataWidthLoose + this.totalDataWidthFixed) + "px; }";
     style.innerHTML = html;
     this.headerTable.loose.style.marginLeft = this.totalDataWidthFixed + "px";
-    this.headerTable.resizer_loose.style.marginLeft = this.totalDataWidthFixed + "px";
+    if (this.headerTable.resizer_loose) {
+      this.headerTable.resizer_loose.style.marginLeft = this.totalDataWidthFixed + "px";
+    }
     this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + "px";
     this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + "px";
   };
@@ -429,7 +434,9 @@
   };
   storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
     this.headerTable.loose.style.left = -currScrollLeft + "px";
-    this.headerTable.resizer_loose.style.left = -currScrollLeft + "px";
+    if (this.headerTable.resizer_loose) {
+      this.headerTable.resizer_loose.style.left = -currScrollLeft + "px";
+    }
     this.dataTables[0].tableFixed.style.left = currScrollLeft + "px";
     this.dataTables[1].tableFixed.style.left = currScrollLeft + "px";
     if (this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {

@@ -2,6 +2,22 @@ module.exports = function(grunt) {
 	require('jit-grunt')(grunt);
 
 	grunt.initConfig({
+		watch: {
+			styles: {
+				files: ['src/*.less'], // which files to watch
+				tasks: ['less'],
+				options: {
+					nospawn: true
+				}
+			},
+			scripts: {
+				files: ['src/*.js'], // which files to watch
+				tasks: ['uglify'],
+				options: {
+					nospawn: true
+				}
+			}
+		},
 		less: {
 			development: {
 				options: {
@@ -23,15 +39,6 @@ module.exports = function(grunt) {
 				files: {
 					"dist/data-grid.min.css": "src/data-grid.less", // destination file and source file
 					"dist/simple-theme.min.css": "src/simple-theme.less" // destination file and source file
-				}
-			}
-		},
-		watch: {
-			styles: {
-				files: ['src/*.less'], // which files to watch
-				tasks: ['less'],
-				options: {
-					nospawn: true
 				}
 			}
 		},
@@ -65,7 +72,7 @@ module.exports = function(grunt) {
 		}
 	});
 
-	grunt.registerTask('watch-less', ['less', 'watch']);
+	grunt.registerTask('watch-files', ['watch']);
 
 	grunt.registerTask('dist', ['less', 'uglify']);
 };

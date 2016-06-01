@@ -561,11 +561,15 @@
 			|| (currScrollTop === 0 && this.lastScrollTop === 0)/*fixes a bug for infinite scroll up*/) {
 			this.onScrollY(currScrollTop); // vertical
 		}
-
-		var currScrollLeft = e.target.scrollLeft;
-		// trigger only when scroll horizontally
-		if(currScrollLeft !== this.lastScrollLeft) {
-			this.onScrollX(currScrollLeft); // horizontal
+		else {
+			// on desktop the user either scrolls vertically or horizontally.
+			// so this prevents getting the 'target.scrollLeft' value which triggers a reflow, which is a heavy operation.
+			// TODO - test what happens when scrolling both down and right (like in mobile)?
+			var currScrollLeft = e.target.scrollLeft;
+			// trigger only when scroll horizontally
+			if(currScrollLeft !== this.lastScrollLeft) {
+				this.onScrollX(currScrollLeft); // horizontal
+			}
 		}
 	};
 

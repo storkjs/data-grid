@@ -89,12 +89,22 @@
 				}
 			}, false);
 
+			var forceRefresh = false;
+			var loadedDataTO;
 			testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
 			testGrid.addEventListener('almostHitTop', function(e) {
 				var dataLength = testGrid.data.length;
-				loadBulk(40, true);
+				loadBulk(900, true);
 				if(testGrid.data.length > dataLength) {
 					testGrid.scrollY += 1200;
+					forceRefresh = true;
+					clearTimeout(loadedDataTO);
+					loadedDataTO = setTimeout(function() { forceRefresh = false; }, 500);
+				}
+
+				// will keep refreshing the view on each scroll up, for 500ms since last successful 'loadBulk'.
+				// this solves a bug when user drags the scrollbar up and the browser keeps emitting 'scrollTop=0'
+				if(forceRefresh) {
 					testGrid.refreshData();
 				}
 			}, false);

@@ -23,6 +23,7 @@
 		#parentDiv {
 			height: 100%;
 			width: 100%;
+			position: relative;
 			display: flex;
 			align-items: center;
 			justify-content: center;
@@ -31,6 +32,12 @@
 			width: 50%;
 			height: 90%;
 		}
+		button.destroy-grid, button.rearrange-cols {
+			position: absolute;
+			top: 10px;
+		}
+		button.rearrange-cols { left: 43%; }
+		button.destroy-grid { left: calc(43% + 160px); }
 	</style>
 
 	<script src="data.js"></script>
@@ -117,10 +124,30 @@
 				console.log(e.detail);
 			}, false);
 		});
+
+		var destroyGrid = function destroyGrid() {
+			if(testGrid) {
+				testGrid.destroy();
+			}
+		};
+
+		var rearrange = function rearrange() {
+			if(testGrid && testGrid.grid) {
+				testGrid.setColumns([
+					{dataName: 'eretz', displayName: 'Eretz', width: 110, minWidth: 70, fixed: true},
+					{dataName: 'reg-amount', displayName: 'Reg Amount', width: 110, fixed: true},
+					{dataName: 'other_amount', displayName: 'Other Amount', width: 110},
+					{dataName: 'eer', displayName: 'Eer', width: 115, minWidth: 75},
+					{dataName: 'id', displayName: 'ID', width: 70}
+				]);
+			}
+		};
 	</script>
 </head>
 <body>
 <div id="parentDiv">
+	<button class="destroy-grid" onclick="destroyGrid();">Destroy grid</button>
+	<button class="rearrange-cols" onclick="rearrange();">Rearrange columns</button>
 	<div id="grid"></div>
 </div>
 </body>

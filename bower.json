@@ -3,8 +3,8 @@
   "description": "worlds most efficient and smooth big data grid",
   "private": false,
   "main": [
-    "dist/data-grid.min.js",
-    "dist/data-grid.min.css"
+    "src/data-grid.js",
+    "src/data-grid.less"
   ],
   "authors": [
     "Noam Lin <noamlin@gmail.com>"

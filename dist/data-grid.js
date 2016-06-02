@@ -15,7 +15,9 @@
     options.selection = options.selection || {};
     this.selection.multi = options.selection.multi || false;
     this.selection.type = options.selection.type === "cell" ? "cell" : "row";
-    this.rnd = (Math.floor(Math.random() * 9) + 1) * 1e3 + Date.now() % 1e3;
+    if (!this.rnd) {
+      this.rnd = (Math.floor(Math.random() * 9) + 1) * 1e3 + Date.now() % 1e3;
+    }
     this.tableExtraSize = .4;
     this.tableExtraPixelsForThreshold = 0;
     this.headerTable = {
@@ -32,6 +34,7 @@
     this.selectedItems = new Map();
     this.customScrollEvents = [];
     this.scrollY = 0;
+    this.scrollX = 0;
     this.maxScrollY = 0;
     this.lastScrollTop = 0;
     this.lastScrollDirection = "static";
@@ -247,7 +250,7 @@
     this.grid.appendChild(this.dataWrapperElm);
     var self = this;
     Object.defineProperty(self, "scrollY", {
-      configurable: false,
+      configurable: true,
       enumerable: true,
       get: function() {
         return self.dataWrapperElm.scrollTop || 0;
@@ -257,7 +260,7 @@
       }
     });
     Object.defineProperty(self, "scrollX", {
-      configurable: false,
+      configurable: true,
       enumerable: true,
       get: function() {
         return self.dataWrapperElm.scrollLeft || 0;
@@ -714,6 +717,83 @@
   storkGrid.prototype.refreshData = function refreshData() {
     this.calculateDataHeight();
     this.repositionTables(null, null, true);
+  };
+  storkGrid.prototype.destroy = function destroy() {
+    var rows = this.grid.querySelectorAll("tr");
+    var cells = this.grid.querySelectorAll("th, td");
+    var i, j, k;
+    for (i = 0; i < cells.length; i++) {
+      cells[i].parentNode.removeChild(cells[i]);
+    }
+    for (i = 0; i < rows.length; i++) {
+      rows[i].parentNode.removeChild(rows[i]);
+    }
+    while (this.grid.firstChild) {
+      this.grid.removeChild(this.grid.firstChild);
+    }
+    this.grid.classList.remove("stork-grid", "stork-grid" + this.rnd);
+    delete this.grid;
+    delete this.data;
+    delete this.rowHeight;
+    delete this.headerHeight;
+    delete this.columns;
+    delete this.minColumnWidth;
+    delete this.resizableColumns;
+    delete this.sortable;
+    delete this.trackBy;
+    delete this.onload;
+    delete this.selection.multi;
+    delete this.selection.type;
+    delete this.selection;
+    delete this.tableExtraSize;
+    delete this.tableExtraPixelsForThreshold;
+    for (i = 0; i < this.headerTable.ths.length; i++) {
+      this.headerTable.ths[i] = null;
+    }
+    delete this.headerTable;
+    for (i = 0; i < this.dataTables; i++) {
+      for (j = 0; j < this.dataTables[i].rows.length; j++) {
+        for (k = 0; k < this.dataTables[i].rows[j].tds.length; k++) {
+          this.dataTables[i].rows[j].tds[k] = null;
+        }
+        this.dataTables[i].rows[j] = null;
+      }
+    }
+    delete this.dataTables;
+    delete this.dataWrapperElm;
+    delete this.dataElm;
+    delete this.selectedItems;
+    delete this.customScrollEvents;
+    delete this.scrollX;
+    delete this.scrollY;
+    delete this.maxScrollY;
+    delete this.lastScrollTop;
+    delete this.lastScrollDirection;
+    delete this.lastScrollLeft;
+    delete this.lastThreshold;
+    delete this.nextThreshold;
+    delete this.totalDataWidthFixed;
+    delete this.totalDataWidthLoose;
+    delete this.totalDataHeight;
+    delete this.dataViewHeight;
+    delete this.dataTableHeight;
+    delete this.numDataRowsInTable;
+  };
+  storkGrid.prototype.setColumns = function setColumns(columns) {
+    var options = {};
+    options.columns = columns;
+    options.element = this.grid;
+    options.data = this.data;
+    options.rowHeight = this.rowHeight;
+    options.headerHeight = this.headerHeight;
+    options.minColumnWidth = this.minColumnWidth;
+    options.resizableColumns = this.resizableColumns;
+    options.sortable = this.sortable;
+    options.trackBy = this.trackBy;
+    options.onload = this.onload;
+    options.selection = this.selection;
+    this.destroy();
+    this.constructor(options);
   };
   root.storkGrid = storkGrid;
 })(this);

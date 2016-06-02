@@ -22,7 +22,9 @@
 		this.selection.multi = options.selection.multi || false;
 		this.selection.type = options.selection.type === 'cell' ? 'cell' : 'row';
 
-		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
+		if(!this.rnd) {
+			this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
+		}
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
 		this.headerTable = {
@@ -40,6 +42,7 @@
 		this.customScrollEvents = [];
 
 		this.scrollY = 0; // will be defined upon building the dataWrapper div!
+		this.scrollX = 0; // will be defined upon building the dataWrapper div!
 		this.maxScrollY = 0;
 		this.lastScrollTop = 0;
 		this.lastScrollDirection = 'static';
@@ -344,7 +347,7 @@
 
 		var self = this;
 		Object.defineProperty(self, 'scrollY', {
-			configurable: false,
+			configurable: true,
 			enumerable: true,
 			get: function() {
 				return self.dataWrapperElm.scrollTop || 0;
@@ -354,7 +357,7 @@
 			}
 		});
 		Object.defineProperty(self, 'scrollX', {
-			configurable: false,
+			configurable: true,
 			enumerable: true,
 			get: function() {
 				return self.dataWrapperElm.scrollLeft || 0;
@@ -1004,6 +1007,105 @@
 	storkGrid.prototype.refreshData = function refreshData() {
 		this.calculateDataHeight();
 		this.repositionTables(null, null, true);
+	};
+
+	/**
+	 * completely destroy the grid - its DOM elements, methods and data
+	 */
+	storkGrid.prototype.destroy = function destroy() {
+		var rows = this.grid.querySelectorAll('tr');
+		var cells = this.grid.querySelectorAll('th, td');
+		var i, j, k;
+
+		// remove dom elements
+		for(i=0; i < cells.length; i++) {
+			cells[i].parentNode.removeChild(cells[i]);
+		}
+		for(i=0; i < rows.length; i++) {
+			rows[i].parentNode.removeChild(rows[i]);
+		}
+
+		while(this.grid.firstChild) {
+			this.grid.removeChild(this.grid.firstChild);
+		}
+
+		// remove properties
+		this.grid.classList.remove('stork-grid', 'stork-grid'+this.rnd);
+		delete this.grid;
+		delete this.data;
+		delete this.rowHeight;
+		delete this.headerHeight;
+		delete this.columns;
+		delete this.minColumnWidth;
+		delete this.resizableColumns;
+		delete this.sortable;
+		delete this.trackBy;
+		delete this.onload;
+
+		delete this.selection.multi;
+		delete this.selection.type;
+		delete this.selection;
+
+		delete this.tableExtraSize;
+		delete this.tableExtraPixelsForThreshold;
+
+		for(i=0; i < this.headerTable.ths.length; i++) {
+			this.headerTable.ths[i] = null;
+		}
+		delete this.headerTable;
+
+		for(i=0; i < this.dataTables; i++) {
+			for(j=0; j < this.dataTables[i].rows.length; j++) {
+				for(k=0; k < this.dataTables[i].rows[j].tds.length; k++) {
+					this.dataTables[i].rows[j].tds[k] = null;
+				}
+				this.dataTables[i].rows[j] = null;
+			}
+		}
+		delete this.dataTables;
+
+		delete this.dataWrapperElm;
+		delete this.dataElm;
+		delete this.selectedItems;
+		delete this.customScrollEvents;
+		delete this.scrollX;
+		delete this.scrollY;
+		delete this.maxScrollY;
+		delete this.lastScrollTop;
+		delete this.lastScrollDirection;
+		delete this.lastScrollLeft;
+		delete this.lastThreshold;
+		delete this.nextThreshold;
+		delete this.totalDataWidthFixed;
+		delete this.totalDataWidthLoose;
+		delete this.totalDataHeight;
+		delete this.dataViewHeight;
+		delete this.dataTableHeight;
+		delete this.numDataRowsInTable;
+	};
+
+	storkGrid.prototype.setColumns = function setColumns(columns) {
+		var options = {};
+
+		// save all currently set options (but with new columns)
+		options.columns = columns;
+
+		options.element = this.grid;
+		options.data = this.data;
+		options.rowHeight = this.rowHeight;
+		options.headerHeight = this.headerHeight;
+		options.minColumnWidth = this.minColumnWidth;
+		options.resizableColumns = this.resizableColumns;
+		options.sortable = this.sortable;
+		options.trackBy = this.trackBy;
+		options.onload = this.onload;
+		options.selection = this.selection;
+
+		// destroy the grid
+		this.destroy();
+
+		// rebuild the grid
+		this.constructor(options);
 	};
 
 	root.storkGrid = storkGrid;

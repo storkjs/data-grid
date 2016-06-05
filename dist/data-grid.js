@@ -414,9 +414,12 @@
   };
   storkGrid.prototype.onDataScroll = function onDataScroll(e) {
     var currScrollTop = e.target.scrollTop;
-    if (currScrollTop !== this.lastScrollTop || currScrollTop === 0 && this.lastScrollTop === 0) {
+    if (currScrollTop !== this.lastScrollTop) {
       this.onScrollY(currScrollTop);
     } else {
+      if (currScrollTop === 0 && this.lastScrollTop === 0) {
+        this.onScrollY(currScrollTop);
+      }
       var currScrollLeft = e.target.scrollLeft;
       if (currScrollLeft !== this.lastScrollLeft) {
         this.onScrollX(currScrollLeft);

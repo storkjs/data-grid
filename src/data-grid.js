@@ -571,11 +571,14 @@
 	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
 		var currScrollTop = e.target.scrollTop;
 		// trigger only when scroll vertically
-		if(currScrollTop !== this.lastScrollTop
-			|| (currScrollTop === 0 && this.lastScrollTop === 0)/*fixes a bug for infinite scroll up*/) {
+		if(currScrollTop !== this.lastScrollTop) {
 			this.onScrollY(currScrollTop); // vertical
 		}
 		else {
+			if(currScrollTop === 0 && this.lastScrollTop === 0/*fixes a bug for infinite scroll up*/) {
+				this.onScrollY(currScrollTop); // vertical
+			}
+
 			// on desktop the user either scrolls vertically or horizontally.
 			// so this prevents getting the 'target.scrollLeft' value which triggers a reflow, which is a heavy operation.
 			// TODO - test what happens when scrolling both down and right (like in mobile)?

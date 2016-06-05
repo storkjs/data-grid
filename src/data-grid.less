@@ -42,7 +42,6 @@
 					th {
 						border-collapse: collapse;
 						overflow: hidden;
-						text-overflow: ellipsis;
 					}
 				}
 
@@ -101,12 +100,9 @@
 				position: absolute;
 				left: 0;
 
-				tbody > tr {
-					> td {
-						border-collapse: collapse;
-						overflow: hidden;
-						text-overflow: ellipsis;
-					}
+				tbody > tr > td {
+					border-collapse: collapse;
+					overflow: hidden;
 				}
 
 				&.fixed {

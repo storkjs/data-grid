@@ -11,6 +11,10 @@
 .stork-grid table.fixed.covering {
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
 }
+.stork-grid table tr td > div,
+.stork-grid table tr th > div {
+  text-overflow: ellipsis;
+}
 .stork-grid div.header {
   background-color: #b6d0dd;
 }

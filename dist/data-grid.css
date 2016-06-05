@@ -45,7 +45,6 @@
 .stork-grid div.header > table.columns tr th {
   border-collapse: collapse;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .stork-grid div.header > table.columns.fixed {
   z-index: 2;
@@ -99,7 +98,6 @@
 .stork-grid div.data-wrapper > div.data table tbody > tr > td {
   border-collapse: collapse;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 .stork-grid div.data-wrapper > div.data table.fixed {
   z-index: 2;

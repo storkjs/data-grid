@@ -204,10 +204,16 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
+		// header height
 		var html = '.stork-grid'+this.rnd+' div.header,' +
-			'.stork-grid'+this.rnd+' div.header > table tr,' +
+			'.stork-grid'+this.rnd+' div.header > table th,' +
 			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + this.headerHeight + 'px; }';
-		html += '.stork-grid'+this.rnd+' div.data > table tr { height: ' + this.rowHeight + 'px; }';
+		// header content max-height
+		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + this.headerHeight + 'px; }';
+		// data rows height
+		html += '.stork-grid'+this.rnd+' div.data > table td { height: ' + this.rowHeight + 'px; }';
+		// data rows content max-height
+		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + this.rowHeight + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
 			html += '.stork-grid'+this.rnd+' col.col-'+this.columns[i].dataName+' { width: ' + this.columns[i].width + 'px; }';
@@ -297,14 +303,16 @@
 		var theadFixed = document.createElement('thead');
 		var tr = document.createElement('tr');
 		var trFixed = document.createElement('tr');
-		var th;
+		var th, thDiv;
 
 		for(i=0; i < this.columns.length; i++) {
 			col = document.createElement('col');
 			col.classList.add('col-'+this.columns[i].dataName);
 
 			th = document.createElement('th');
-			th.appendChild(document.createTextNode(this.columns[i].displayName));
+			thDiv = document.createElement('div');
+			thDiv.appendChild(document.createTextNode(this.columns[i].displayName));
+			th.appendChild(thDiv);
 			th.storkGridProps = {
 				column: this.columns[i].dataName,
 				sortState: null
@@ -403,7 +411,7 @@
 	 * builds two completely new <table> for the data
 	 */
 	storkGrid.prototype.buildDataTables = function buildDataTables() {
-		var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, i, j, colgroup, colgroupFixed, col;
+		var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j, colgroup, colgroupFixed, col;
 
 		for(var counter=0; counter < 2; counter++) { // counter for number of blocks
 			table = document.getElementById('grid' + this.rnd + '_dataTable' + counter);
@@ -462,6 +470,9 @@
 						column: this.columns[j].dataName,
 						selected: false
 					};
+
+					tdDiv = document.createElement('div');
+					td.appendChild(tdDiv);
 
 					this.dataTables[counter].rows[i].tds.push(td);
 					if(this.columns[j].fixed) {
@@ -786,7 +797,7 @@
 	 */
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
-			dataKeyName, dataIndex, i, selectedItem, trackByData;
+			dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -835,17 +846,20 @@
 						rowObj.tds[i].storkGridProps.selected = false;
 					}
 
-					if (rowObj.tds[i].firstChild) {
-						rowObj.tds[i].firstChild.nodeValue = this.data[dataIndex][dataKeyName];
+					// render content
+					tdDiv = rowObj.tds[i].firstChild;
+					if (tdDiv.firstChild) {
+						tdDiv.firstChild.nodeValue = this.data[dataIndex][dataKeyName];
 					} else {
-						rowObj.tds[i].appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
+						tdDiv.appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
 					}
 				}
 			}
 			else {
 				for (i = 0; i < this.columns.length; i++) {
-					if (rowObj.tds[i].firstChild) {
-						rowObj.tds[i].firstChild.nodeValue = '';
+					tdDiv = rowObj.tds[i].firstChild;
+					if (tdDiv.firstChild) {
+						tdDiv.firstChild.nodeValue = '';
 					}
 				}
 			}

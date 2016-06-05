@@ -17,6 +17,11 @@
 .stork-grid table td {
   border-spacing: 0;
   border-collapse: collapse;
+  padding: 0;
+}
+.stork-grid table th > div,
+.stork-grid table td > div {
+  overflow: hidden;
 }
 .stork-grid div.header {
   position: relative;

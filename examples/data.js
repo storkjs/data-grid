@@ -2,7 +2,7 @@ window.bigData = [];
 window.columnNames = ['id', 'eretz','eer','hai','tzomeah','domem','yeled','yalda','reg-amount','other_amount'];
 
 var i,
-	countries = ['israel','usa','germany','france','pitcairn'],
+	countries = ['this country takes like three lines','israel','usa','germany','france','pitcairn'],
 	cities = ['tel aviv','jerusalem','new york','london'],
 	animals = ['monkey','ape','dog','cat','mouse','rat','pangolin'],
 	plants = ['rose','daisy','tulip'],

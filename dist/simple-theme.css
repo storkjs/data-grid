@@ -22,12 +22,11 @@
 }
 .stork-grid div.header > table.columns tr th {
   border-right: 1px solid #a0a0a0;
-  padding: 4px;
 }
-.stork-grid div.header > table.columns tr th.ascending::after {
+.stork-grid div.header > table.columns tr th.ascending div::after {
   content: " ↓";
 }
-.stork-grid div.header > table.columns tr th.descending::after {
+.stork-grid div.header > table.columns tr th.descending div::after {
   content: " ↑";
 }
 .stork-grid div.header > table.columns.loose tr th:last-child {
@@ -57,7 +56,6 @@
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr > td {
   border-right: 1px solid #a0a0a0;
-  padding: 4px;
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr > td.selected {
   background-color: rgba(0, 0, 0, 0.2);

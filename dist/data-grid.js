@@ -153,8 +153,10 @@
       style.type = "text/css";
       document.getElementsByTagName("head")[0].appendChild(style);
     }
-    var html = ".stork-grid" + this.rnd + " div.header," + ".stork-grid" + this.rnd + " div.header > table tr," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + this.headerHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.data > table tr { height: " + this.rowHeight + "px; }";
+    var html = ".stork-grid" + this.rnd + " div.header," + ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + this.headerHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + this.headerHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + this.rowHeight + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
       html += ".stork-grid" + this.rnd + " col.col-" + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
     }
@@ -213,12 +215,14 @@
     var theadFixed = document.createElement("thead");
     var tr = document.createElement("tr");
     var trFixed = document.createElement("tr");
-    var th;
+    var th, thDiv;
     for (i = 0; i < this.columns.length; i++) {
       col = document.createElement("col");
       col.classList.add("col-" + this.columns[i].dataName);
       th = document.createElement("th");
-      th.appendChild(document.createTextNode(this.columns[i].displayName));
+      thDiv = document.createElement("div");
+      thDiv.appendChild(document.createTextNode(this.columns[i].displayName));
+      th.appendChild(thDiv);
       th.storkGridProps = {
         column: this.columns[i].dataName,
         sortState: null
@@ -290,7 +294,7 @@
     this.nextThreshold = this.lastThreshold + this.dataTableHeight;
   };
   storkGrid.prototype.buildDataTables = function buildDataTables() {
-    var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, i, j, colgroup, colgroupFixed, col;
+    var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j, colgroup, colgroupFixed, col;
     for (var counter = 0; counter < 2; counter++) {
       table = document.getElementById("grid" + this.rnd + "_dataTable" + counter);
       tableFixed = document.getElementById("grid" + this.rnd + "_dataTable_fixed" + counter);
@@ -339,6 +343,8 @@
             column: this.columns[j].dataName,
             selected: false
           };
+          tdDiv = document.createElement("div");
+          td.appendChild(tdDiv);
           this.dataTables[counter].rows[i].tds.push(td);
           if (this.columns[j].fixed) {
             trFixed.appendChild(td);
@@ -553,7 +559,7 @@
     this.grid.dispatchEvent(evnt);
   };
   storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem, trackByData;
+    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv;
     tableObj = this.dataTables[tableIndex];
     firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
     lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
@@ -589,16 +595,18 @@
             rowObj.tds[i].classList.remove("selected");
             rowObj.tds[i].storkGridProps.selected = false;
           }
-          if (rowObj.tds[i].firstChild) {
-            rowObj.tds[i].firstChild.nodeValue = this.data[dataIndex][dataKeyName];
+          tdDiv = rowObj.tds[i].firstChild;
+          if (tdDiv.firstChild) {
+            tdDiv.firstChild.nodeValue = this.data[dataIndex][dataKeyName];
           } else {
-            rowObj.tds[i].appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
+            tdDiv.appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
           }
         }
       } else {
         for (i = 0; i < this.columns.length; i++) {
-          if (rowObj.tds[i].firstChild) {
-            rowObj.tds[i].firstChild.nodeValue = "";
+          tdDiv = rowObj.tds[i].firstChild;
+          if (tdDiv.firstChild) {
+            tdDiv.firstChild.nodeValue = "";
           }
         }
       }

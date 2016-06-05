@@ -562,7 +562,7 @@
     this.grid.dispatchEvent(evnt);
   };
   storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv;
+    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv, dataValue;
     tableObj = this.dataTables[tableIndex];
     firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
     lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
@@ -591,6 +591,7 @@
         }
         for (i = 0; i < this.columns.length; i++) {
           dataKeyName = this.columns[i].dataName;
+          tdDiv = rowObj.tds[i].firstChild;
           if (selectedItem && this.selection.type === "cell" && selectedItem.indexOf(dataKeyName) > -1) {
             rowObj.tds[i].classList.add("selected");
             rowObj.tds[i].storkGridProps.selected = true;
@@ -598,11 +599,15 @@
             rowObj.tds[i].classList.remove("selected");
             rowObj.tds[i].storkGridProps.selected = false;
           }
-          tdDiv = rowObj.tds[i].firstChild;
+          dataValue = this.data[dataIndex][dataKeyName];
+          if (typeof dataValue !== "string" && typeof dataValue !== "number") {
+            dataValue = "";
+          }
+          if (!tdDiv.firstChild) {
+            tdDiv.appendChild(document.createTextNode(""));
+          }
           if (tdDiv.firstChild) {
-            tdDiv.firstChild.nodeValue = this.data[dataIndex][dataKeyName];
-          } else {
-            tdDiv.appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
+            tdDiv.firstChild.nodeValue = dataValue;
           }
         }
       } else {

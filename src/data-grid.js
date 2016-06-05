@@ -800,7 +800,7 @@
 	 */
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
-			dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv;
+			dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv, dataValue;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -838,6 +838,7 @@
 
 				for (i = 0; i < this.columns.length; i++) {
 					dataKeyName = this.columns[i].dataName;
+					tdDiv = rowObj.tds[i].firstChild;
 
 					// select the TD if needed
 					if (selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
@@ -849,12 +850,20 @@
 						rowObj.tds[i].storkGridProps.selected = false;
 					}
 
+					// validate values
+					dataValue = this.data[dataIndex][dataKeyName];
+					if(typeof dataValue !== 'string' && typeof dataValue !== 'number') {
+						dataValue = '';
+					}
+
+					// add text-node at the first data render
+					if(!tdDiv.firstChild) {
+						tdDiv.appendChild(document.createTextNode(''));
+					}
+
 					// render content
-					tdDiv = rowObj.tds[i].firstChild;
 					if (tdDiv.firstChild) {
-						tdDiv.firstChild.nodeValue = this.data[dataIndex][dataKeyName];
-					} else {
-						tdDiv.appendChild(document.createTextNode(this.data[dataIndex][dataKeyName]));
+						tdDiv.firstChild.nodeValue = dataValue;
 					}
 				}
 			}

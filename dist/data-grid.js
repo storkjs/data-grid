@@ -725,7 +725,11 @@
     this.buildDataTables();
     this.repositionTables(null, null, true);
   };
-  storkGrid.prototype.refreshData = function refreshData() {
+  storkGrid.prototype.setData = function setData(data) {
+    this.data = data;
+    this.refresh();
+  };
+  storkGrid.prototype.refresh = function refresh_data() {
     this.calculateDataHeight();
     this.repositionTables(null, null, true);
   };

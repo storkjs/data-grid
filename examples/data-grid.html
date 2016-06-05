@@ -92,7 +92,7 @@
 				var dataLength = testGrid.data.length;
 				loadBulk(40);
 				if(testGrid.data.length > dataLength) {
-					testGrid.refreshData();
+					testGrid.refresh();
 				}
 			}, false);
 
@@ -112,7 +112,7 @@
 				// will keep refreshing the view on each scroll up, for 500ms since last successful 'loadBulk'.
 				// this solves a bug when user drags the scrollbar up and the browser keeps emitting 'scrollTop=0'
 				if(forceRefresh) {
-					testGrid.refreshData();
+					testGrid.refresh();
 				}
 			}, false);
 

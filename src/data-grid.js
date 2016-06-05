@@ -1021,7 +1021,16 @@
 	 * refreshes the data height and viewport.
 	 * use this when grid.data has changed
 	 */
-	storkGrid.prototype.refreshData = function refreshData() {
+	storkGrid.prototype.setData = function setData(data) {
+		this.data = data;
+		this.refresh();
+	};
+
+	/**
+	 * refreshes the data height and viewport.
+	 * use this when grid.data has changed
+	 */
+	storkGrid.prototype.refresh = function refresh_data() {
 		this.calculateDataHeight();
 		this.repositionTables(null, null, true);
 	};

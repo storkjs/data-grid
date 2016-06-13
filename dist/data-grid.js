@@ -128,7 +128,10 @@
       }
     }
     availableWidth = this.dataWrapperElm.clientWidth - userDefinedWidth;
-    availableWidthPerColumn = Math.floor(availableWidth / numColumnsNotDefined);
+    availableWidthPerColumn = 0;
+    if (numColumnsNotDefined > 0) {
+      availableWidthPerColumn = Math.floor(availableWidth / numColumnsNotDefined);
+    }
     roundedPixels = availableWidth % numColumnsNotDefined;
     for (i = 0; i < this.columns.length; i++) {
       if (!this.columns[i].width) {
@@ -377,7 +380,10 @@
     currScrollTop = currScrollTop || this.scrollY;
     currScrollDirection = currScrollDirection || "down";
     forceUpdateViewData = forceUpdateViewData || false;
-    var currDataBlock = Math.floor(currScrollTop / this.dataTableHeight);
+    var currDataBlock = 0;
+    if (this.dataTableHeight > 0) {
+      currDataBlock = Math.floor(currScrollTop / this.dataTableHeight);
+    }
     topTableIndex = currDataBlock % 2;
     topTable = this.dataTables[topTableIndex].table;
     topTableFixed = this.dataTables[topTableIndex].tableFixed;

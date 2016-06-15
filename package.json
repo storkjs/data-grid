@@ -20,6 +20,6 @@
     "node": ">=4.0.0"
   },
   "scripts": {
-    "css": "grunt watch-less"
+    "watch": "grunt watch-files"
   }
 }

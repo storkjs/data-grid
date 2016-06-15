@@ -389,7 +389,7 @@
 	storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
 		this.totalDataHeight = this.rowHeight * this.data.length;
 		this.dataElm.style.height = this.totalDataHeight + 'px';
-		this.maxScrollY = this.dataWrapperElm.scrollHeight - this.dataViewHeight;
+		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
 	};
 
 	/**
@@ -397,7 +397,11 @@
 	 */
 	storkGrid.prototype.resizeCalculate = function resizeCalculate() {
 		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
-		this.maxScrollY = this.dataWrapperElm.scrollHeight - this.dataViewHeight;
+		if(this.dataViewHeight < this.rowHeight) {
+			this.dataViewHeight = this.rowHeight;
+			console.warn('The Data Wrapper element was set too low. Height can\'t be less than the height of one row!');
+		}
+		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
 
 		this.numDataRowsInTable = Math.ceil(this.dataViewHeight * (1 + this.tableExtraSize) / this.rowHeight);
 		if(this.numDataRowsInTable % 2 === 1) {

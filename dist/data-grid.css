@@ -2,6 +2,8 @@
 .stork-grid {
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
   /* all tables */
   /* /all tables */
   /* header table */

@@ -1,4 +1,9 @@
 # data-grid
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/storkjs/data-grid/master/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/storkjs/data-grid.svg)](https://github.com/storkjs/data-grid/issues)
+[![Bower version](https://badge.fury.io/bo/stork-grid.svg)](https://github.com/storkjs/data-grid/releases)
+
 **What is it?**
 Worlds most efficient and smooth big data grid.
 Has the most essential features without redundant bloat.

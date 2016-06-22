@@ -27,6 +27,7 @@
 			width: 100%;
 			position: relative;
 			display: flex;
+			flex-direction: column;
 			align-items: center;
 			justify-content: center;
 		}
@@ -34,12 +35,13 @@
 			width: 50%;
 			height: 90%;
 		}
-		button.destroy-grid, button.rearrange-cols {
-			position: absolute;
-			top: 10px;
+
+		.opButtons {
+			padding-bottom: 10px;
 		}
-		button.rearrange-cols { left: 43%; }
-		button.destroy-grid { left: calc(43% + 160px); }
+		.opButtons .destroy-grid {
+			margin-right: 30px;
+		}
 	</style>
 
 	<script src="data.js"></script>
@@ -164,8 +166,10 @@
 </head>
 <body>
 <div id="parentDiv">
-	<button class="destroy-grid" onclick="destroyGrid();">Destroy grid</button>
-	<button class="rearrange-cols" onclick="rearrange();">Rearrange columns</button>
+	<div class="opButtons">
+		<button class="destroy-grid" onclick="destroyGrid();">Destroy grid</button>
+		<button class="rearrange-cols" onclick="rearrange();">Rearrange columns</button>
+	</div>
 	<div id="grid"></div>
 </div>
 </body>

@@ -1037,8 +1037,7 @@
 	};
 
 	/**
-	 * refreshes the data height and viewport.
-	 * use this when grid.data has changed
+	 * sets a new data object and then refreshes the grid
 	 */
 	storkGrid.prototype.setData = function setData(data) {
 		this.data = data;
@@ -1129,6 +1128,10 @@
 		delete this.numDataRowsInTable;
 	};
 
+	/**
+	 * set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
+	 * @param {Array} columns - a columns array holding objects with the following properties: dataName, displayName, [width], [minWidth], [fixed]
+	 */
 	storkGrid.prototype.setColumns = function setColumns(columns) {
 		var options = {};
 

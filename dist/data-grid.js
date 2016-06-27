@@ -826,4 +826,4 @@
     this.constructor(options);
   };
   root.storkGrid = storkGrid;
-})(this);
+})(window);

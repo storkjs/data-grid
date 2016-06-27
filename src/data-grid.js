@@ -1157,4 +1157,4 @@
 	};
 
 	root.storkGrid = storkGrid;
-})(this); // main scope we run at (should be 'window')
+})(window); // main scope we are running at (if 'this' is passed then we will be compatible with node 'module.reports' style)

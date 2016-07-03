@@ -593,11 +593,14 @@
           if (typeof dataValue !== "string" && typeof dataValue !== "number") {
             dataValue = "";
           }
-          if (!tdDiv.firstChild) {
-            tdDiv.appendChild(document.createTextNode(""));
-          }
-          if (tdDiv.firstChild) {
-            tdDiv.firstChild.nodeValue = dataValue;
+          if (this.columns[i].render) {
+            this.columns[i].render(tdDiv, dataValue);
+          } else {
+            if (!tdDiv.firstChild) {
+              tdDiv.appendChild(document.createTextNode(dataValue));
+            } else if (tdDiv.firstChild) {
+              tdDiv.firstChild.nodeValue = dataValue;
+            }
           }
         }
       } else {

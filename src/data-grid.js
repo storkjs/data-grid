@@ -843,14 +843,16 @@
 						dataValue = '';
 					}
 
-					// add text-node at the first data render
-					if(!tdDiv.firstChild) {
-						tdDiv.appendChild(document.createTextNode(''));
+					if(this.columns[i].render) { // user's custom renderer
+						this.columns[i].render(tdDiv, dataValue);
 					}
-
-					// render content
-					if (tdDiv.firstChild) {
-						tdDiv.firstChild.nodeValue = dataValue;
+					else { // default rendering of data
+						if(!tdDiv.firstChild) {
+							tdDiv.appendChild(document.createTextNode(dataValue)); // add text-node at the first data render
+						}
+						else if (tdDiv.firstChild) {
+							tdDiv.firstChild.nodeValue = dataValue; // render content
+						}
 					}
 				}
 			}

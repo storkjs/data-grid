@@ -42,6 +42,28 @@
 		.opButtons .destroy-grid {
 			margin-right: 30px;
 		}
+
+		span.color1, span.color2, span.color3, span.color4, span.color5, span.color6 {
+			font-weight: bold;
+		}
+		span.color1 {
+			color: #00aa00;
+		}
+		span.color2 {
+			color: #aa0000;
+		}
+		span.color3 {
+			color: #0000aa;
+		}
+		span.color4 {
+			color: #aaaa00;
+		}
+		span.color5 {
+			color: #00aaaa;
+		}
+		span.color6 {
+			color: #aa00aa;
+		}
 	</style>
 
 	<script src="data.js"></script>
@@ -84,7 +106,15 @@
 					{ dataName: 'eretz', displayName: 'Eretz', width: 110, minWidth: 70 },
 					{ dataName: 'eer', displayName: 'Eer', width: 115, minWidth: 75, fixed: true },
 					{ dataName: 'hai', displayName: 'Hai', width: 110 },
-					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 120 },
+					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 120, render: function(tdDiv, value) {
+						if(value.toLowerCase() === 'tulip') {
+							var randNum = Math.floor(Math.random() * 6 + 1);
+							tdDiv.innerHTML = '<span class="color'+randNum+'">' + value + '</span>';
+						}
+						else {
+							tdDiv.innerHTML = value;
+						}
+					} },
 					{ dataName: 'domem', displayName: 'Domem', width: 125 },
 					{ dataName: 'yeled', displayName: 'Yeled' },
 					{ dataName: 'yalda', displayName: 'Yalda' },

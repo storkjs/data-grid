@@ -161,7 +161,7 @@
     html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
     html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + this.rowHeight + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
-      html += ".stork-grid" + this.rnd + " col.col-" + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
+      html += ".stork-grid" + this.rnd + " th." + this.columns[i].dataName + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
     }
     html += ".stork-grid" + this.rnd + " div.header > table.loose," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.loose { width: " + this.totalDataWidthLoose + "px; }";
     html += ".stork-grid" + this.rnd + " div.header > table.fixed," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.fixed { width: " + this.totalDataWidthFixed + "px; }";
@@ -211,18 +211,14 @@
         tableFixed.removeChild(tableFixed.firstChild);
       }
     }
-    var colgroup = document.createElement("colgroup");
-    var colgroupFixed = document.createElement("colgroup");
-    var col;
     var thead = document.createElement("thead");
     var theadFixed = document.createElement("thead");
     var tr = document.createElement("tr");
     var trFixed = document.createElement("tr");
     var th, thDiv;
     for (i = 0; i < this.columns.length; i++) {
-      col = document.createElement("col");
-      col.classList.add("col-" + this.columns[i].dataName);
       th = document.createElement("th");
+      th.classList.add(this.columns[i].dataName);
       thDiv = document.createElement("div");
       thDiv.appendChild(document.createTextNode(this.columns[i].displayName));
       th.appendChild(thDiv);
@@ -232,18 +228,14 @@
       };
       this.headerTable.ths.push(th);
       if (this.columns[i].fixed) {
-        colgroupFixed.appendChild(col);
         trFixed.appendChild(th);
       } else {
-        colgroup.appendChild(col);
         tr.appendChild(th);
       }
     }
     theadFixed.appendChild(trFixed);
-    tableFixed.appendChild(colgroupFixed);
     tableFixed.appendChild(theadFixed);
     thead.appendChild(tr);
-    table.appendChild(colgroup);
     table.appendChild(thead);
   };
   storkGrid.prototype.initDataView = function initDataView() {
@@ -301,7 +293,7 @@
     this.nextThreshold = this.lastThreshold + this.dataTableHeight;
   };
   storkGrid.prototype.buildDataTables = function buildDataTables() {
-    var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j, colgroup, colgroupFixed, col;
+    var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j;
     for (var counter = 0; counter < 2; counter++) {
       table = document.getElementById("grid" + this.rnd + "_dataTable" + counter);
       tableFixed = document.getElementById("grid" + this.rnd + "_dataTable_fixed" + counter);
@@ -329,8 +321,6 @@
       };
       tbody = document.createElement("tbody");
       tbodyFixed = document.createElement("tbody");
-      colgroup = document.createElement("colgroup");
-      colgroupFixed = document.createElement("colgroup");
       for (i = 0; i < this.numDataRowsInTable; i++) {
         tr = document.createElement("tr");
         trFixed = document.createElement("tr");
@@ -346,6 +336,7 @@
         };
         for (j = 0; j < this.columns.length; j++) {
           td = document.createElement("td");
+          td.classList.add(this.columns[j].dataName);
           td.storkGridProps = {
             column: this.columns[j].dataName,
             selected: false
@@ -358,24 +349,13 @@
           } else {
             tr.appendChild(td);
           }
-          if (i === 0) {
-            col = document.createElement("col");
-            col.classList.add("col-" + this.columns[j].dataName);
-            if (this.columns[j].fixed) {
-              colgroupFixed.appendChild(col);
-            } else {
-              colgroup.appendChild(col);
-            }
-          }
         }
         tbodyFixed.appendChild(trFixed);
         tbody.appendChild(tr);
       }
       tableFixed.style.top = this.dataTableHeight * counter + "px";
-      tableFixed.appendChild(colgroupFixed);
       tableFixed.appendChild(tbodyFixed);
       table.style.top = this.dataTableHeight * counter + "px";
-      table.appendChild(colgroup);
       table.appendChild(tbody);
     }
   };
@@ -635,7 +615,7 @@
   storkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
     var colResizers = document.getElementById("grid" + this.rnd + "_columnResizers");
     var colResizersFixed = document.getElementById("grid" + this.rnd + "_columnResizers_fixed");
-    var resizer, i, tbody, tr, trFixed, td, colgroup, colgroupFixed, col;
+    var resizer, i, tbody, tr, trFixed, td, span;
     if (!colResizers) {
       colResizers = document.createElement("table");
       colResizers.id = "grid" + this.rnd + "_columnResizers";
@@ -647,26 +627,20 @@
       colResizersFixed.classList.add("fixed");
       colResizersFixed.classList.add("resizers");
       this.headerTable.resizer_fixed = colResizersFixed;
-      colgroup = document.createElement("colgroup");
       tbody = document.createElement("tbody");
       tr = document.createElement("tr");
       tbody.appendChild(tr);
-      colResizers.appendChild(colgroup);
       colResizers.appendChild(tbody);
       this.headerTable.wrapper.insertBefore(colResizers, this.headerTable.wrapper.firstChild);
-      colgroupFixed = document.createElement("colgroup");
       tbody = document.createElement("tbody");
       trFixed = document.createElement("tr");
       tbody.appendChild(trFixed);
-      colResizersFixed.appendChild(colgroupFixed);
       colResizersFixed.appendChild(tbody);
       this.headerTable.wrapper.insertBefore(colResizersFixed, this.headerTable.wrapper.firstChild);
-      col = document.createElement("span");
-      col.id = "grid" + this.rnd + "_dragPlaceholder";
-      this.headerTable.wrapper.appendChild(col);
+      span = document.createElement("span");
+      span.id = "grid" + this.rnd + "_dragPlaceholder";
+      this.headerTable.wrapper.appendChild(span);
     } else {
-      colgroup = colResizers.querySelector("colgroup");
-      colgroupFixed = colResizersFixed.querySelector("colgroup");
       tr = colResizers.querySelector("tr");
       trFixed = colResizersFixed.querySelector("tr");
       while (tr.firstChild) {
@@ -677,9 +651,8 @@
       }
     }
     for (i = 0; i < this.columns.length; i++) {
-      col = document.createElement("col");
-      col.classList.add("col-" + this.columns[i].dataName);
       td = document.createElement("td");
+      td.classList.add(this.columns[i].dataName);
       resizer = document.createElement("a");
       resizer.style.right = "-2px";
       resizer.setAttribute("draggable", "true");
@@ -691,10 +664,8 @@
       td.appendChild(resizer);
       if (this.columns[i].fixed) {
         trFixed.appendChild(td);
-        colgroupFixed.appendChild(col);
       } else {
         tr.appendChild(td);
-        colgroup.appendChild(col);
       }
     }
   };

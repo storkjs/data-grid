@@ -249,7 +249,7 @@
   storkGrid.prototype.initDataView = function initDataView() {
     this.dataWrapperElm = document.createElement("div");
     this.dataWrapperElm.classList.add("data-wrapper");
-    this.dataWrapperElm.style.height = "calc(100% - " + (this.headerHeight - 2) + "px)";
+    this.dataWrapperElm.style.height = "calc(100% - " + this.headerHeight + "px)";
     this.dataElm = document.createElement("div");
     this.dataElm.classList.add("data");
     this.calculateDataHeight();

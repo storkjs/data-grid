@@ -688,12 +688,12 @@
         if (newColumnWidth < minWidth) {
           delta = minWidth - columnObj.width;
         }
-        elm.style.right = -2 - delta + "px";
+        elm.style.transform = "translateX(" + delta + "px)";
       }
     });
     elm.addEventListener("dragend", function(e) {
       elm.classList.remove("dragging");
-      elm.style.right = "-2px";
+      elm.style.transform = "";
       var delta = e.screenX - elm.storkGridProps.dragStartX;
       columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
       self.calculateColumnsWidths();

@@ -955,6 +955,7 @@
 		var columnObj = self.columns[elm.storkGridProps.columnIndex];
 
 		elm.addEventListener('dragstart', function(e) {
+			// placeholder is empty. this will prevent seeing an image getting dragged, and instead we will move the real element itself
 			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
 			elm.storkGridProps.dragStartX = e.screenX;
 			elm.classList.add('dragging');
@@ -969,12 +970,12 @@
 					delta = minWidth - columnObj.width;
 				}
 
-				elm.style.right = (-2 - delta) + 'px';
+				elm.style.transform = 'translateX('+delta+'px)';
 			}
 		});
 		elm.addEventListener('dragend', function(e) {
 			elm.classList.remove('dragging');
-			elm.style.right = '-2px';
+			elm.style.transform = '';
 			var delta = e.screenX - elm.storkGridProps.dragStartX;
 
 			columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);

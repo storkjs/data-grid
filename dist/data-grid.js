@@ -32,6 +32,7 @@
     this.dataWrapperElm = null;
     this.dataElm = null;
     this.selectedItems = new Map();
+    this.clickedItem = null;
     this.customScrollEvents = [];
     this.eventListeners = [];
     this.scrollY = 0;
@@ -77,12 +78,9 @@
       this.columns = fixedColumns.concat(looseColumns);
     }
     this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
+    this.grid.setAttribute("tabindex", 0);
     this.makeHeaderTable();
     this.initDataView();
-    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
-    if (this.sortable) {
-      this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
-    }
     this.updateViewData(0, 0);
     this.updateViewData(1, 1);
     if (this.resizableColumns) {
@@ -90,7 +88,13 @@
     }
     this.calculateColumnsWidths();
     this.makeCssRules();
+    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
+    if (this.sortable) {
+      this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
+    }
+    this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
+    this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
     var evnt = new CustomEvent("grid-loaded", {
       bubbles: true,
       cancelable: true,
@@ -483,7 +487,7 @@
     TR = TD.parentNode;
     dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
     selectedCellColumn = TD.storkGridProps.column;
-    if (dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER) {
+    if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER) {
       var now = Date.now();
       if (now - lastClickTime > 300) {
         if (this.trackBy) {
@@ -497,20 +501,30 @@
         if (this.selectedItems.has(trackByData)) {
           if (this.selection.type === "row") {
             this.selectedItems.delete(trackByData);
+            this.clickedItem = null;
           } else {
             selectedItem = this.selectedItems.get(trackByData);
             var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
             if (indexOfColumn === -1) {
               selectedItem.push(selectedCellColumn);
+              this.clickedItem = {
+                dataIndex: dataIndex,
+                column: selectedCellColumn
+              };
             } else {
               selectedItem.splice(indexOfColumn, 1);
               if (selectedItem.length === 0) {
                 this.selectedItems.delete(trackByData);
               }
+              this.clickedItem = null;
             }
           }
         } else {
           this.selectedItems.set(trackByData, [ selectedCellColumn ]);
+          this.clickedItem = {
+            dataIndex: dataIndex,
+            column: selectedCellColumn
+          };
         }
         this.repositionTables(null, null, true);
       } else {
@@ -820,6 +834,56 @@
     options.selection = this.selection;
     this.destroy();
     this.constructor(options);
+  };
+  storkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
+    var target = e.target;
+    while (!(target instanceof HTMLDocument) && target !== this.grid) {
+      target = target.parentNode;
+      if (target && target instanceof HTMLDocument) {
+        this.grid.classList.remove("focused");
+        return;
+      }
+    }
+    this.grid.classList.add("focused");
+  };
+  storkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
+    var key = keyboardMap[e.keyCode];
+    if (this.clickedItem && (key === "DOWN" || key === "UP")) {
+      if (key === "DOWN" && this.clickedItem.dataIndex < this.data.length - 1) {
+        this.clickedItem.dataIndex++;
+      } else if (key === "UP" && this.clickedItem.dataIndex > 0) {
+        this.clickedItem.dataIndex--;
+      } else {
+        return;
+      }
+      e.preventDefault();
+      var trackByData;
+      if (this.trackBy) {
+        trackByData = this.data[this.clickedItem.dataIndex][this.trackBy];
+      } else {
+        trackByData = this.data[this.clickedItem.dataIndex];
+      }
+      this.selectedItems.clear();
+      this.selectedItems.set(trackByData, [ this.clickedItem.column ]);
+      var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+      if (clickedItemY < this.scrollY) {
+        this.scrollY = clickedItemY;
+        this.onScrollY(clickedItemY);
+      } else if (clickedItemY > this.scrollY + this.dataViewHeight - this.rowHeight) {
+        this.scrollY = clickedItemY - this.dataViewHeight + this.rowHeight;
+        this.onScrollY(clickedItemY - this.dataViewHeight + this.rowHeight);
+      }
+      this.repositionTables(null, null, true);
+      var evnt = new CustomEvent("select", {
+        bubbles: true,
+        cancelable: true,
+        detail: {
+          dataIndex: this.clickedItem.dataIndex,
+          column: this.clickedItem.column
+        }
+      });
+      this.grid.dispatchEvent(evnt);
+    }
   };
   root.storkGrid = storkGrid;
 })(window);

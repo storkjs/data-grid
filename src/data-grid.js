@@ -39,6 +39,7 @@
 		this.dataWrapperElm = null;
 		this.dataElm = null;
 		this.selectedItems = new Map();/*ES6*/
+		this.clickedItem = null;
 		this.customScrollEvents = [];
 		this.eventListeners = [];
 
@@ -87,17 +88,14 @@
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
 
+		/** make grid a focusable element (also enables capturing key presses */
+		this.grid.setAttribute('tabindex', 0);
+
 		/** init HEADER table */
 		this.makeHeaderTable();
 
 		/** handle data rows blocks */
 		this.initDataView();
-
-		/** onClick events */
-		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false);
-		if(this.sortable) {
-			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false);
-		}
 
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
@@ -114,9 +112,22 @@
 		/** add css rules */
 		this.makeCssRules();
 
-		/** on scroll */
-		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false);
 
+		/** Events */
+		// on click
+		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false);
+		// on click on header
+		if(this.sortable) {
+			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false);
+		}
+		// on arrows up/down
+		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false);
+		// on scroll
+		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false);
+		// document check if we are focused on the grid
+		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true);
+
+		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
 		if(this.onload) {
 			this.onload(evnt);
@@ -702,7 +713,7 @@
 		dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
 		selectedCellColumn = TD.storkGridProps.column;
 
-		if(dataIndex >= 0 && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+		if(dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
 			// should emit a double-click-select?
 			var now = Date.now();
 			if(now - lastClickTime > 300) {
@@ -719,27 +730,33 @@
 				}
 
 				if(this.selectedItems.has(trackByData)) {
-					if(this.selection.type === 'row') {
+					if(this.selection.type === 'row') { // whole rows
 						this.selectedItems.delete(trackByData); // unselect row
+						this.clickedItem = null;
 					}
-					else {
+					else { // individual cells
+						// TODO - replace this whole functionality. cell selection should be on mouse drag (and always selecting multiple cells)
 						selectedItem = this.selectedItems.get(trackByData);
 
 						var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
-						if(indexOfColumn === -1) {
+						if(indexOfColumn === -1) { // clicked on a cell not chosen before in this row
 							selectedItem.push(selectedCellColumn);
+							this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
 						}
-						else {
+						else { // clicked on an already selected cell so let's remove it
 							selectedItem.splice(indexOfColumn, 1); // unselect cell
 
 							if(selectedItem.length === 0) {
 								this.selectedItems.delete(trackByData); // unselect row
 							}
+
+							this.clickedItem = null;
 						}
 					}
 				}
 				else {
 					this.selectedItems.set(trackByData, [selectedCellColumn]);
+					this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
 				}
 
 				this.repositionTables(null, null, true);
@@ -760,7 +777,7 @@
 			});
 			this.grid.dispatchEvent(evnt);
 		}
-		else {
+		else { // invalid selection
 			this.selectedItems.clear();
 			console.warn('selected row is not pointing to a valid data');
 			this.repositionTables(null, null, true);
@@ -1164,6 +1181,78 @@
 
 		// rebuild the grid
 		this.constructor(options);
+	};
+
+	/**
+	 * check if user is focused on the grid or not
+	 * @param e
+	 */
+	storkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
+		var target = e.target;
+
+		while(!(target instanceof HTMLDocument) && target !== this.grid) {
+			target = target.parentNode;
+
+			if(target && target instanceof HTMLDocument) { // our loop reached 'document' element, meaning user clicked outside of the component
+				this.grid.classList.remove('focused');
+				return;
+			}
+		}
+
+		this.grid.classList.add('focused');
+	};
+
+	/**
+	 * change selected item when an item on the grid is selected and the user presses up/down arrows
+	 * (selects the bottom or top item)
+	 * @param e
+	 */
+	storkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
+		var key = keyboardMap[e.keyCode];
+
+		if(this.clickedItem && (key === 'DOWN' || key === 'UP')) {
+			if(key === 'DOWN' && this.clickedItem.dataIndex < this.data.length - 1) {
+				this.clickedItem.dataIndex++;
+			} else if(key === 'UP' && this.clickedItem.dataIndex > 0) {
+				this.clickedItem.dataIndex--;
+			} else {
+				return; // about to navigate out of bounds so abort
+			}
+
+			e.preventDefault(); // stops document scrolling
+
+			var trackByData;
+			if (this.trackBy) { // tracking by a specific column data
+				trackByData = this.data[this.clickedItem.dataIndex][this.trackBy];
+			} else { // tracking by the whole row's data object
+				trackByData = this.data[this.clickedItem.dataIndex];
+			}
+
+			this.selectedItems.clear();
+			this.selectedItems.set(trackByData, [this.clickedItem.column]);
+
+			var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+			if(clickedItemY < this.scrollY) { // navigate above our view
+				this.scrollY = clickedItemY;
+				this.onScrollY(clickedItemY);
+			}
+			else if(clickedItemY > this.scrollY + this.dataViewHeight - this.rowHeight) { // navigate below our view
+				this.scrollY = clickedItemY - this.dataViewHeight + this.rowHeight;
+				this.onScrollY(clickedItemY - this.dataViewHeight + this.rowHeight);
+			}
+
+			this.repositionTables(null, null, true);
+
+			var evnt = new CustomEvent('select', {
+				bubbles: true,
+				cancelable: true,
+				detail: {
+					dataIndex: this.clickedItem.dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
+					column: this.clickedItem.column /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
+				}
+			});
+			this.grid.dispatchEvent(evnt);
+		}
 	};
 
 	root.storkGrid = storkGrid;

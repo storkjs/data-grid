@@ -76,7 +76,7 @@
 }
 .stork-grid div.data-wrapper {
   width: 100%;
-  overflow: auto;
+  overflow: scroll;
   /* data */
   /* /data */
 }

@@ -40,6 +40,7 @@
 		this.dataElm = null;
 		this.selectedItems = new Map();/*ES6*/
 		this.customScrollEvents = [];
+		this.eventListeners = [];
 
 		this.scrollY = 0; // will be defined upon building the dataWrapper div!
 		this.scrollX = 0; // will be defined upon building the dataWrapper div!
@@ -93,9 +94,9 @@
 		this.initDataView();
 
 		/** onClick events */
-		this.dataWrapperElm.addEventListener('click', this.onDataClick.bind(this));
+		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false);
 		if(this.sortable) {
-			this.headerTable.wrapper.addEventListener('click', this.onHeaderClick.bind(this));
+			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false);
 		}
 
 		/** insert data into the data-tables */
@@ -114,13 +115,56 @@
 		this.makeCssRules();
 
 		/** on scroll */
-		this.dataWrapperElm.addEventListener('scroll', this.onDataScroll.bind(this));
+		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false);
 
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
 		if(this.onload) {
 			this.onload(evnt);
 		}
 		this.grid.dispatchEvent(evnt);
+	};
+
+	/**
+	 * CUSTOM addEventListener method. this method keeps track of listeners so we can later do removeEventListener
+	 * (for example on destroy()) and prevent memory leaks.
+	 * @param element
+	 * @param type
+	 * @param listener
+	 * @param options_or_useCapture
+	 * @private
+	 */
+	storkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
+		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture});
+
+		element.addEventListener(type, listener, options_or_useCapture);
+	};
+
+	/**
+	 * a function for passing an addEventListener from the grid-instance to the grid-dom-element
+	 * @param type
+	 * @param listener
+	 * @param [options_or_useCapture]
+	 */
+	storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
+		this._addEventListener(this.grid, type, listener, options_or_useCapture);
+	};
+
+	/**
+	 * a function for passing a removeEventListener from the grid-instance to the grid-dom-element
+	 * @param type
+	 * @param listener
+	 * @param [options_or_useCapture]
+	 */
+	storkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
+		this.grid.removeEventListener(type, listener, options_or_useCapture);
+
+		for(var i=0; i < this.eventListeners.length; i++) {
+			if(this.eventListeners[i].element === this.grid
+				&& this.eventListeners[i].type === type
+				&& this.eventListeners[i].listener === listener) {
+				this.eventListeners.splice(i, 1);
+			}
+		}
 	};
 
 	/**
@@ -132,16 +176,6 @@
 	storkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
 		fromBottom = fromBottom !== false;
 		this.customScrollEvents.push({type: type, amount: amount, fromBottom: fromBottom});
-	};
-
-	/**
-	 * a function for passing an addEventListener from the grid-instance to the grid-dom-element
-	 * @param type
-	 * @param listener
-	 * @param [options_or_useCapture]
-	 */
-	storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
-		this.grid.addEventListener(type, listener, options_or_useCapture);
 	};
 
 	/**
@@ -954,13 +988,14 @@
 		var self = this;
 		var columnObj = self.columns[elm.storkGridProps.columnIndex];
 
-		elm.addEventListener('dragstart', function(e) {
+		this._addEventListener(elm, 'dragstart', function(e) {
 			// placeholder is empty. this will prevent seeing an image getting dragged, and instead we will move the real element itself
 			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
 			elm.storkGridProps.dragStartX = e.screenX;
 			elm.classList.add('dragging');
 		});
-		elm.addEventListener('drag', function(e) {
+
+		this._addEventListener(elm, 'drag', function(e) {
 			if(e.screenX !== 0) { // fixes annoying bug when ending drag
 				var delta = e.screenX - elm.storkGridProps.dragStartX;
 				var newColumnWidth = columnObj.width + delta;
@@ -973,7 +1008,8 @@
 				elm.style.transform = 'translateX('+delta+'px)';
 			}
 		});
-		elm.addEventListener('dragend', function(e) {
+
+		this._addEventListener(elm, 'dragend', function(e) {
 			elm.classList.remove('dragging');
 			elm.style.transform = '';
 			var delta = e.screenX - elm.storkGridProps.dragStartX;
@@ -1029,6 +1065,11 @@
 		var cells = this.grid.querySelectorAll('th, td');
 		var i, j, k;
 
+		// remove event listeners
+		for(i=0; i < this.eventListeners.length; i++) {
+			this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
+		}
+
 		// remove dom elements
 		for(i=0; i < cells.length; i++) {
 			cells[i].parentNode.removeChild(cells[i]);
@@ -1080,6 +1121,7 @@
 		delete this.dataElm;
 		delete this.selectedItems;
 		delete this.customScrollEvents;
+		delete this.eventListeners;
 		delete this.scrollX;
 		delete this.scrollY;
 		delete this.maxScrollY;

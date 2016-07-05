@@ -86,11 +86,18 @@ _setRowHeight(height)_: sets the height of each row. arguments: _height_ {intege
 _setHeaderHeight(height)_: sets the height of the header. arguments: _height_ {integer}.
 
 _addEventListener(type, listener, optionsUseCapture)_: adds an event listener to the DOM Element of the grid.
-arguments: _type_ {string}, listener {function}, optionsUseCapture {boolean|object}. Example:
+arguments: _type_ {string}, listener {function}, [optionsUseCapture] {boolean|object}. Example:
 ```javascript
-myGrid.addEventListener("select", function(e) {
+var myEventListener = function(e) {
   console.log(e.detail); // logs: {column: "age", dataIndex: 17}
-}, false);
+};
+myGrid.addEventListener("select", myEventListener, false);
+```
+
+_removeEventListener(type, listener, optionsUseCapture)_: removes an event listener from the DOM Element of the grid.
+arguments: _type_ {string}, listener {function}, [optionsUseCapture] {boolean|object}. Example:
+```javascript
+myGrid.removeEventListener("select", myEventListener, false);
 ```
 
 _addScrollEvent(type, amount, fromBottom)_: add a custom event to be emitted on certain positions when scrolling.
@@ -124,6 +131,8 @@ _sort_: when the user clicks on a column header this event is emitted with a `de
 _resize-column_: is emitted after the user has resized a column's width. this event has a `detail` object containing two properties - the index of the resized column (`event.detail.columnIndex`) and the new width of the column (`event.detail.width`).
 
 _grid-loaded_: when the grid completes its constructing this event is emitted. you can listen to this event instead of giving the `onload` option.
+
+_Custom scroll events_: these events will be emitted if defined via the _addScrollEvent_ method.
 
 ### Code Example
 ```html

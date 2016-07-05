@@ -19,8 +19,8 @@
 		body {
 			margin: 0;
 			display: flex;
-			align-items: center;
 			justify-content: center;
+			align-items: center;
 		}
 		#parentDiv {
 			height: 100%;
@@ -28,8 +28,8 @@
 			position: relative;
 			display: flex;
 			flex-direction: column;
-			align-items: center;
 			justify-content: center;
+			align-items: center;
 		}
 		#grid {
 			width: 50%;
@@ -37,10 +37,12 @@
 		}
 
 		.opButtons {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+
+			width: 440px;
 			padding-bottom: 10px;
-		}
-		.opButtons .destroy-grid {
-			margin-right: 30px;
 		}
 
 		span.color1, span.color2, span.color3, span.color4, span.color5, span.color6 { font-weight: bold; }
@@ -56,7 +58,7 @@
 	<script>
 		loadBulk(1000);
 
-		var testGrid;
+		var testGrid, almostHitTop;
 
 		var sortColumn = function sortColumn(column, state) {
 			return function(a, b) {
@@ -109,7 +111,7 @@
 				],
 				minColumnWidth: 65,
 				resizableColumns: true,
-				trackBy: 'other_amount',
+				trackBy: 'hai',
 				onload: function(e) { // another way to add onLoad listener
 					e.detail.gridObj.scrollY += 2000;
 				}
@@ -134,7 +136,7 @@
 			var forceRefresh = false;
 			var loadedDataTO;
 			testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
-			testGrid.addEventListener('almostHitTop', function(e) {
+			almostHitTop = function(e) {
 				var dataLength = testGrid.data.length;
 				loadBulk(900, true);
 				if(testGrid.data.length > dataLength) {
@@ -149,7 +151,8 @@
 				if(forceRefresh) {
 					testGrid.refresh();
 				}
-			}, false);
+			};
+			testGrid.addEventListener('almostHitTop', almostHitTop, false);
 
 			testGrid.addEventListener('sort', function(e) {
 				testGrid.data.sort(sortColumn(e.detail.column, e.detail.state));
@@ -178,6 +181,10 @@
 				]);
 			}
 		};
+
+		var removeInfiniteTopScroll = function removeInfiniteTopScroll() {
+			testGrid.removeEventListener('almostHitTop', almostHitTop, false);
+		};
 	</script>
 </head>
 <body>
@@ -185,6 +192,7 @@
 	<div class="opButtons">
 		<button class="destroy-grid" onclick="destroyGrid();">Destroy grid</button>
 		<button class="rearrange-cols" onclick="rearrange();">Rearrange columns</button>
+		<button class="remove-scroll-event" onclick="removeInfiniteTopScroll();">Disable infinite top scroll</button>
 	</div>
 	<div id="grid"></div>
 </div>

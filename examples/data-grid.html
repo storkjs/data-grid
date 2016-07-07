@@ -32,8 +32,8 @@
 			align-items: center;
 		}
 		#grid {
-			width: 50%;
-			height: 90%;
+			width: 980px;
+			height: 870px;
 		}
 
 		.opButtons {
@@ -91,23 +91,21 @@
 				},
 				columns: [
 					{ dataName: 'id', displayName: 'ID', width: 70, fixed: true },
-					{ dataName: 'eretz', displayName: 'Eretz', width: 110, minWidth: 70 },
-					{ dataName: 'eer', displayName: 'Eer', width: 115, minWidth: 75, fixed: true },
-					{ dataName: 'hai', displayName: 'Hai', width: 110 },
-					{ dataName: 'tzomeah', displayName: 'Tzomeah', width: 120, render: function(tdDiv, value) {
+					{ dataName: 'country', displayName: 'Country', width: 110, minWidth: 70 },
+					{ dataName: 'city', displayName: 'city', width: 115, minWidth: 75, fixed: true },
+					{ dataName: 'animal', displayName: 'Animal', width: 110 },
+					{ dataName: 'plant', displayName: 'Plant', width: 120, render: function(tdDiv, value) {
 						if(value.toLowerCase() === 'tulip') {
-							var randNum = Math.floor(Math.random() * 6 + 1);
-							tdDiv.innerHTML = '<span class="color'+randNum+'">' + value + '</span>';
-						}
-						else {
+							tdDiv.innerHTML = '<span class="color'+Math.floor(Math.random() * 6 + 1)+'">' + value + '</span>';
+						} else {
 							tdDiv.innerHTML = value;
 						}
 					} },
-					{ dataName: 'domem', displayName: 'Domem', width: 125 },
-					{ dataName: 'yeled', displayName: 'Yeled' },
-					{ dataName: 'yalda', displayName: 'Yalda' },
-					{ dataName: 'reg-amount', displayName: 'Reg Amount', width: 110 },
-					{ dataName: 'other_amount', displayName: 'Other Amount', width: 110 }
+					{ dataName: 'inanimate', displayName: 'Inanimate', width: 125 },
+					{ dataName: 'boy', displayName: 'Boy' },
+					{ dataName: 'girl', displayName: 'Girl' },
+					{ dataName: 'random_float', displayName: 'Big Num', width: 150 },
+					{ dataName: 'random_integer', displayName: 'Small Num', width: 150 }
 				],
 				minColumnWidth: 65,
 				resizableColumns: true,

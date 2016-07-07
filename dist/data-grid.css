@@ -49,7 +49,7 @@
   overflow: hidden;
 }
 .stork-grid div.header > table.columns.fixed {
-  z-index: 2;
+  z-index: 3;
 }
 .stork-grid div.header > table.columns.loose {
   z-index: 1;
@@ -61,7 +61,7 @@
   z-index: 4;
 }
 .stork-grid div.header > table.resizers.loose {
-  z-index: 3;
+  z-index: 2;
 }
 .stork-grid div.header > table.resizers td {
   position: relative;
@@ -95,6 +95,7 @@
 }
 .stork-grid div.data-wrapper > div.data table {
   position: absolute;
+  top: 0;
   left: 0;
 }
 .stork-grid div.data-wrapper > div.data table tbody > tr > td {

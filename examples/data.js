@@ -1,14 +1,14 @@
 window.bigData = [];
-window.columnNames = ['id', 'eretz','eer','hai','tzomeah','domem','yeled','yalda','reg-amount','other_amount'];
+window.columnNames = ['id', 'country','city','animal','plant','inanimate','boy','girl','random_float','random_integer'];
 
 var i,
-	countries = ['this country takes like three lines','israel','usa','germany','france','pitcairn'],
-	cities = ['tel aviv','jerusalem','new york','london'],
-	animals = ['monkey','ape','dog','cat','mouse','rat','pangolin'],
-	plants = ['rose','daisy','tulip'],
+	countries = ['this country takes like three lines','Israel','USA','Germany','France','Pitcairn'],
+	cities = ['Tel Aviv','Jerusalem','New York','London'],
+	animals = ['Monkey','Ape','Dog','Cat','Mouse','Rat','Pangolin'],
+	plants = ['Rose','Daisy','Tulip'],
 	inanimates = ['stone','pen','table','sand','roof','metal','can','thread','pin','dust'],
-	boy = ['noam','michael'],
-	girl = ['naama','michaela','shivan'],
+	boy = ['Noam','Michael'],
+	girl = ['Naama','Mikaela','Judy'],
 	allData = [],
 	tmp;
 for(i=0; i < 10000; i++) {

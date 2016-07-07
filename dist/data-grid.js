@@ -1,5 +1,24 @@
 (function(root) {
   "use strict";
+  var changeTranslate = function changeTranslate(elm, direction, amount) {
+    if (!elm.storkGridProps) {
+      elm.storkGridProps = {};
+    }
+    if (!elm.storkGridProps.translateX) {
+      elm.storkGridProps.translateX = 0;
+    }
+    if (!elm.storkGridProps.translateY) {
+      elm.storkGridProps.translateY = 0;
+    }
+    if (direction.toUpperCase() === "X") {
+      elm.storkGridProps.translateX = amount;
+      elm.style.transform = "translate(" + amount + "px," + elm.storkGridProps.translateY + "px)";
+    } else if (direction.toUpperCase() === "Y") {
+      elm.storkGridProps.translateY = amount;
+      elm.style.transform = "translate(" + elm.storkGridProps.translateX + "px," + amount + "px)";
+      console.log(elm.style.transform);
+    }
+  };
   var storkGrid = function storkGrid(options) {
     this.grid = options.element;
     this.data = options.data || [];
@@ -375,9 +394,7 @@
         tbodyFixed.appendChild(trFixed);
         tbody.appendChild(tr);
       }
-      tableFixed.style.top = this.dataTableHeight * counter + "px";
       tableFixed.appendChild(tbodyFixed);
-      table.style.top = this.dataTableHeight * counter + "px";
       table.appendChild(tbody);
     }
   };
@@ -397,8 +414,10 @@
     bottomTable = this.dataTables[bottomTableIndex].table;
     bottomTableFixed = this.dataTables[bottomTableIndex].tableFixed;
     if (currScrollDirection === "down") {
-      topTable.style.top = topTableFixed.style.top = currDataBlock * this.dataTableHeight + "px";
-      bottomTable.style.top = bottomTableFixed.style.top = (currDataBlock + 1) * this.dataTableHeight + "px";
+      changeTranslate(topTable, "Y", currDataBlock * this.dataTableHeight);
+      changeTranslate(topTableFixed, "Y", currDataBlock * this.dataTableHeight);
+      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * this.dataTableHeight);
+      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * this.dataTableHeight);
       this.lastThreshold = currDataBlock * this.dataTableHeight + this.tableExtraPixelsForThreshold;
       if (currScrollTop >= this.lastThreshold) {
         this.nextThreshold = this.lastThreshold + this.dataTableHeight;
@@ -407,8 +426,10 @@
         this.lastThreshold -= this.dataTableHeight;
       }
     } else if (currScrollDirection === "up") {
-      topTable.style.top = topTableFixed.style.top = currDataBlock * this.dataTableHeight + "px";
-      bottomTable.style.top = bottomTableFixed.style.top = (currDataBlock + 1) * this.dataTableHeight + "px";
+      changeTranslate(topTable, "Y", currDataBlock * this.dataTableHeight);
+      changeTranslate(topTableFixed, "Y", currDataBlock * this.dataTableHeight);
+      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * this.dataTableHeight);
+      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * this.dataTableHeight);
       this.lastThreshold = (currDataBlock + 1) * this.dataTableHeight + this.tableExtraPixelsForThreshold;
       if (currScrollTop <= this.lastThreshold) {
         this.nextThreshold = this.lastThreshold - this.dataTableHeight;
@@ -458,12 +479,13 @@
     }
   };
   storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
-    this.headerTable.loose.style.left = -currScrollLeft + "px";
+    changeTranslate(this.headerTable.loose, "X", -currScrollLeft);
+    this.headerTable.loose.style.transform = "translateX(-" + currScrollLeft + "px)";
     if (this.headerTable.resizer_loose) {
-      this.headerTable.resizer_loose.style.left = -currScrollLeft + "px";
+      changeTranslate(this.headerTable.resizer_loose, "X", -currScrollLeft);
     }
-    this.dataTables[0].tableFixed.style.left = currScrollLeft + "px";
-    this.dataTables[1].tableFixed.style.left = currScrollLeft + "px";
+    changeTranslate(this.dataTables[0].tableFixed, "X", currScrollLeft);
+    changeTranslate(this.dataTables[1].tableFixed, "X", currScrollLeft);
     if (this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
       this.dataTables[0].tableFixed.classList.add("covering");
       this.dataTables[1].tableFixed.classList.add("covering");
@@ -720,7 +742,7 @@
         if (newColumnWidth < minWidth) {
           delta = minWidth - columnObj.width;
         }
-        elm.style.transform = "translateX(" + delta + "px)";
+        changeTranslate(elm, "X", delta);
       }
     });
     this._addEventListener(elm, "dragend", function(e) {

@@ -16,7 +16,6 @@
     } else if (direction.toUpperCase() === "Y") {
       elm.storkGridProps.translateY = amount;
       elm.style.transform = "translate(" + elm.storkGridProps.translateX + "px," + amount + "px)";
-      console.log(elm.style.transform);
     }
   };
   var storkGrid = function storkGrid(options) {

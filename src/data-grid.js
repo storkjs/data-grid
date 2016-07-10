@@ -67,7 +67,8 @@
 		this.dataWrapperElm = null;
 		this.dataElm = null;
 		this.selectedItems = new Map();/*ES6*/
-		this.clickedItem = null;
+		this.clickedItem = null; // physically clicked item (when user started a selection)
+		this.hoveredRowElm = null; // last row user hovered above while on mouse-move
 		this.customScrollEvents = [];
 		this.eventListeners = [];
 
@@ -142,8 +143,8 @@
 
 
 		/** Events */
-		// on click
-		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false);
+		// on click on data rows
+		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataClick.bind(this), false);
 		// on click on header
 		if(this.sortable) {
 			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false);
@@ -173,9 +174,34 @@
 	 * @private
 	 */
 	storkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
-		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture});
+		element.addEventListener(type, listener, options_or_useCapture); // add event listener
+		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture}); // save listeners parameters
+		return this.eventListeners.length - 1; // return index for removing this specific listener later
+	};
 
-		element.addEventListener(type, listener, options_or_useCapture);
+	/**
+	 * remove a specific event listener by its index
+	 * @param index
+	 * @private
+	 */
+	storkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
+		var currEL = this.eventListeners[index];
+		if(currEL) { // if this event wasn't removed before
+			currEL.element.removeEventListener(currEL.type, currEL.listener, currEL.options);
+		}
+		this.eventListeners[index] = null;
+	};
+
+	/**
+	 * remove all event listeners from all of the grid's dom elements and empty the listeners array
+	 * @private
+	 */
+	storkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
+		for(var i=0; i < this.eventListeners.length; i++) {
+			this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
+		}
+
+		this.eventListeners.length = 0; // empty the listeners array
 	};
 
 	/**
@@ -747,52 +773,71 @@
 		selectedCellColumn = TD.storkGridProps.column;
 
 		if(dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+			if (this.trackBy) { // tracking by a specific column data
+				trackByData = this.data[dataIndex][this.trackBy];
+			} else { // tracking by the whole row's data object
+				trackByData = this.data[dataIndex];
+			}
+
 			// should emit a double-click-select?
 			var now = Date.now();
 			if(now - lastClickTime > 300) {
-				if (this.trackBy) { // tracking by a specific column data
-					trackByData = this.data[dataIndex][this.trackBy];
-				} else { // tracking by the whole row's data object
-					trackByData = this.data[dataIndex];
-				}
+				/** NEW and better way of handling data connection */
+				if(this.selection.type === 'row' && this.selection.multi === true) {
+					this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
+					this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
+					this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn }; // save currently clicked row
+					this.hoveredRowElm = TR;
 
-				// when not on multi select clear previous selection, unless re-selecting the same row
-				// which we should let the next code unselect it
-				if(!this.selection.multi && !this.selectedItems.has(trackByData)) {
-					this.selectedItems.clear();
-				}
+					var self = this;
+					var eventIndexes = { mouse_move: null, mouse_up: null };
+					eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataClickMove.bind(this), false);
+					eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
+						self._removeEventListener(eventIndexes.mouse_move);
+						self._removeEventListener(eventIndexes.mouse_up);
+					}, false);
 
-				if(this.selectedItems.has(trackByData)) {
-					if(this.selection.type === 'row') { // whole rows
-						this.selectedItems.delete(trackByData); // unselect row
-						this.clickedItem = null;
+					this.renderSelectOnRows();
+				}
+				/** OLD way for handling data selection */
+				else {
+					// when not on multi select clear previous selection, unless re-selecting the same row
+					// which we should let the next code unselect it
+					if(!this.selection.multi && !this.selectedItems.has(trackByData)) {
+						this.selectedItems.clear();
 					}
-					else { // individual cells
-						// TODO - replace this whole functionality. cell selection should be on mouse drag (and always selecting multiple cells)
-						selectedItem = this.selectedItems.get(trackByData);
 
-						var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
-						if(indexOfColumn === -1) { // clicked on a cell not chosen before in this row
-							selectedItem.push(selectedCellColumn);
-							this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
-						}
-						else { // clicked on an already selected cell so let's remove it
-							selectedItem.splice(indexOfColumn, 1); // unselect cell
-
-							if(selectedItem.length === 0) {
-								this.selectedItems.delete(trackByData); // unselect row
-							}
-
+					if(this.selectedItems.has(trackByData)) {
+						if(this.selection.type === 'row') { // whole rows
+							this.selectedItems.delete(trackByData); // unselect row
 							this.clickedItem = null;
 						}
-					}
-				}
-				else {
-					this.selectedItems.set(trackByData, [selectedCellColumn]);
-					this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
-				}
+						else { // individual cells
+							selectedItem = this.selectedItems.get(trackByData);
 
-				this.repositionTables(null, null, true);
+							var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
+							if(indexOfColumn === -1) { // clicked on a cell not chosen before in this row
+								selectedItem.push(selectedCellColumn);
+								this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
+							}
+							else { // clicked on an already selected cell so let's remove it
+								selectedItem.splice(indexOfColumn, 1); // unselect cell
+
+								if(selectedItem.length === 0) {
+									this.selectedItems.delete(trackByData); // unselect row
+								}
+
+								this.clickedItem = null;
+							}
+						}
+					}
+					else {
+						this.selectedItems.set(trackByData, [selectedCellColumn]);
+						this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
+					}
+
+					this.renderSelectOnRows();
+				}
 			}
 			else { // it's a double click
 				eventName = 'dblselect';
@@ -805,7 +850,8 @@
 				cancelable: true,
 				detail: {
 					dataIndex: dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
-					column: selectedCellColumn /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
+					column: selectedCellColumn, /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
+					isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for deselect */
 				}
 			});
 			this.grid.dispatchEvent(evnt);
@@ -814,6 +860,78 @@
 			this.selectedItems.clear();
 			console.warn('selected row is not pointing to a valid data');
 			this.repositionTables(null, null, true);
+		}
+	};
+
+	/**
+	 * an event handler for mousemove when dragging the mouse for multi selecting
+	 * @param e
+	 */
+	storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+		var TD = e.target,
+			i = 0,
+			dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
+
+		while (TD.tagName.toUpperCase() !== 'TD') {
+			if (i++ >= 2) {
+				return; // user clicked on something that is too far from our table-cell
+			}
+			TD = TD.parentNode;
+		}
+
+		TR = TD.parentNode;
+
+		if(TR !== this.hoveredRowElm) { // dragged mouse form one row to a different one
+			this.hoveredRowElm = TR;
+
+			dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
+
+			if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+				this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
+
+				var smallIndex = Math.min(dataIndex, this.clickedItem.dataIndex);
+				var bigIndex = Math.max(dataIndex, this.clickedItem.dataIndex);
+
+				for(i = smallIndex; i <= bigIndex; i++) {
+					if (this.trackBy) { // tracking by a specific column data
+						trackByData = this.data[i][this.trackBy];
+					} else { // tracking by the whole row's data object
+						trackByData = this.data[i];
+					}
+
+					this.selectedItems.set(trackByData, [this.clickedItem.column]); // add row to selection range
+				}
+
+				this.renderSelectOnRows();
+			}
+		}
+	};
+
+	/**
+	 * adds/removes the 'select' class from the rows in the view (without rebuilding the DOM)
+	 */
+	storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
+		var i, j, dataIndex, trackByData;
+
+		for(i=0; i < this.dataTables.length; i++) {
+			for(j=0; j < this.dataTables[i].rows.length; j++) {
+				dataIndex = this.dataTables[i].rows[j].row.storkGridProps.dataIndex;
+
+				if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
+					trackByData = this.data[dataIndex][this.trackBy];
+				} else {
+					trackByData = this.data[dataIndex];
+				}
+
+				if(this.selectedItems.has(trackByData)) {
+					this.dataTables[i].rows[j].row.classList.add('selected');
+					this.dataTables[i].rows[j].rowFixed.classList.add('selected');
+				}
+				else {
+					this.dataTables[i].rows[j].row.classList.remove('selected');
+					this.dataTables[i].rows[j].rowFixed.classList.remove('selected');
+				}
+			}
 		}
 	};
 
@@ -1116,9 +1234,7 @@
 		var i, j, k;
 
 		// remove event listeners
-		for(i=0; i < this.eventListeners.length; i++) {
-			this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
-		}
+		this._emptyEventListeners();
 
 		// remove dom elements
 		for(i=0; i < cells.length; i++) {

@@ -51,6 +51,7 @@
     this.dataElm = null;
     this.selectedItems = new Map();
     this.clickedItem = null;
+    this.hoveredRowElm = null;
     this.customScrollEvents = [];
     this.eventListeners = [];
     this.scrollY = 0;
@@ -106,7 +107,7 @@
     }
     this.calculateColumnsWidths();
     this.makeCssRules();
-    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataClick.bind(this), false);
     if (this.sortable) {
       this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
     }
@@ -126,13 +127,27 @@
     this.grid.dispatchEvent(evnt);
   };
   storkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
+    element.addEventListener(type, listener, options_or_useCapture);
     this.eventListeners.push({
       element: element,
       type: type,
       listener: listener,
       options: options_or_useCapture
     });
-    element.addEventListener(type, listener, options_or_useCapture);
+    return this.eventListeners.length - 1;
+  };
+  storkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
+    var currEL = this.eventListeners[index];
+    if (currEL) {
+      currEL.element.removeEventListener(currEL.type, currEL.listener, currEL.options);
+    }
+    this.eventListeners[index] = null;
+  };
+  storkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
+    for (var i = 0; i < this.eventListeners.length; i++) {
+      this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
+    }
+    this.eventListeners.length = 0;
   };
   storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
     this._addEventListener(this.grid, type, listener, options_or_useCapture);
@@ -509,45 +524,66 @@
     dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
     selectedCellColumn = TD.storkGridProps.column;
     if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER) {
+      if (this.trackBy) {
+        trackByData = this.data[dataIndex][this.trackBy];
+      } else {
+        trackByData = this.data[dataIndex];
+      }
       var now = Date.now();
       if (now - lastClickTime > 300) {
-        if (this.trackBy) {
-          trackByData = this.data[dataIndex][this.trackBy];
-        } else {
-          trackByData = this.data[dataIndex];
-        }
-        if (!this.selection.multi && !this.selectedItems.has(trackByData)) {
+        if (this.selection.type === "row" && this.selection.multi === true) {
           this.selectedItems.clear();
-        }
-        if (this.selectedItems.has(trackByData)) {
-          if (this.selection.type === "row") {
-            this.selectedItems.delete(trackByData);
-            this.clickedItem = null;
-          } else {
-            selectedItem = this.selectedItems.get(trackByData);
-            var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
-            if (indexOfColumn === -1) {
-              selectedItem.push(selectedCellColumn);
-              this.clickedItem = {
-                dataIndex: dataIndex,
-                column: selectedCellColumn
-              };
-            } else {
-              selectedItem.splice(indexOfColumn, 1);
-              if (selectedItem.length === 0) {
-                this.selectedItems.delete(trackByData);
-              }
-              this.clickedItem = null;
-            }
-          }
-        } else {
           this.selectedItems.set(trackByData, [ selectedCellColumn ]);
           this.clickedItem = {
             dataIndex: dataIndex,
             column: selectedCellColumn
           };
+          this.hoveredRowElm = TR;
+          var self = this;
+          var eventIndexes = {
+            mouse_move: null,
+            mouse_up: null
+          };
+          eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataClickMove.bind(this), false);
+          eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
+            self._removeEventListener(eventIndexes.mouse_move);
+            self._removeEventListener(eventIndexes.mouse_up);
+          }, false);
+          this.renderSelectOnRows();
+        } else {
+          if (!this.selection.multi && !this.selectedItems.has(trackByData)) {
+            this.selectedItems.clear();
+          }
+          if (this.selectedItems.has(trackByData)) {
+            if (this.selection.type === "row") {
+              this.selectedItems.delete(trackByData);
+              this.clickedItem = null;
+            } else {
+              selectedItem = this.selectedItems.get(trackByData);
+              var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
+              if (indexOfColumn === -1) {
+                selectedItem.push(selectedCellColumn);
+                this.clickedItem = {
+                  dataIndex: dataIndex,
+                  column: selectedCellColumn
+                };
+              } else {
+                selectedItem.splice(indexOfColumn, 1);
+                if (selectedItem.length === 0) {
+                  this.selectedItems.delete(trackByData);
+                }
+                this.clickedItem = null;
+              }
+            }
+          } else {
+            this.selectedItems.set(trackByData, [ selectedCellColumn ]);
+            this.clickedItem = {
+              dataIndex: dataIndex,
+              column: selectedCellColumn
+            };
+          }
+          this.renderSelectOnRows();
         }
-        this.repositionTables(null, null, true);
       } else {
         eventName = "dblselect";
       }
@@ -557,7 +593,8 @@
         cancelable: true,
         detail: {
           dataIndex: dataIndex,
-          column: selectedCellColumn
+          column: selectedCellColumn,
+          isSelect: this.selectedItems.has(trackByData)
         }
       });
       this.grid.dispatchEvent(evnt);
@@ -565,6 +602,54 @@
       this.selectedItems.clear();
       console.warn("selected row is not pointing to a valid data");
       this.repositionTables(null, null, true);
+    }
+  };
+  storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+    var TD = e.target, i = 0, dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
+    while (TD.tagName.toUpperCase() !== "TD") {
+      if (i++ >= 2) {
+        return;
+      }
+      TD = TD.parentNode;
+    }
+    TR = TD.parentNode;
+    if (TR !== this.hoveredRowElm) {
+      this.hoveredRowElm = TR;
+      dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
+      if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER) {
+        this.selectedItems.clear();
+        var smallIndex = Math.min(dataIndex, this.clickedItem.dataIndex);
+        var bigIndex = Math.max(dataIndex, this.clickedItem.dataIndex);
+        for (i = smallIndex; i <= bigIndex; i++) {
+          if (this.trackBy) {
+            trackByData = this.data[i][this.trackBy];
+          } else {
+            trackByData = this.data[i];
+          }
+          this.selectedItems.set(trackByData, [ this.clickedItem.column ]);
+        }
+        this.renderSelectOnRows();
+      }
+    }
+  };
+  storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
+    var i, j, dataIndex, trackByData;
+    for (i = 0; i < this.dataTables.length; i++) {
+      for (j = 0; j < this.dataTables[i].rows.length; j++) {
+        dataIndex = this.dataTables[i].rows[j].row.storkGridProps.dataIndex;
+        if (this.trackBy) {
+          trackByData = this.data[dataIndex][this.trackBy];
+        } else {
+          trackByData = this.data[dataIndex];
+        }
+        if (this.selectedItems.has(trackByData)) {
+          this.dataTables[i].rows[j].row.classList.add("selected");
+          this.dataTables[i].rows[j].rowFixed.classList.add("selected");
+        } else {
+          this.dataTables[i].rows[j].row.classList.remove("selected");
+          this.dataTables[i].rows[j].rowFixed.classList.remove("selected");
+        }
+      }
     }
   };
   storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
@@ -779,9 +864,7 @@
     var rows = this.grid.querySelectorAll("tr");
     var cells = this.grid.querySelectorAll("th, td");
     var i, j, k;
-    for (i = 0; i < this.eventListeners.length; i++) {
-      this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
-    }
+    this._emptyEventListeners();
     for (i = 0; i < cells.length; i++) {
       cells[i].parentNode.removeChild(cells[i]);
     }

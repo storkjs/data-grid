@@ -155,6 +155,8 @@
 		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false);
 		// document check if we are focused on the grid
 		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true);
+		// on copy
+		//this._addEventListener(document, 'copy', this.onCopy.bind(this), true);
 
 		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
@@ -870,7 +872,7 @@
 	storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
 		var TD = e.target,
 			i = 0,
-			dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
+			dataIndex, TR, trackByData;
 
 		while (TD.tagName.toUpperCase() !== 'TD') {
 			if (i++ >= 2) {
@@ -881,7 +883,7 @@
 
 		TR = TD.parentNode;
 
-		if(TR !== this.hoveredRowElm) { // dragged mouse form one row to a different one
+		if(TR !== this.hoveredRowElm) { // dragged mouse from one row to a different one
 			this.hoveredRowElm = TR;
 
 			dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
@@ -926,13 +928,23 @@
 				if(this.selectedItems.has(trackByData)) {
 					this.dataTables[i].rows[j].row.classList.add('selected');
 					this.dataTables[i].rows[j].rowFixed.classList.add('selected');
+					this.dataTables[i].rows[j].row.storkGridProps.selected = true; // update the storkGridProps which is a reference between fixed and loose rows
 				}
-				else {
+				else if(this.dataTables[i].rows[j].row.storkGridProps.selected) { // only remove class to previously selected rows
 					this.dataTables[i].rows[j].row.classList.remove('selected');
 					this.dataTables[i].rows[j].rowFixed.classList.remove('selected');
+					this.dataTables[i].rows[j].row.storkGridProps.selected = false;
 				}
 			}
 		}
+	};
+
+	/**
+	 * handle on-copy for custom copying
+	 * @param e
+	 */
+	storkGrid.prototype.onCopy = function onCopy(e) {
+		console.log(e);
 	};
 
 	/**
@@ -1018,7 +1030,7 @@
 				else {
 					selectedItem = null;
 
-					if (rowObj.row.storkGridProps.selected) {
+					if (rowObj.row.storkGridProps.selected) { // previously selected but now its out of 'selectedItems' list
 						rowObj.row.classList.remove('selected');
 						rowObj.rowFixed.classList.remove('selected');
 						rowObj.row.storkGridProps.selected = false; // storkGridProps is a referenced object between fixed and loose dom elements

@@ -605,7 +605,7 @@
     }
   };
   storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
-    var TD = e.target, i = 0, dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
+    var TD = e.target, i = 0, dataIndex, TR, trackByData;
     while (TD.tagName.toUpperCase() !== "TD") {
       if (i++ >= 2) {
         return;
@@ -645,12 +645,17 @@
         if (this.selectedItems.has(trackByData)) {
           this.dataTables[i].rows[j].row.classList.add("selected");
           this.dataTables[i].rows[j].rowFixed.classList.add("selected");
-        } else {
+          this.dataTables[i].rows[j].row.storkGridProps.selected = true;
+        } else if (this.dataTables[i].rows[j].row.storkGridProps.selected) {
           this.dataTables[i].rows[j].row.classList.remove("selected");
           this.dataTables[i].rows[j].rowFixed.classList.remove("selected");
+          this.dataTables[i].rows[j].row.storkGridProps.selected = false;
         }
       }
     }
+  };
+  storkGrid.prototype.onCopy = function onCopy(e) {
+    console.log(e);
   };
   storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
     var TH = e.target, i = 0;

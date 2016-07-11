@@ -107,10 +107,10 @@
     }
     this.calculateColumnsWidths();
     this.makeCssRules();
-    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataClick.bind(this), false);
     if (this.sortable) {
       this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
     }
+    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataClick.bind(this), false);
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
     this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
@@ -324,8 +324,7 @@
         self.dataWrapperElm.scrollLeft = newValue;
       }
     });
-    this.resizeCalculate();
-    this.buildDataTables();
+    this.resize();
   };
   storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
     this.totalDataHeight = this.rowHeight * this.data.length;

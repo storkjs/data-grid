@@ -141,22 +141,15 @@
 		/** add css rules */
 		this.makeCssRules();
 
-
 		/** Events */
-		// on click on data rows
-		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataClick.bind(this), false);
-		// on click on header
 		if(this.sortable) {
-			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false);
+			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false); // on click on header
 		}
-		// on arrows up/down
-		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false);
-		// on scroll
-		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false);
-		// document check if we are focused on the grid
-		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true);
-		// on copy
-		this._addEventListener(document, 'copy', this.onCopy.bind(this), true);
+		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataClick.bind(this), false); // on click on data rows
+		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
+		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false); // on scroll
+		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true); // document check if we are focused on the grid
+		this._addEventListener(document, 'copy', this.onCopy.bind(this), true); // on copy
 
 		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
@@ -470,9 +463,8 @@
 			}
 		});
 
-		this.resizeCalculate();
-
-		this.buildDataTables();
+		// init the DOM elements
+		this.resize(); // resizeCalculate() + buildDataTables() + repositionTables()
 	};
 
 	/**

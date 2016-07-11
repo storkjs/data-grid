@@ -1313,11 +1313,8 @@
 		delete this.resizableColumns;
 		delete this.sortable;
 		delete this.trackBy;
-		delete this.onload;
-
-		delete this.selection.multi;
-		delete this.selection.type;
 		delete this.selection;
+		delete this.onload;
 
 		delete this.tableExtraSize;
 		delete this.tableExtraPixelsForThreshold;
@@ -1376,8 +1373,8 @@
 		options.resizableColumns = this.resizableColumns;
 		options.sortable = this.sortable;
 		options.trackBy = this.trackBy;
-		options.onload = this.onload;
-		options.selection = this.selection;
+		options.onload = this.onload; // caution - using reference
+		options.selection = this.selection; // caution - using reference
 
 		// destroy the grid
 		this.destroy();

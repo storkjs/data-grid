@@ -156,7 +156,7 @@
 		// document check if we are focused on the grid
 		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true);
 		// on copy
-		//this._addEventListener(document, 'copy', this.onCopy.bind(this), true);
+		this._addEventListener(document, 'copy', this.onCopy.bind(this), true);
 
 		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
@@ -786,18 +786,25 @@
 			if(now - lastClickTime > 300) {
 				/** NEW and better way of handling data connection */
 				if(this.selection.type === 'row' && this.selection.multi === true) {
-					this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
-					this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
-					this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn }; // save currently clicked row
-					this.hoveredRowElm = TR;
+					if(this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) { // only way to deselect
+						this.selectedItems.clear();
+						this.clickedItem = null;
+						this.hoveredRowElm = null;
+					}
+					else {
+						this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
+						this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
+						this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn }; // save currently clicked row
+						this.hoveredRowElm = TR;
 
-					var self = this;
-					var eventIndexes = { mouse_move: null, mouse_up: null };
-					eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataClickMove.bind(this), false);
-					eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
-						self._removeEventListener(eventIndexes.mouse_move);
-						self._removeEventListener(eventIndexes.mouse_up);
-					}, false);
+						var self = this;
+						var eventIndexes = { mouse_move: null, mouse_up: null };
+						eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataClickMove.bind(this), false);
+						eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
+							self._removeEventListener(eventIndexes.mouse_move);
+							self._removeEventListener(eventIndexes.mouse_up);
+						}, false);
+					}
 
 					this.renderSelectOnRows();
 				}
@@ -944,7 +951,38 @@
 	 * @param e
 	 */
 	storkGrid.prototype.onCopy = function onCopy(e) {
-		console.log(e);
+		if(this.grid.classList.contains('focused')) {
+			if(this.selectedItems.size > 0) { // we should copy the selected data to the clipboard
+				var text = '',
+					html = '<table><tbody>',
+					i, j, trackByData;
+
+				for(i=0; i < this.data.length; i++) {
+					if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
+						trackByData = this.data[i][this.trackBy];
+					} else {
+						trackByData = this.data[i];
+					}
+
+					if(this.selectedItems.has(trackByData)) {
+						html += '<tr>';
+						for(j=0; j < this.columns.length; j++) {
+							text += this.data[i][ this.columns[j].dataName ] + ' ';
+							html += '<td>' + this.data[i][ this.columns[j].dataName ] + '</td>';
+						}
+						text = text.slice(0, -1) + "\n"; // trim last space and add line-break
+						html += '</tr>';
+					}
+				}
+
+				text = text.slice(0, -1); // trim last line-break
+				html += '</tbody></table>';
+
+				e.clipboardData.setData('text/plain', text);
+				e.clipboardData.setData('text/html', html);
+				e.preventDefault();
+			}
+		}
 	};
 
 	/**

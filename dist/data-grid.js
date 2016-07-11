@@ -114,6 +114,7 @@
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
     this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
+    this._addEventListener(document, "copy", this.onCopy.bind(this), true);
     var evnt = new CustomEvent("grid-loaded", {
       bubbles: true,
       cancelable: true,
@@ -532,23 +533,29 @@
       var now = Date.now();
       if (now - lastClickTime > 300) {
         if (this.selection.type === "row" && this.selection.multi === true) {
-          this.selectedItems.clear();
-          this.selectedItems.set(trackByData, [ selectedCellColumn ]);
-          this.clickedItem = {
-            dataIndex: dataIndex,
-            column: selectedCellColumn
-          };
-          this.hoveredRowElm = TR;
-          var self = this;
-          var eventIndexes = {
-            mouse_move: null,
-            mouse_up: null
-          };
-          eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataClickMove.bind(this), false);
-          eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
-            self._removeEventListener(eventIndexes.mouse_move);
-            self._removeEventListener(eventIndexes.mouse_up);
-          }, false);
+          if (this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) {
+            this.selectedItems.clear();
+            this.clickedItem = null;
+            this.hoveredRowElm = null;
+          } else {
+            this.selectedItems.clear();
+            this.selectedItems.set(trackByData, [ selectedCellColumn ]);
+            this.clickedItem = {
+              dataIndex: dataIndex,
+              column: selectedCellColumn
+            };
+            this.hoveredRowElm = TR;
+            var self = this;
+            var eventIndexes = {
+              mouse_move: null,
+              mouse_up: null
+            };
+            eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataClickMove.bind(this), false);
+            eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
+              self._removeEventListener(eventIndexes.mouse_move);
+              self._removeEventListener(eventIndexes.mouse_up);
+            }, false);
+          }
           this.renderSelectOnRows();
         } else {
           if (!this.selection.multi && !this.selectedItems.has(trackByData)) {
@@ -655,7 +662,32 @@
     }
   };
   storkGrid.prototype.onCopy = function onCopy(e) {
-    console.log(e);
+    if (this.grid.classList.contains("focused")) {
+      if (this.selectedItems.size > 0) {
+        var text = "", html = "<table><tbody>", i, j, trackByData;
+        for (i = 0; i < this.data.length; i++) {
+          if (this.trackBy) {
+            trackByData = this.data[i][this.trackBy];
+          } else {
+            trackByData = this.data[i];
+          }
+          if (this.selectedItems.has(trackByData)) {
+            html += "<tr>";
+            for (j = 0; j < this.columns.length; j++) {
+              text += this.data[i][this.columns[j].dataName] + " ";
+              html += "<td>" + this.data[i][this.columns[j].dataName] + "</td>";
+            }
+            text = text.slice(0, -1) + "\n";
+            html += "</tr>";
+          }
+        }
+        text = text.slice(0, -1);
+        html += "</tbody></table>";
+        e.clipboardData.setData("text/plain", text);
+        e.clipboardData.setData("text/html", html);
+        e.preventDefault();
+      }
+    }
   };
   storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
     var TH = e.target, i = 0;

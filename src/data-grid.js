@@ -757,6 +757,10 @@
 	 */
 	var lastClickTime = 0;
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
+		if(e.button !== 0) {
+			return; // do nothing if the click wasn't with the main mouse button
+		}
+
 		var TD = e.target,
 			i = 0,
 			eventName = 'select',

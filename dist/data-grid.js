@@ -514,6 +514,9 @@
   };
   var lastClickTime = 0;
   storkGrid.prototype.onDataClick = function onDataClick(e) {
+    if (e.button !== 0) {
+      return;
+    }
     var TD = e.target, i = 0, eventName = "select", dataIndex, TR, selectedCellColumn, selectedItem, trackByData;
     while (TD.tagName.toUpperCase() !== "TD") {
       if (i++ >= 2) {

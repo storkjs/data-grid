@@ -55,6 +55,12 @@
 		}
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
+		this.cellBorders = { // top&bottom border sizes
+			headerTotal: 0,
+			headerDeviation: 0, // the deviation (border out of element's area) because of 'border-collapse:collapse'
+			dataTotal: 0,
+			dataDeviation: 0
+		};
 		this.headerTable = {
 			wrapper: null,
 			loose: null,
@@ -301,30 +307,23 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		var extraBorder = 0; // extra height that can not be used for content
 		var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
-		if(cellStyle.boxSizing === 'border-box') {
-			extraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-		}
+		this.cellBorders.dataTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+		this.cellBorders.dataDeviation = Math.ceil(this.cellBorders.dataTotal / 2);
 
-		var headerExtraBorder = 0;
 		cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
-		if(cellStyle.boxSizing === 'border-box') {
-			headerExtraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-		}
-
-		// fixes a rendering bug that border is outside of the TH's height even tho we are using 'box-sizing:border-box'
-		var headerCellsHeight = this.headerHeight - Math.ceil(headerExtraBorder / 2);
+		this.cellBorders.headerTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+		this.cellBorders.headerDeviation = Math.ceil(this.cellBorders.headerTotal / 2);
 
 		// header height
 		var html = '.stork-grid'+this.rnd+' div.header > table th,' +
-			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + headerCellsHeight + 'px; }';
+			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + (this.headerHeight - this.cellBorders.headerDeviation) + 'px; }';
 		// header content max-height
-		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + headerCellsHeight + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + (this.headerHeight - this.cellBorders.headerDeviation) + 'px; }';
 		// data rows height
 		html += '.stork-grid'+this.rnd+' div.data > table td { height: ' + this.rowHeight + 'px; }';
 		// data rows content max-height
-		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - extraBorder) + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - this.cellBorders.dataTotal) + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
 			html += '.stork-grid'+this.rnd+' th.'+this.columns[i].dataName+',' +
@@ -620,12 +619,17 @@
 		bottomTable = this.dataTables[bottomTableIndex].table;
 		bottomTableFixed = this.dataTables[bottomTableIndex].tableFixed;
 
-		if(currScrollDirection === 'down') {
-			changeTranslate(topTable, 'Y', currDataBlock * this.dataTableHeight);
-			changeTranslate(topTableFixed, 'Y', currDataBlock * this.dataTableHeight);
+		var self = this;
+		var changeTranslateOfTables = function changeTranslateOfTables() {
+			changeTranslate(topTable, 'Y', currDataBlock * self.dataTableHeight);
+			changeTranslate(topTableFixed, 'Y', currDataBlock * self.dataTableHeight);
 
-			changeTranslate(bottomTable, 'Y', (currDataBlock + 1) * this.dataTableHeight);
-			changeTranslate(bottomTableFixed, 'Y', (currDataBlock + 1) * this.dataTableHeight);
+			changeTranslate(bottomTable, 'Y', (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+			changeTranslate(bottomTableFixed, 'Y', (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+		};
+
+		if(currScrollDirection === 'down') {
+			changeTranslateOfTables();
 
 			this.lastThreshold = currDataBlock * this.dataTableHeight + this.tableExtraPixelsForThreshold;
 			if(currScrollTop >= this.lastThreshold) {
@@ -637,11 +641,7 @@
 			}
 		}
 		else if(currScrollDirection === 'up') {
-			changeTranslate(topTable, 'Y', currDataBlock * this.dataTableHeight);
-			changeTranslate(topTableFixed, 'Y', currDataBlock * this.dataTableHeight);
-
-			changeTranslate(bottomTable, 'Y', (currDataBlock + 1) * this.dataTableHeight);
-			changeTranslate(bottomTableFixed, 'Y', (currDataBlock + 1) * this.dataTableHeight);
+			changeTranslateOfTables();
 
 			this.lastThreshold = (currDataBlock + 1) * this.dataTableHeight + this.tableExtraPixelsForThreshold;
 			if(currScrollTop <= this.lastThreshold) {

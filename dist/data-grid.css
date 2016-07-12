@@ -14,6 +14,9 @@
 .stork-grid:focus {
   outline: 0 none;
 }
+.stork-grid * {
+  box-sizing: border-box;
+}
 .stork-grid table {
   border-collapse: collapse;
   table-layout: fixed;

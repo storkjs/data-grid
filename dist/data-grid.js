@@ -38,6 +38,12 @@
     }
     this.tableExtraSize = .4;
     this.tableExtraPixelsForThreshold = 0;
+    this.cellBorders = {
+      headerTotal: 0,
+      headerDeviation: 0,
+      dataTotal: 0,
+      dataDeviation: 0
+    };
     this.headerTable = {
       wrapper: null,
       loose: null,
@@ -212,21 +218,16 @@
       style.type = "text/css";
       document.getElementsByTagName("head")[0].appendChild(style);
     }
-    var extraBorder = 0;
     var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
-    if (cellStyle.boxSizing === "border-box") {
-      extraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-    }
-    var headerExtraBorder = 0;
+    this.cellBorders.dataTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+    this.cellBorders.dataDeviation = Math.ceil(this.cellBorders.dataTotal / 2);
     cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
-    if (cellStyle.boxSizing === "border-box") {
-      headerExtraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-    }
-    var headerCellsHeight = this.headerHeight - Math.ceil(headerExtraBorder / 2);
-    var html = ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + headerCellsHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + headerCellsHeight + "px; }";
+    this.cellBorders.headerTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+    this.cellBorders.headerDeviation = Math.ceil(this.cellBorders.headerTotal / 2);
+    var html = ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + (this.headerHeight - this.cellBorders.headerDeviation) + "px; }";
+    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + (this.headerHeight - this.cellBorders.headerDeviation) + "px; }";
     html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - extraBorder) + "px; }";
+    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - this.cellBorders.dataTotal) + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
       html += ".stork-grid" + this.rnd + " th." + this.columns[i].dataName + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
     }
@@ -438,11 +439,15 @@
     bottomTableIndex = (currDataBlock + 1) % 2;
     bottomTable = this.dataTables[bottomTableIndex].table;
     bottomTableFixed = this.dataTables[bottomTableIndex].tableFixed;
+    var self = this;
+    var changeTranslateOfTables = function changeTranslateOfTables() {
+      changeTranslate(topTable, "Y", currDataBlock * self.dataTableHeight);
+      changeTranslate(topTableFixed, "Y", currDataBlock * self.dataTableHeight);
+      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+    };
     if (currScrollDirection === "down") {
-      changeTranslate(topTable, "Y", currDataBlock * this.dataTableHeight);
-      changeTranslate(topTableFixed, "Y", currDataBlock * this.dataTableHeight);
-      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * this.dataTableHeight);
-      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * this.dataTableHeight);
+      changeTranslateOfTables();
       this.lastThreshold = currDataBlock * this.dataTableHeight + this.tableExtraPixelsForThreshold;
       if (currScrollTop >= this.lastThreshold) {
         this.nextThreshold = this.lastThreshold + this.dataTableHeight;
@@ -451,10 +456,7 @@
         this.lastThreshold -= this.dataTableHeight;
       }
     } else if (currScrollDirection === "up") {
-      changeTranslate(topTable, "Y", currDataBlock * this.dataTableHeight);
-      changeTranslate(topTableFixed, "Y", currDataBlock * this.dataTableHeight);
-      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * this.dataTableHeight);
-      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * this.dataTableHeight);
+      changeTranslateOfTables();
       this.lastThreshold = (currDataBlock + 1) * this.dataTableHeight + this.tableExtraPixelsForThreshold;
       if (currScrollTop <= this.lastThreshold) {
         this.nextThreshold = this.lastThreshold - this.dataTableHeight;

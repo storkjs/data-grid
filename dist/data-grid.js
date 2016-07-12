@@ -104,6 +104,10 @@
     }
     this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
     this.grid.setAttribute("tabindex", 0);
+    if (!this.columns.length) {
+      console.warn("Can not build grid without any columns");
+      return;
+    }
     this.makeHeaderTable();
     this.initDataView();
     this.updateViewData(0, 0);
@@ -467,8 +471,7 @@
     }
     if (this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock || forceUpdateViewData) {
       this.updateViewData(topTableIndex, currDataBlock);
-    }
-    if (this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
+    } else if (this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
       this.updateViewData(bottomTableIndex, currDataBlock + 1);
     }
   };

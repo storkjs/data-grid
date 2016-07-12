@@ -126,6 +126,15 @@
 		/** make grid a focusable element (also enables capturing key presses */
 		this.grid.setAttribute('tabindex', 0);
 
+		/**
+		 * check that we have any columns at all.
+		 * if we don't then we can't populate any DOM elements
+		 */
+		if(!this.columns.length) {
+			console.warn('Can not build grid without any columns');
+			return;
+		}
+
 		/** init HEADER table */
 		this.makeHeaderTable();
 
@@ -658,7 +667,7 @@
 		if(this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock || forceUpdateViewData) {
 			this.updateViewData(topTableIndex, currDataBlock);
 		}
-		if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
+		else if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
 			this.updateViewData(bottomTableIndex, currDataBlock + 1);
 		}
 	};

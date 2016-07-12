@@ -11,6 +11,9 @@
   /* data wrapper */
   /* /data wrapper */
 }
+.stork-grid:focus {
+  outline: 0 none;
+}
 .stork-grid table {
   border-collapse: collapse;
   table-layout: fixed;
@@ -53,6 +56,8 @@
 }
 .stork-grid div.header > table.columns.loose {
   z-index: 1;
+  position: relative;
+  /*very important - this lets the parent assume height*/
 }
 .stork-grid div.header > table.resizers {
   pointer-events: none;

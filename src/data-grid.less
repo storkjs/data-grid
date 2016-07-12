@@ -5,6 +5,10 @@
 	display: flex;
 	flex-wrap: wrap;
 
+	&:focus {
+		outline: 0 none;
+	}
+
 	/* all tables */
 	table {
 		border-collapse: collapse;
@@ -52,6 +56,7 @@
 				}
 				&.loose {
 					z-index: 1;
+					position: relative; /*very important - this lets the parent assume height*/
 				}
 			}
 

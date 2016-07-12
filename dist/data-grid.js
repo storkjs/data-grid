@@ -212,10 +212,21 @@
       style.type = "text/css";
       document.getElementsByTagName("head")[0].appendChild(style);
     }
-    var html = ".stork-grid" + this.rnd + " div.header," + ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + this.headerHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + this.headerHeight + "px; }";
+    var extraBorder = 0;
+    var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
+    if (cellStyle.boxSizing === "border-box") {
+      extraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+    }
+    var headerExtraBorder = 0;
+    cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
+    if (cellStyle.boxSizing === "border-box") {
+      headerExtraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+    }
+    var headerCellsHeight = this.headerHeight - Math.ceil(headerExtraBorder / 2);
+    var html = ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + headerCellsHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + headerCellsHeight + "px; }";
     html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + this.rowHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - extraBorder) + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
       html += ".stork-grid" + this.rnd + " th." + this.columns[i].dataName + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
     }
@@ -646,6 +657,9 @@
     for (i = 0; i < this.dataTables.length; i++) {
       for (j = 0; j < this.dataTables[i].rows.length; j++) {
         dataIndex = this.dataTables[i].rows[j].row.storkGridProps.dataIndex;
+        if (dataIndex >= this.data.length) {
+          continue;
+        }
         if (this.trackBy) {
           trackByData = this.data[dataIndex][this.trackBy];
         } else {

@@ -301,16 +301,30 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
+		var extraBorder = 0; // extra height that can not be used for content
+		var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
+		if(cellStyle.boxSizing === 'border-box') {
+			extraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+		}
+
+		var headerExtraBorder = 0;
+		cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
+		if(cellStyle.boxSizing === 'border-box') {
+			headerExtraBorder = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+		}
+
+		// fixes a rendering bug that border is outside of the TH's height even tho we are using 'box-sizing:border-box'
+		var headerCellsHeight = this.headerHeight - Math.ceil(headerExtraBorder / 2);
+
 		// header height
-		var html = '.stork-grid'+this.rnd+' div.header,' +
-			'.stork-grid'+this.rnd+' div.header > table th,' +
-			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + this.headerHeight + 'px; }';
+		var html = '.stork-grid'+this.rnd+' div.header > table th,' +
+			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + headerCellsHeight + 'px; }';
 		// header content max-height
-		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + this.headerHeight + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + headerCellsHeight + 'px; }';
 		// data rows height
 		html += '.stork-grid'+this.rnd+' div.data > table td { height: ' + this.rowHeight + 'px; }';
 		// data rows content max-height
-		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + this.rowHeight + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - extraBorder) + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
 			html += '.stork-grid'+this.rnd+' th.'+this.columns[i].dataName+',' +
@@ -431,6 +445,7 @@
 	storkGrid.prototype.initDataView = function initDataView() {
 		this.dataWrapperElm = document.createElement('div');
 		this.dataWrapperElm.classList.add('data-wrapper');
+		// giving this element height before rendering fixes a memory-leak in chrome and FF
 		this.dataWrapperElm.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
 
 		this.dataElm = document.createElement('div');
@@ -921,6 +936,10 @@
 		for(i=0; i < this.dataTables.length; i++) {
 			for(j=0; j < this.dataTables[i].rows.length; j++) {
 				dataIndex = this.dataTables[i].rows[j].row.storkGridProps.dataIndex;
+
+				if(dataIndex >= this.data.length) {
+					continue; // when scrolled to the end of the grid and this iteration goes over empty TRs
+				}
 
 				if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
 					trackByData = this.data[dataIndex][this.trackBy];

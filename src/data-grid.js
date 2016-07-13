@@ -1499,6 +1499,7 @@
 			}
 
 			this.repositionTables(null, null, true);
+			this.renderSelectOnRows();
 
 			this._dispatchSelectEvent('select', this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
 		}

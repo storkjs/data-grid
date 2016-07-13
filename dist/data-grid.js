@@ -681,7 +681,7 @@
     return this.data[dataIndex];
   };
   storkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
-    var trackByData = this._getTrackByData(dataIndex), selectedItem, dataKeyName, tdDiv;
+    var trackByData = this._getTrackByData(dataIndex), selectedItem, dataKeyName, tdDiv, i;
     if (this.selectedItems.has(trackByData)) {
       rowObj.row.classList.add("selected");
       rowObj.rowFixed.classList.add("selected");

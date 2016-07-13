@@ -243,6 +243,31 @@
 	};
 
 	/**
+	 * dispatch a 'select' or 'dblselect' event, with a detail object
+	 * @param type
+	 * @param dataIndex
+	 * @param column
+	 * @param trackByData
+	 * @private
+	 */
+	storkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
+		if(type !== 'dblselect') {
+			type = 'select';
+		}
+
+		var evnt = new CustomEvent(type, {
+			bubbles: true,
+			cancelable: true,
+			detail: {
+				dataIndex: dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
+				column: column, /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
+				isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for deselect */
+			}
+		});
+		this.grid.dispatchEvent(evnt);
+	};
+
+	/**
 	 * will add an event that will be emitted when passing the defined threshold while scrolling
 	 * @param {string} type - the name for the event
 	 * @param {number} amount
@@ -772,6 +797,7 @@
 	 * @param e
 	 */
 	var lastClickTime = 0;
+	var lastClickElm = null;
 	storkGrid.prototype.onDataClick = function onDataClick(e) {
 		if(e.button !== 0) {
 			return; // do nothing if the click wasn't with the main mouse button
@@ -795,15 +821,18 @@
 		selectedCellColumn = TD.storkGridProps.column;
 
 		if(dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
-			if (this.trackBy) { // tracking by a specific column data
-				trackByData = this.data[dataIndex][this.trackBy];
-			} else { // tracking by the whole row's data object
-				trackByData = this.data[dataIndex];
-			}
+			trackByData = this._getTrackByData(dataIndex);
 
 			// should emit a double-click-select?
 			var now = Date.now();
-			if(now - lastClickTime > 300) {
+			var clickedElm;
+			if(this.selection.type === 'cell') {
+				clickedElm = TD;
+			} else {
+				clickedElm = TR;
+			}
+
+			if(now - lastClickTime > 300 || clickedElm !== lastClickElm) {
 				/** NEW and better way of handling data connection */
 				if(this.selection.type === 'row' && this.selection.multi === true) {
 					if(this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) { // only way to deselect
@@ -874,16 +903,13 @@
 
 			lastClickTime = now;
 
-			var evnt = new CustomEvent(eventName, {
-				bubbles: true,
-				cancelable: true,
-				detail: {
-					dataIndex: dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
-					column: selectedCellColumn, /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
-					isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for deselect */
-				}
-			});
-			this.grid.dispatchEvent(evnt);
+			if(this.selection.type === 'cell') {
+				lastClickElm = TD;
+			} else {
+				lastClickElm = TR;
+			}
+
+			this._dispatchSelectEvent(eventName, dataIndex, selectedCellColumn, trackByData);
 		}
 		else { // invalid selection
 			this.selectedItems.clear();
@@ -936,11 +962,74 @@
 		}
 	};
 
+	storkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
+		if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
+			if(typeof this.data[dataIndex][this.trackBy] !== 'undefined' && this.data[dataIndex][this.trackBy] !== null) {
+				return this.data[dataIndex][this.trackBy];
+			}
+
+			console.warn('Invalid track-by (' + this.trackBy + ') for data row (index: ' + dataIndex + '):', this.data[dataIndex]);
+		}
+
+		return this.data[dataIndex];
+	};
+
+	/**
+	 * in charge of logic for adding and removing the "selected" and "clicked" classes
+	 * @param dataIndex
+	 * @param rowObj
+	 * @private
+	 */
+	storkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
+		var trackByData = this._getTrackByData(dataIndex),
+			selectedItem, dataKeyName, tdDiv;
+
+		if(this.selectedItems.has(trackByData)) {
+			rowObj.row.classList.add('selected');
+			rowObj.rowFixed.classList.add('selected');
+			rowObj.row.storkGridProps.selected = true; // update the storkGridProps which is a reference between fixed and loose rows
+
+			// add 'clicked' class to single clicked row
+			if(this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
+				rowObj.row.classList.add('clicked');
+				rowObj.rowFixed.classList.add('clicked');
+			}
+		}
+		else if(rowObj.row.storkGridProps.selected) { // only remove class to previously selected rows
+			rowObj.row.classList.remove('selected');
+			rowObj.rowFixed.classList.remove('selected');
+			rowObj.row.storkGridProps.selected = false;
+
+			// remove 'clicked' class from clicked row
+			if(!this.clickedItem || this.clickedItem.dataIndex !== dataIndex) {
+				rowObj.row.classList.remove('clicked');
+				rowObj.rowFixed.classList.remove('clicked');
+			}
+		}
+
+		selectedItem = this.selectedItems.has(trackByData) ? this.selectedItems.get(trackByData) : null; // the selected cells of the selected row
+
+		for (i = 0; i < this.columns.length; i++) {
+			dataKeyName = this.columns[i].dataName;
+			tdDiv = rowObj.tds[i].firstChild;
+
+			// select the TD if needed
+			if (selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
+				rowObj.tds[i].classList.add('selected');
+				rowObj.tds[i].storkGridProps.selected = true;
+			}
+			else if (rowObj.tds[i].storkGridProps.selected) {
+				rowObj.tds[i].classList.remove('selected');
+				rowObj.tds[i].storkGridProps.selected = false;
+			}
+		}
+	};
+
 	/**
 	 * adds/removes the 'select' class from the rows in the view (without rebuilding the DOM)
 	 */
 	storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
-		var i, j, dataIndex, trackByData;
+		var i, j, dataIndex;
 
 		for(i=0; i < this.dataTables.length; i++) {
 			for(j=0; j < this.dataTables[i].rows.length; j++) {
@@ -950,22 +1039,7 @@
 					continue; // when scrolled to the end of the grid and this iteration goes over empty TRs
 				}
 
-				if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
-					trackByData = this.data[dataIndex][this.trackBy];
-				} else {
-					trackByData = this.data[dataIndex];
-				}
-
-				if(this.selectedItems.has(trackByData)) {
-					this.dataTables[i].rows[j].row.classList.add('selected');
-					this.dataTables[i].rows[j].rowFixed.classList.add('selected');
-					this.dataTables[i].rows[j].row.storkGridProps.selected = true; // update the storkGridProps which is a reference between fixed and loose rows
-				}
-				else if(this.dataTables[i].rows[j].row.storkGridProps.selected) { // only remove class to previously selected rows
-					this.dataTables[i].rows[j].row.classList.remove('selected');
-					this.dataTables[i].rows[j].rowFixed.classList.remove('selected');
-					this.dataTables[i].rows[j].row.storkGridProps.selected = false;
-				}
+				this._toggleSelectedClasses(dataIndex, this.dataTables[i].rows[j]);
 			}
 		}
 	};
@@ -1063,7 +1137,7 @@
 	 */
 	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
-			dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv, dataValue;
+			dataKeyName, dataIndex, i, tdDiv, dataValue;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -1077,41 +1151,11 @@
 
 			if(this.data[ dataIndex ]) {
 				// select the TR if needed
-				if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
-					trackByData = this.data[dataIndex][this.trackBy];
-				} else {
-					trackByData = this.data[dataIndex];
-				}
-
-				if (this.selectedItems.has(trackByData)) {
-					selectedItem = this.selectedItems.get(trackByData);
-					rowObj.row.classList.add('selected');
-					rowObj.rowFixed.classList.add('selected');
-					rowObj.row.storkGridProps.selected = true; // storkGridProps is a referenced object between fixed and loose dom elements
-				}
-				else {
-					selectedItem = null;
-
-					if (rowObj.row.storkGridProps.selected) { // previously selected but now its out of 'selectedItems' list
-						rowObj.row.classList.remove('selected');
-						rowObj.rowFixed.classList.remove('selected');
-						rowObj.row.storkGridProps.selected = false; // storkGridProps is a referenced object between fixed and loose dom elements
-					}
-				}
+				this._toggleSelectedClasses(dataIndex, rowObj);
 
 				for (i = 0; i < this.columns.length; i++) {
 					dataKeyName = this.columns[i].dataName;
 					tdDiv = rowObj.tds[i].firstChild;
-
-					// select the TD if needed
-					if (selectedItem && this.selection.type === 'cell' && selectedItem.indexOf(dataKeyName) > -1) { // if this row is selected, and if this column is selected too
-						rowObj.tds[i].classList.add('selected');
-						rowObj.tds[i].storkGridProps.selected = true;
-					}
-					else if (rowObj.tds[i].storkGridProps.selected) {
-						rowObj.tds[i].classList.remove('selected');
-						rowObj.tds[i].storkGridProps.selected = false;
-					}
 
 					// validate values
 					dataValue = this.data[dataIndex][dataKeyName];
@@ -1140,8 +1184,6 @@
 					}
 				}
 			}
-
-			selectedItem = null;
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;
@@ -1441,12 +1483,7 @@
 
 			e.preventDefault(); // stops document scrolling
 
-			var trackByData;
-			if (this.trackBy) { // tracking by a specific column data
-				trackByData = this.data[this.clickedItem.dataIndex][this.trackBy];
-			} else { // tracking by the whole row's data object
-				trackByData = this.data[this.clickedItem.dataIndex];
-			}
+			var trackByData = this._getTrackByData(this.clickedItem.dataIndex);
 
 			this.selectedItems.clear();
 			this.selectedItems.set(trackByData, [this.clickedItem.column]);
@@ -1463,15 +1500,7 @@
 
 			this.repositionTables(null, null, true);
 
-			var evnt = new CustomEvent('select', {
-				bubbles: true,
-				cancelable: true,
-				detail: {
-					dataIndex: this.clickedItem.dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
-					column: this.clickedItem.column /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
-				}
-			});
-			this.grid.dispatchEvent(evnt);
+			this._dispatchSelectEvent('select', this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
 		}
 	};
 

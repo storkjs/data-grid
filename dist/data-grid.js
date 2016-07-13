@@ -171,6 +171,21 @@
       }
     }
   };
+  storkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
+    if (type !== "dblselect") {
+      type = "select";
+    }
+    var evnt = new CustomEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        dataIndex: dataIndex,
+        column: column,
+        isSelect: this.selectedItems.has(trackByData)
+      }
+    });
+    this.grid.dispatchEvent(evnt);
+  };
   storkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
     fromBottom = fromBottom !== false;
     this.customScrollEvents.push({
@@ -528,6 +543,7 @@
     this.lastScrollLeft = currScrollLeft;
   };
   var lastClickTime = 0;
+  var lastClickElm = null;
   storkGrid.prototype.onDataClick = function onDataClick(e) {
     if (e.button !== 0) {
       return;
@@ -543,13 +559,15 @@
     dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
     selectedCellColumn = TD.storkGridProps.column;
     if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER) {
-      if (this.trackBy) {
-        trackByData = this.data[dataIndex][this.trackBy];
-      } else {
-        trackByData = this.data[dataIndex];
-      }
+      trackByData = this._getTrackByData(dataIndex);
       var now = Date.now();
-      if (now - lastClickTime > 300) {
+      var clickedElm;
+      if (this.selection.type === "cell") {
+        clickedElm = TD;
+      } else {
+        clickedElm = TR;
+      }
+      if (now - lastClickTime > 300 || clickedElm !== lastClickElm) {
         if (this.selection.type === "row" && this.selection.multi === true) {
           if (this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) {
             this.selectedItems.clear();
@@ -613,16 +631,12 @@
         eventName = "dblselect";
       }
       lastClickTime = now;
-      var evnt = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          dataIndex: dataIndex,
-          column: selectedCellColumn,
-          isSelect: this.selectedItems.has(trackByData)
-        }
-      });
-      this.grid.dispatchEvent(evnt);
+      if (this.selection.type === "cell") {
+        lastClickElm = TD;
+      } else {
+        lastClickElm = TR;
+      }
+      this._dispatchSelectEvent(eventName, dataIndex, selectedCellColumn, trackByData);
     } else {
       this.selectedItems.clear();
       console.warn("selected row is not pointing to a valid data");
@@ -657,28 +671,56 @@
       }
     }
   };
+  storkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
+    if (this.trackBy) {
+      if (typeof this.data[dataIndex][this.trackBy] !== "undefined" && this.data[dataIndex][this.trackBy] !== null) {
+        return this.data[dataIndex][this.trackBy];
+      }
+      console.warn("Invalid track-by (" + this.trackBy + ") for data row (index: " + dataIndex + "):", this.data[dataIndex]);
+    }
+    return this.data[dataIndex];
+  };
+  storkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
+    var trackByData = this._getTrackByData(dataIndex), selectedItem, dataKeyName, tdDiv;
+    if (this.selectedItems.has(trackByData)) {
+      rowObj.row.classList.add("selected");
+      rowObj.rowFixed.classList.add("selected");
+      rowObj.row.storkGridProps.selected = true;
+      if (this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
+        rowObj.row.classList.add("clicked");
+        rowObj.rowFixed.classList.add("clicked");
+      }
+    } else if (rowObj.row.storkGridProps.selected) {
+      rowObj.row.classList.remove("selected");
+      rowObj.rowFixed.classList.remove("selected");
+      rowObj.row.storkGridProps.selected = false;
+      if (!this.clickedItem || this.clickedItem.dataIndex !== dataIndex) {
+        rowObj.row.classList.remove("clicked");
+        rowObj.rowFixed.classList.remove("clicked");
+      }
+    }
+    selectedItem = this.selectedItems.has(trackByData) ? this.selectedItems.get(trackByData) : null;
+    for (i = 0; i < this.columns.length; i++) {
+      dataKeyName = this.columns[i].dataName;
+      tdDiv = rowObj.tds[i].firstChild;
+      if (selectedItem && this.selection.type === "cell" && selectedItem.indexOf(dataKeyName) > -1) {
+        rowObj.tds[i].classList.add("selected");
+        rowObj.tds[i].storkGridProps.selected = true;
+      } else if (rowObj.tds[i].storkGridProps.selected) {
+        rowObj.tds[i].classList.remove("selected");
+        rowObj.tds[i].storkGridProps.selected = false;
+      }
+    }
+  };
   storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
-    var i, j, dataIndex, trackByData;
+    var i, j, dataIndex;
     for (i = 0; i < this.dataTables.length; i++) {
       for (j = 0; j < this.dataTables[i].rows.length; j++) {
         dataIndex = this.dataTables[i].rows[j].row.storkGridProps.dataIndex;
         if (dataIndex >= this.data.length) {
           continue;
         }
-        if (this.trackBy) {
-          trackByData = this.data[dataIndex][this.trackBy];
-        } else {
-          trackByData = this.data[dataIndex];
-        }
-        if (this.selectedItems.has(trackByData)) {
-          this.dataTables[i].rows[j].row.classList.add("selected");
-          this.dataTables[i].rows[j].rowFixed.classList.add("selected");
-          this.dataTables[i].rows[j].row.storkGridProps.selected = true;
-        } else if (this.dataTables[i].rows[j].row.storkGridProps.selected) {
-          this.dataTables[i].rows[j].row.classList.remove("selected");
-          this.dataTables[i].rows[j].rowFixed.classList.remove("selected");
-          this.dataTables[i].rows[j].row.storkGridProps.selected = false;
-        }
+        this._toggleSelectedClasses(dataIndex, this.dataTables[i].rows[j]);
       }
     }
   };
@@ -748,7 +790,7 @@
     this.grid.dispatchEvent(evnt);
   };
   storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, selectedItem, trackByData, tdDiv, dataValue;
+    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, tdDiv, dataValue;
     tableObj = this.dataTables[tableIndex];
     firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
     lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
@@ -757,34 +799,10 @@
       rowObj = tableObj.rows[row];
       rowObj.row.storkGridProps.dataIndex = dataIndex;
       if (this.data[dataIndex]) {
-        if (this.trackBy) {
-          trackByData = this.data[dataIndex][this.trackBy];
-        } else {
-          trackByData = this.data[dataIndex];
-        }
-        if (this.selectedItems.has(trackByData)) {
-          selectedItem = this.selectedItems.get(trackByData);
-          rowObj.row.classList.add("selected");
-          rowObj.rowFixed.classList.add("selected");
-          rowObj.row.storkGridProps.selected = true;
-        } else {
-          selectedItem = null;
-          if (rowObj.row.storkGridProps.selected) {
-            rowObj.row.classList.remove("selected");
-            rowObj.rowFixed.classList.remove("selected");
-            rowObj.row.storkGridProps.selected = false;
-          }
-        }
+        this._toggleSelectedClasses(dataIndex, rowObj);
         for (i = 0; i < this.columns.length; i++) {
           dataKeyName = this.columns[i].dataName;
           tdDiv = rowObj.tds[i].firstChild;
-          if (selectedItem && this.selection.type === "cell" && selectedItem.indexOf(dataKeyName) > -1) {
-            rowObj.tds[i].classList.add("selected");
-            rowObj.tds[i].storkGridProps.selected = true;
-          } else if (rowObj.tds[i].storkGridProps.selected) {
-            rowObj.tds[i].classList.remove("selected");
-            rowObj.tds[i].storkGridProps.selected = false;
-          }
           dataValue = this.data[dataIndex][dataKeyName];
           if (typeof dataValue !== "string" && typeof dataValue !== "number") {
             dataValue = "";
@@ -807,7 +825,6 @@
           }
         }
       }
-      selectedItem = null;
     }
     tableObj.dataBlockIndex = dataBlockIndex;
   };
@@ -1017,12 +1034,7 @@
         return;
       }
       e.preventDefault();
-      var trackByData;
-      if (this.trackBy) {
-        trackByData = this.data[this.clickedItem.dataIndex][this.trackBy];
-      } else {
-        trackByData = this.data[this.clickedItem.dataIndex];
-      }
+      var trackByData = this._getTrackByData(this.clickedItem.dataIndex);
       this.selectedItems.clear();
       this.selectedItems.set(trackByData, [ this.clickedItem.column ]);
       var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
@@ -1034,15 +1046,7 @@
         this.onScrollY(clickedItemY - this.dataViewHeight + this.rowHeight);
       }
       this.repositionTables(null, null, true);
-      var evnt = new CustomEvent("select", {
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          dataIndex: this.clickedItem.dataIndex,
-          column: this.clickedItem.column
-        }
-      });
-      this.grid.dispatchEvent(evnt);
+      this._dispatchSelectEvent("select", this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
     }
   };
   root.storkGrid = storkGrid;

@@ -483,6 +483,7 @@
 
 		this.dataElm = document.createElement('div');
 		this.dataElm.classList.add('data');
+		this.dataElm.setAttribute('tabindex', 0);
 
 		this.calculateDataHeight();
 
@@ -835,13 +836,13 @@
 			if(now - lastClickTime > 300 || clickedElm !== lastClickElm) {
 				/** NEW and better way of handling data connection */
 				if(this.selection.type === 'row' && this.selection.multi === true) {
-					if(this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) { // only way to deselect
-						this.selectedItems.clear();
+					this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
+
+					if(this.clickedItem && this.clickedItem.dataIndex === dataIndex) { // only way to deselect
 						this.clickedItem = null;
 						this.hoveredRowElm = null;
 					}
 					else {
-						this.selectedItems.clear(); // clear all previous in order to start a whole new selection range
 						this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
 						this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn }; // save currently clicked row
 						this.hoveredRowElm = TR;
@@ -993,6 +994,10 @@
 			if(this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
 				rowObj.row.classList.add('clicked');
 				rowObj.rowFixed.classList.add('clicked');
+			}
+			else { // if had several selected items (via trackBy) and clicked on different ones between them
+				rowObj.row.classList.remove('clicked');
+				rowObj.rowFixed.classList.remove('clicked');
 			}
 		}
 		else if(rowObj.row.storkGridProps.selected) { // only remove class to previously selected rows

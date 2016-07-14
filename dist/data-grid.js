@@ -331,6 +331,7 @@
     this.dataWrapperElm.style.height = "calc(100% - " + this.headerHeight + "px)";
     this.dataElm = document.createElement("div");
     this.dataElm.classList.add("data");
+    this.dataElm.setAttribute("tabindex", 0);
     this.calculateDataHeight();
     this.dataWrapperElm.appendChild(this.dataElm);
     this.grid.appendChild(this.dataWrapperElm);
@@ -569,12 +570,11 @@
       }
       if (now - lastClickTime > 300 || clickedElm !== lastClickElm) {
         if (this.selection.type === "row" && this.selection.multi === true) {
-          if (this.selectedItems.size === 1 && this.selectedItems.has(trackByData)) {
-            this.selectedItems.clear();
+          this.selectedItems.clear();
+          if (this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
             this.clickedItem = null;
             this.hoveredRowElm = null;
           } else {
-            this.selectedItems.clear();
             this.selectedItems.set(trackByData, [ selectedCellColumn ]);
             this.clickedItem = {
               dataIndex: dataIndex,
@@ -689,6 +689,9 @@
       if (this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
         rowObj.row.classList.add("clicked");
         rowObj.rowFixed.classList.add("clicked");
+      } else {
+        rowObj.row.classList.remove("clicked");
+        rowObj.rowFixed.classList.remove("clicked");
       }
     } else if (rowObj.row.storkGridProps.selected) {
       rowObj.row.classList.remove("selected");

@@ -51,16 +51,19 @@ _selection_ [optional]: an Object with properties defining how selections on the
 _trackBy_ [optional]: the column which the grid should keep track of its content by (index). defaults to _null_. Example:
 `{ trackBy: "age" }`
 
-_columns_ [optional]: an Array of Object. Every item in the array defines a column.
-- _columns.field_: the key that will be looked for in the data object.
-- _columns.label_: the display name of the column (the text in the table headers).
-- _columns.width_: a user defined width for the column.
+_columns_ [optional]: an Array of Objects. Each item in the array is an object that defines a column. These objects have the following properties:
+- _field_: the key that will be looked for in the data object.
+- _label_: the display name of the column (the text in the table headers).
+- _width_: a user defined width for the column.
+- _minWidth_: a user defined minimum width for when the client resizes the column.
+- _fixed_: whether this column is fixed to the left and will not be moved when scrolling horizontally.
+- _render(tdDiv, value)_: special function that will render the data inside the TD instead of the default renderer. This function lets you decide how to print the data (instead of just printing it as plain text), even put html inside.
 Example:
 ```javascript
 { columns: [
   { field: 'name', label: 'Full Name', width: 75 },
   { field: 'age', label: 'Age' },
-  { field: 'weight', label: 'Weight (kg)', width: 60 }
+  { field: 'weight', label: 'Weight (kg)', width: 60, render: function(tdDiv, value) { tdDiv.innerHTML = value+'!'; } }
 ] }
 ```
 
@@ -175,7 +178,11 @@ myGrid = new storkGrid({
   columns: [
     { field: 'name', label: 'Full Name', width: 75 },
     { field: 'age', label: 'Age' },
-    { field: 'weight', label: 'Weight (kg)', width: 60 }
+    { field: 'weight', label: 'Weight (kg)', width: 60, fixed: true, render: function(tdDiv, value) {
+      if(value.length > 10) { tdDiv.innerHTML = value.substr(0, 7) + '...'; }
+        else { tdDiv.innerHTML = value; }
+      }
+    }
   ],
   trackBy: 'age',
   minColumnWidth: 65,

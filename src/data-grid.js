@@ -101,7 +101,7 @@
 					columnName = key.replace(/[-_]/, ' ');
 					// capitalize first letter of each word
 					columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false });
+					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null });
 				}
 			}
 		}

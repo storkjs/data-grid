@@ -85,7 +85,8 @@
             label: columnName,
             width: 0,
             minWidth: 0,
-            fixed: false
+            fixed: false,
+            render: null
           });
         }
       }

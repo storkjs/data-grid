@@ -55,11 +55,9 @@
 		}
 		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
 		this.tableExtraPixelsForThreshold = 0;
-		this.cellBorders = { // top&bottom border sizes
-			headerTotal: 0,
-			headerDeviation: 0, // the deviation (border out of element's area) because of 'border-collapse:collapse'
-			dataTotal: 0,
-			dataDeviation: 0
+		this.rowBorders = { // top&bottom border sizes
+			header: 0, // border size of header element (do not put border on Table, TR or TH)
+			data: 0 // border size of TDs (do not put border on TR, put it directly on TDs)
 		};
 		this.headerTable = {
 			wrapper: null,
@@ -103,7 +101,7 @@
 					columnName = key.replace(/[-_]/, ' ');
 					// capitalize first letter of each word
 					columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-					this.columns.push({ dataName: key, displayName: columnName, width: 0, minWidth: 0, fixed: false });
+					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false });
 				}
 			}
 		}
@@ -125,15 +123,6 @@
 
 		/** make grid a focusable element (also enables capturing key presses */
 		this.grid.setAttribute('tabindex', 0);
-
-		/**
-		 * check that we have any columns at all.
-		 * if we don't then we can't populate any DOM elements
-		 */
-		if(!this.columns.length) {
-			console.warn('Can not build grid without any columns');
-			return;
-		}
 
 		/** init HEADER table */
 		this.makeHeaderTable();
@@ -341,27 +330,28 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
-		this.cellBorders.dataTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-		this.cellBorders.dataDeviation = Math.ceil(this.cellBorders.dataTotal / 2);
+		var headerStyle = this.headerTable.wrapper.currentStyle || window.getComputedStyle(this.headerTable.wrapper);
+		this.rowBorders.header = parseInt(headerStyle.borderTopWidth, 10) + parseInt(headerStyle.borderBottomWidth, 10);
 
-		cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
-		this.cellBorders.headerTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-		this.cellBorders.headerDeviation = Math.ceil(this.cellBorders.headerTotal / 2);
+		if(this.dataTables[0].rows[0].tds.length > 0) {
+			var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
+			this.rowBorders.data = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+		}
 
 		// header height
-		var html = '.stork-grid'+this.rnd+' div.header > table th,' +
-			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + (this.headerHeight - this.cellBorders.headerDeviation) + 'px; }';
+		var html = '.stork-grid'+this.rnd+' div.header { height: ' + this.headerHeight + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table th,' +
+			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + (this.headerHeight - this.rowBorders.header) + 'px; }';
 		// header content max-height
-		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + (this.headerHeight - this.cellBorders.headerDeviation) + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + (this.headerHeight - this.rowBorders.header) + 'px; }';
 		// data rows height
 		html += '.stork-grid'+this.rnd+' div.data > table td { height: ' + this.rowHeight + 'px; }';
 		// data rows content max-height
-		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - this.cellBorders.dataTotal) + 'px; }';
+		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - this.rowBorders.data) + 'px; }';
 
 		for(var i=0; i < this.columns.length; i++) {
-			html += '.stork-grid'+this.rnd+' th.'+this.columns[i].dataName+',' +
-				'.stork-grid'+this.rnd+' td.'+this.columns[i].dataName+' { width: ' + this.columns[i].width + 'px; }';
+			html += '.stork-grid'+this.rnd+' th.'+this.columns[i].field+',' +
+				'.stork-grid'+this.rnd+' td.'+this.columns[i].field+' { width: ' + this.columns[i].width + 'px; }';
 		}
 
 		// when table-layout is 'fixed' then the tables must have a 'width' style
@@ -448,12 +438,12 @@
 
 		for(i=0; i < this.columns.length; i++) {
 			th = document.createElement('th');
-			th.classList.add(this.columns[i].dataName);
+			th.classList.add(this.columns[i].field);
 			thDiv = document.createElement('div');
-			thDiv.appendChild(document.createTextNode(this.columns[i].displayName));
+			thDiv.appendChild(document.createTextNode(this.columns[i].label));
 			th.appendChild(thDiv);
 			th.storkGridProps = {
-				column: this.columns[i].dataName,
+				column: this.columns[i].field,
 				sortState: null
 			};
 			this.headerTable.ths.push(th);
@@ -604,9 +594,9 @@
 
 				for(j=0; j < this.columns.length; j++) {
 					td = document.createElement('td');
-					td.classList.add(this.columns[j].dataName);
+					td.classList.add(this.columns[j].field);
 					td.storkGridProps = { // our custom object on the DOM object
-						column: this.columns[j].dataName,
+						column: this.columns[j].field,
 						selected: false
 					};
 
@@ -659,8 +649,8 @@
 			changeTranslate(topTable, 'Y', currDataBlock * self.dataTableHeight);
 			changeTranslate(topTableFixed, 'Y', currDataBlock * self.dataTableHeight);
 
-			changeTranslate(bottomTable, 'Y', (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
-			changeTranslate(bottomTableFixed, 'Y', (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+			changeTranslate(bottomTable, 'Y', (currDataBlock + 1) * self.dataTableHeight);
+			changeTranslate(bottomTableFixed, 'Y', (currDataBlock + 1) * self.dataTableHeight);
 		};
 
 		if(currScrollDirection === 'down') {
@@ -693,7 +683,7 @@
 		if(this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock || forceUpdateViewData) {
 			this.updateViewData(topTableIndex, currDataBlock);
 		}
-		else if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
+		if(this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
 			this.updateViewData(bottomTableIndex, currDataBlock + 1);
 		}
 	};
@@ -1015,7 +1005,7 @@
 		selectedItem = this.selectedItems.has(trackByData) ? this.selectedItems.get(trackByData) : null; // the selected cells of the selected row
 
 		for (i = 0; i < this.columns.length; i++) {
-			dataKeyName = this.columns[i].dataName;
+			dataKeyName = this.columns[i].field;
 			tdDiv = rowObj.tds[i].firstChild;
 
 			// select the TD if needed
@@ -1070,8 +1060,8 @@
 					if(this.selectedItems.has(trackByData)) {
 						html += '<tr>';
 						for(j=0; j < this.columns.length; j++) {
-							text += this.data[i][ this.columns[j].dataName ] + ' ';
-							html += '<td>' + this.data[i][ this.columns[j].dataName ] + '</td>';
+							text += this.data[i][ this.columns[j].field ] + ' ';
+							html += '<td>' + this.data[i][ this.columns[j].field ] + '</td>';
 						}
 						text = text.slice(0, -1) + "\n"; // trim last space and add line-break
 						html += '</tr>';
@@ -1159,7 +1149,7 @@
 				this._toggleSelectedClasses(dataIndex, rowObj);
 
 				for (i = 0; i < this.columns.length; i++) {
-					dataKeyName = this.columns[i].dataName;
+					dataKeyName = this.columns[i].field;
 					tdDiv = rowObj.tds[i].firstChild;
 
 					// validate values
@@ -1247,7 +1237,7 @@
 
 		for(i=0; i < this.columns.length; i++) {
 			td = document.createElement('td');
-			td.classList.add(this.columns[i].dataName);
+			td.classList.add(this.columns[i].field);
 
 			resizer = document.createElement('a');
 			resizer.style.right = '-2px';
@@ -1424,7 +1414,7 @@
 
 	/**
 	 * set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
-	 * @param {Array} columns - a columns array holding objects with the following properties: dataName, displayName, [width], [minWidth], [fixed]
+	 * @param {Array} columns - a columns array holding objects with the following properties: field, label, [width], [minWidth], [fixed]
 	 */
 	storkGrid.prototype.setColumns = function setColumns(columns) {
 		var options = {};

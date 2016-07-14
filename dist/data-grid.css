@@ -18,7 +18,8 @@
   box-sizing: border-box;
 }
 .stork-grid table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: fixed;
 }
 .stork-grid table th,

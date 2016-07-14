@@ -52,15 +52,15 @@ _trackBy_ [optional]: the column which the grid should keep track of its content
 `{ trackBy: "age" }`
 
 _columns_ [optional]: an Array of Object. Every item in the array defines a column.
-- _columns.dataName_: the key that the column will look for in the data object.
-- _columns.displayName_: the display name of the column (the text in the table headers).
+- _columns.field_: the key that will be looked for in the data object.
+- _columns.label_: the display name of the column (the text in the table headers).
 - _columns.width_: a user defined width for the column.
 Example:
 ```javascript
 { columns: [
-  { dataName: 'name', displayName: 'Full Name', width: 75 },
-  { dataName: 'age', displayName: 'Age' },
-  { dataName: 'weight', displayName: 'Weight (kg)', width: 60 }
+  { field: 'name', label: 'Full Name', width: 75 },
+  { field: 'age', label: 'Age' },
+  { field: 'weight', label: 'Weight (kg)', width: 60 }
 ] }
 ```
 
@@ -173,9 +173,9 @@ myGrid = new storkGrid({
     type: 'row'
   },
   columns: [
-    { dataName: 'name', displayName: 'Full Name', width: 75 },
-    { dataName: 'age', displayName: 'Age' },
-    { dataName: 'weight', displayName: 'Weight (kg)', width: 60 }
+    { field: 'name', label: 'Full Name', width: 75 },
+    { field: 'age', label: 'Age' },
+    { field: 'weight', label: 'Weight (kg)', width: 60 }
   ],
   trackBy: 'age',
   minColumnWidth: 65,

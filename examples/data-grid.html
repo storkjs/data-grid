@@ -90,22 +90,22 @@
 					type: 'row'
 				},
 				columns: [
-					{ dataName: 'id', displayName: 'ID', width: 70, fixed: true },
-					{ dataName: 'country', displayName: 'Country', width: 110, minWidth: 70 },
-					{ dataName: 'city', displayName: 'City', width: 115, minWidth: 75, fixed: true },
-					{ dataName: 'animal', displayName: 'Animal', width: 110 },
-					{ dataName: 'plant', displayName: 'Plant', width: 120, render: function(tdDiv, value) {
+					{ field: 'id', label: 'ID', width: 70, fixed: true },
+					{ field: 'country', label: 'Country', width: 110, minWidth: 70 },
+					{ field: 'city', label: 'City', width: 115, minWidth: 75, fixed: true },
+					{ field: 'animal', label: 'Animal', width: 110 },
+					{ field: 'plant', label: 'Plant', width: 120, render: function(tdDiv, value) {
 						if(value.toLowerCase() === 'tulip') {
 							tdDiv.innerHTML = '<span class="color'+Math.floor(Math.random() * 6 + 1)+'">' + value + '</span>';
 						} else {
 							tdDiv.innerHTML = value;
 						}
 					} },
-					{ dataName: 'inanimate', displayName: 'Inanimate', width: 125 },
-					{ dataName: 'boy', displayName: 'Boy' },
-					{ dataName: 'girl', displayName: 'Girl' },
-					{ dataName: 'random_float', displayName: 'Big Num', width: 150 },
-					{ dataName: 'random_integer', displayName: 'Small Num', width: 150 }
+					{ field: 'inanimate', label: 'Inanimate', width: 125 },
+					{ field: 'boy', label: 'Boy' },
+					{ field: 'girl', label: 'Girl' },
+					{ field: 'random_float', label: 'Big Num', width: 150 },
+					{ field: 'random_integer', label: 'Small Num', width: 150 }
 				],
 				minColumnWidth: 65,
 				resizableColumns: true,
@@ -171,11 +171,11 @@
 		var rearrange = function rearrange() {
 			if(testGrid && testGrid.grid) {
 				testGrid.setColumns([
-					{dataName: 'country', displayName: 'Country', width: 110, minWidth: 70, fixed: true},
-					{dataName: 'random_integer', displayName: 'Integer', width: 110, fixed: true},
-					{dataName: 'random_float', displayName: 'Float', width: 110},
-					{dataName: 'city', displayName: 'City', width: 115, minWidth: 75},
-					{dataName: 'id', displayName: 'ID', width: 70}
+					{field: 'country', label: 'Country', width: 110, minWidth: 70, fixed: true},
+					{field: 'random_integer', label: 'Integer', width: 110, fixed: true},
+					{field: 'random_float', label: 'Float', width: 110},
+					{field: 'city', label: 'City', width: 115, minWidth: 75},
+					{field: 'id', label: 'ID', width: 70}
 				]);
 			}
 		};

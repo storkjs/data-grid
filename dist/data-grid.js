@@ -38,11 +38,9 @@
     }
     this.tableExtraSize = .4;
     this.tableExtraPixelsForThreshold = 0;
-    this.cellBorders = {
-      headerTotal: 0,
-      headerDeviation: 0,
-      dataTotal: 0,
-      dataDeviation: 0
+    this.rowBorders = {
+      header: 0,
+      data: 0
     };
     this.headerTable = {
       wrapper: null,
@@ -83,8 +81,8 @@
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
           });
           this.columns.push({
-            dataName: key,
-            displayName: columnName,
+            field: key,
+            label: columnName,
             width: 0,
             minWidth: 0,
             fixed: false
@@ -104,10 +102,6 @@
     }
     this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
     this.grid.setAttribute("tabindex", 0);
-    if (!this.columns.length) {
-      console.warn("Can not build grid without any columns");
-      return;
-    }
     this.makeHeaderTable();
     this.initDataView();
     this.updateViewData(0, 0);
@@ -237,18 +231,19 @@
       style.type = "text/css";
       document.getElementsByTagName("head")[0].appendChild(style);
     }
-    var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
-    this.cellBorders.dataTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-    this.cellBorders.dataDeviation = Math.ceil(this.cellBorders.dataTotal / 2);
-    cellStyle = this.headerTable.ths[0].currentStyle || window.getComputedStyle(this.headerTable.ths[0]);
-    this.cellBorders.headerTotal = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
-    this.cellBorders.headerDeviation = Math.ceil(this.cellBorders.headerTotal / 2);
-    var html = ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + (this.headerHeight - this.cellBorders.headerDeviation) + "px; }";
-    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + (this.headerHeight - this.cellBorders.headerDeviation) + "px; }";
+    var headerStyle = this.headerTable.wrapper.currentStyle || window.getComputedStyle(this.headerTable.wrapper);
+    this.rowBorders.header = parseInt(headerStyle.borderTopWidth, 10) + parseInt(headerStyle.borderBottomWidth, 10);
+    if (this.dataTables[0].rows[0].tds.length > 0) {
+      var cellStyle = this.dataTables[0].rows[0].tds[0].currentStyle || window.getComputedStyle(this.dataTables[0].rows[0].tds[0]);
+      this.rowBorders.data = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
+    }
+    var html = ".stork-grid" + this.rnd + " div.header { height: " + this.headerHeight + "px; }";
+    html += ".stork-grid" + this.rnd + " div.header > table th," + ".stork-grid" + this.rnd + " div.header > table.resizers a { height: " + (this.headerHeight - this.rowBorders.header) + "px; }";
+    html += ".stork-grid" + this.rnd + " div.header > table th > div { max-height: " + (this.headerHeight - this.rowBorders.header) + "px; }";
     html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
-    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - this.cellBorders.dataTotal) + "px; }";
+    html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - this.rowBorders.data) + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
-      html += ".stork-grid" + this.rnd + " th." + this.columns[i].dataName + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].dataName + " { width: " + this.columns[i].width + "px; }";
+      html += ".stork-grid" + this.rnd + " th." + this.columns[i].field + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].field + " { width: " + this.columns[i].width + "px; }";
     }
     html += ".stork-grid" + this.rnd + " div.header > table.loose," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.loose { width: " + this.totalDataWidthLoose + "px; }";
     html += ".stork-grid" + this.rnd + " div.header > table.fixed," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.fixed { width: " + this.totalDataWidthFixed + "px; }";
@@ -305,12 +300,12 @@
     var th, thDiv;
     for (i = 0; i < this.columns.length; i++) {
       th = document.createElement("th");
-      th.classList.add(this.columns[i].dataName);
+      th.classList.add(this.columns[i].field);
       thDiv = document.createElement("div");
-      thDiv.appendChild(document.createTextNode(this.columns[i].displayName));
+      thDiv.appendChild(document.createTextNode(this.columns[i].label));
       th.appendChild(thDiv);
       th.storkGridProps = {
-        column: this.columns[i].dataName,
+        column: this.columns[i].field,
         sortState: null
       };
       this.headerTable.ths.push(th);
@@ -423,9 +418,9 @@
         };
         for (j = 0; j < this.columns.length; j++) {
           td = document.createElement("td");
-          td.classList.add(this.columns[j].dataName);
+          td.classList.add(this.columns[j].field);
           td.storkGridProps = {
-            column: this.columns[j].dataName,
+            column: this.columns[j].field,
             selected: false
           };
           tdDiv = document.createElement("div");
@@ -463,8 +458,8 @@
     var changeTranslateOfTables = function changeTranslateOfTables() {
       changeTranslate(topTable, "Y", currDataBlock * self.dataTableHeight);
       changeTranslate(topTableFixed, "Y", currDataBlock * self.dataTableHeight);
-      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
-      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * self.dataTableHeight + self.cellBorders.dataDeviation);
+      changeTranslate(bottomTable, "Y", (currDataBlock + 1) * self.dataTableHeight);
+      changeTranslate(bottomTableFixed, "Y", (currDataBlock + 1) * self.dataTableHeight);
     };
     if (currScrollDirection === "down") {
       changeTranslateOfTables();
@@ -487,7 +482,8 @@
     }
     if (this.dataTables[topTableIndex].dataBlockIndex !== currDataBlock || forceUpdateViewData) {
       this.updateViewData(topTableIndex, currDataBlock);
-    } else if (this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
+    }
+    if (this.dataTables[bottomTableIndex].dataBlockIndex !== currDataBlock + 1 || forceUpdateViewData) {
       this.updateViewData(bottomTableIndex, currDataBlock + 1);
     }
   };
@@ -704,7 +700,7 @@
     }
     selectedItem = this.selectedItems.has(trackByData) ? this.selectedItems.get(trackByData) : null;
     for (i = 0; i < this.columns.length; i++) {
-      dataKeyName = this.columns[i].dataName;
+      dataKeyName = this.columns[i].field;
       tdDiv = rowObj.tds[i].firstChild;
       if (selectedItem && this.selection.type === "cell" && selectedItem.indexOf(dataKeyName) > -1) {
         rowObj.tds[i].classList.add("selected");
@@ -740,8 +736,8 @@
           if (this.selectedItems.has(trackByData)) {
             html += "<tr>";
             for (j = 0; j < this.columns.length; j++) {
-              text += this.data[i][this.columns[j].dataName] + " ";
-              html += "<td>" + this.data[i][this.columns[j].dataName] + "</td>";
+              text += this.data[i][this.columns[j].field] + " ";
+              html += "<td>" + this.data[i][this.columns[j].field] + "</td>";
             }
             text = text.slice(0, -1) + "\n";
             html += "</tr>";
@@ -804,7 +800,7 @@
       if (this.data[dataIndex]) {
         this._toggleSelectedClasses(dataIndex, rowObj);
         for (i = 0; i < this.columns.length; i++) {
-          dataKeyName = this.columns[i].dataName;
+          dataKeyName = this.columns[i].field;
           tdDiv = rowObj.tds[i].firstChild;
           dataValue = this.data[dataIndex][dataKeyName];
           if (typeof dataValue !== "string" && typeof dataValue !== "number") {
@@ -871,7 +867,7 @@
     }
     for (i = 0; i < this.columns.length; i++) {
       td = document.createElement("td");
-      td.classList.add(this.columns[i].dataName);
+      td.classList.add(this.columns[i].field);
       resizer = document.createElement("a");
       resizer.style.right = "-2px";
       resizer.setAttribute("draggable", "true");

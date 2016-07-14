@@ -17,6 +17,7 @@
 }
 .stork-grid div.header {
   background-color: #b6d0dd;
+  border-bottom: 1px solid #555555;
 }
 .stork-grid div.header > table {
   cursor: pointer;

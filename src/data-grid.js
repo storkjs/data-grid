@@ -2,6 +2,15 @@
 	"use strict";
 
 	/**
+	 * capitalize first letter of every word and the rest is lowercased
+	 * @param str
+	 * @returns {*}
+	 */
+	var capitalizeWords = function capitalizeWords(str) {
+		return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+	};
+
+	/**
 	 * change an element's transform:translate style for X or Y axis without deleting the other axis' style
 	 * @param elm
 	 * @param direction
@@ -100,7 +109,7 @@
 				if(this.data[0].hasOwnProperty(key)) {
 					columnName = key.replace(/[-_]/, ' ');
 					// capitalize first letter of each word
-					columnName = columnName.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+					columnName = capitalizeWords(columnName);
 					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null });
 				}
 			}

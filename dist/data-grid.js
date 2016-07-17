@@ -1,5 +1,10 @@
 (function(root) {
   "use strict";
+  var capitalizeWords = function capitalizeWords(str) {
+    return str.replace(/\w\S*/g, function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  };
   var changeTranslate = function changeTranslate(elm, direction, amount) {
     if (!elm.storkGridProps) {
       elm.storkGridProps = {};
@@ -77,9 +82,7 @@
       for (var key in this.data[0]) {
         if (this.data[0].hasOwnProperty(key)) {
           columnName = key.replace(/[-_]/, " ");
-          columnName = columnName.replace(/\w\S*/g, function(txt) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-          });
+          columnName = capitalizeWords(columnName);
           this.columns.push({
             field: key,
             label: columnName,

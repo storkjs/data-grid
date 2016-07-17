@@ -727,7 +727,7 @@
   storkGrid.prototype.onCopy = function onCopy(e) {
     if (this.grid.classList.contains("focused")) {
       if (this.selectedItems.size > 0) {
-        var text = "", html = "<table><tbody>", i, j, trackByData;
+        var text = "", html = "<table><tbody>", i, j, trackByData, cellText;
         for (i = 0; i < this.data.length; i++) {
           if (this.trackBy) {
             trackByData = this.data[i][this.trackBy];
@@ -737,8 +737,9 @@
           if (this.selectedItems.has(trackByData)) {
             html += "<tr>";
             for (j = 0; j < this.columns.length; j++) {
-              text += this.data[i][this.columns[j].field] + " ";
-              html += "<td>" + this.data[i][this.columns[j].field] + "</td>";
+              cellText = this.data[i][this.columns[j].field] || "";
+              text += cellText + " ";
+              html += "<td>" + cellText + "</td>";
             }
             text = text.slice(0, -1) + "\n";
             html += "</tr>";

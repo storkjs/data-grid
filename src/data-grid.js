@@ -1048,7 +1048,7 @@
 			if(this.selectedItems.size > 0) { // we should copy the selected data to the clipboard
 				var text = '',
 					html = '<table><tbody>',
-					i, j, trackByData;
+					i, j, trackByData, cellText;
 
 				for(i=0; i < this.data.length; i++) {
 					if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
@@ -1060,8 +1060,9 @@
 					if(this.selectedItems.has(trackByData)) {
 						html += '<tr>';
 						for(j=0; j < this.columns.length; j++) {
-							text += this.data[i][ this.columns[j].field ] + ' ';
-							html += '<td>' + this.data[i][ this.columns[j].field ] + '</td>';
+							cellText = this.data[i][ this.columns[j].field ] || '';
+							text += cellText + ' ';
+							html += '<td>' + cellText + '</td>';
 						}
 						text = text.slice(0, -1) + "\n"; // trim last space and add line-break
 						html += '</tr>';

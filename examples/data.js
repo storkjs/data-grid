@@ -11,7 +11,7 @@ var i,
 	girl = ['Naama','Mikaela','Judy'],
 	allData = [],
 	tmp;
-for(i=0; i < 10000; i++) {
+for(i=0; i < 300; i++) {
 	tmp = {};
 	tmp[ window.columnNames[0] ] = (i+1);
 	tmp[ window.columnNames[1] ] = countries[ i % countries.length ];

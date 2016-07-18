@@ -477,7 +477,7 @@
 	StorkGrid.prototype.initDataView = function initDataView() {
 		this.dataWrapperElm = document.createElement('div');
 		this.dataWrapperElm.classList.add('data-wrapper');
-		// giving this element height before rendering fixes a memory-leak in chrome and FF
+		// giving this element height before rendering fixes a memory-leak in Chrome and FF
 		this.dataWrapperElm.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
 
 		this.dataElm = document.createElement('div');
@@ -528,7 +528,16 @@
 	 * calculates the size of child elements upon resize
 	 */
 	StorkGrid.prototype.resizeCalculate = function resizeCalculate() {
+		// if the grid container height wasn't set then dataWrapperElm will have its height stretched unlimited (becuase it has 'height:100%')
+		// this causes JS to calculate dataWrapperElm height as larger than its parent, the grid container.
+		// we will add 2 styles as a counter measurements
+		if(this.dataWrapperElm.clientHeight > this.grid.clientHeight) {
+			this.grid.style.height = this.grid.clientHeight + 'px';
+			this.dataWrapperElm.style.maxHeight = window.innerHeight + 'px';
+		}
+
 		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
+
 		if(this.dataViewHeight < this.rowHeight) {
 			this.dataViewHeight = this.rowHeight;
 			console.warn('The Data Wrapper element was set too low. Height can\'t be less than the height of one row!');

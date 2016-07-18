@@ -363,6 +363,10 @@
     this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
   };
   StorkGrid.prototype.resizeCalculate = function resizeCalculate() {
+    if (this.dataWrapperElm.clientHeight > this.grid.clientHeight) {
+      this.grid.style.height = this.grid.clientHeight + "px";
+      this.dataWrapperElm.style.maxHeight = window.innerHeight + "px";
+    }
     this.dataViewHeight = this.dataWrapperElm.clientHeight;
     if (this.dataViewHeight < this.rowHeight) {
       this.dataViewHeight = this.rowHeight;

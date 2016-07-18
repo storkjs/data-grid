@@ -22,7 +22,7 @@ Simple as that.
 - [Demo](#demo)
 
 ### Usage
-Initiate a grid with `new storkGrid(options)`. This will return a grid object for further adjusting the grid later.
+Initiate a grid with `new StorkGrid(options)`. This will return a grid object for further adjusting the grid later.
 
 #### Options
 _element_: the HTML DOM Element that will hold the grid. Example: `{ element: document.getElementById('my_grid') }`
@@ -165,7 +165,7 @@ document.getElementById('my_grid').addEventListener('grid-loaded', function(e) {
   console.log('second way of onload', e.detail.gridObj);
 }, { capture: false });
 
-myGrid = new storkGrid({
+myGrid = new StorkGrid({
   element: document.getElementById('my_grid'),
   data: myData,
   rowHeight: 30,

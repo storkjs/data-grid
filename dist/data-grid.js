@@ -23,7 +23,7 @@
       elm.style.transform = "translate(" + elm.storkGridProps.translateX + "px," + amount + "px)";
     }
   };
-  var storkGrid = function storkGrid(options) {
+  var StorkGrid = function StorkGrid(options) {
     this.grid = options.element;
     this.data = options.data || [];
     this.rowHeight = options.rowHeight || 32;
@@ -135,7 +135,7 @@
     }
     this.grid.dispatchEvent(evnt);
   };
-  storkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
+  StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
     element.addEventListener(type, listener, options_or_useCapture);
     this.eventListeners.push({
       element: element,
@@ -145,23 +145,23 @@
     });
     return this.eventListeners.length - 1;
   };
-  storkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
+  StorkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
     var currEL = this.eventListeners[index];
     if (currEL) {
       currEL.element.removeEventListener(currEL.type, currEL.listener, currEL.options);
     }
     this.eventListeners[index] = null;
   };
-  storkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
+  StorkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
     for (var i = 0; i < this.eventListeners.length; i++) {
       this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
     }
     this.eventListeners.length = 0;
   };
-  storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
+  StorkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
     this._addEventListener(this.grid, type, listener, options_or_useCapture);
   };
-  storkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
+  StorkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
     this.grid.removeEventListener(type, listener, options_or_useCapture);
     for (var i = 0; i < this.eventListeners.length; i++) {
       if (this.eventListeners[i].element === this.grid && this.eventListeners[i].type === type && this.eventListeners[i].listener === listener) {
@@ -169,7 +169,7 @@
       }
     }
   };
-  storkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
+  StorkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
     if (type !== "dblselect") {
       type = "select";
     }
@@ -184,7 +184,7 @@
     });
     this.grid.dispatchEvent(evnt);
   };
-  storkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
+  StorkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
     fromBottom = fromBottom !== false;
     this.customScrollEvents.push({
       type: type,
@@ -192,7 +192,7 @@
       fromBottom: fromBottom
     });
   };
-  storkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
+  StorkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
     this.totalDataWidthLoose = 0;
     this.totalDataWidthFixed = 0;
     var userDefinedWidth = 0, numColumnsNotDefined = 0, i, availableWidth, availableWidthPerColumn, roundedPixels;
@@ -227,7 +227,7 @@
       }
     }
   };
-  storkGrid.prototype.makeCssRules = function makeCssRules() {
+  StorkGrid.prototype.makeCssRules = function makeCssRules() {
     var style = document.getElementById("grid" + this.rnd + "_style");
     if (!style) {
       style = document.createElement("style");
@@ -260,15 +260,15 @@
     this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + "px";
     this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + "px";
   };
-  storkGrid.prototype.setRowHeight = function setRowHeight(num) {
+  StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
     this.rowHeight = num;
     this.makeCssRules();
   };
-  storkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
+  StorkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
     this.headerHeight = num;
     this.makeCssRules();
   };
-  storkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
+  StorkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
     var table = document.getElementById("grid" + this.rnd + "_headerTable");
     var tableFixed = document.getElementById("grid" + this.rnd + "_headerTable_fixed");
     var i;
@@ -324,7 +324,7 @@
     thead.appendChild(tr);
     table.appendChild(thead);
   };
-  storkGrid.prototype.initDataView = function initDataView() {
+  StorkGrid.prototype.initDataView = function initDataView() {
     this.dataWrapperElm = document.createElement("div");
     this.dataWrapperElm.classList.add("data-wrapper");
     this.dataWrapperElm.style.height = "calc(100% - " + this.headerHeight + "px)";
@@ -357,12 +357,12 @@
     });
     this.resize();
   };
-  storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
+  StorkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
     this.totalDataHeight = this.rowHeight * this.data.length;
     this.dataElm.style.height = this.totalDataHeight + "px";
     this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
   };
-  storkGrid.prototype.resizeCalculate = function resizeCalculate() {
+  StorkGrid.prototype.resizeCalculate = function resizeCalculate() {
     this.dataViewHeight = this.dataWrapperElm.clientHeight;
     if (this.dataViewHeight < this.rowHeight) {
       this.dataViewHeight = this.rowHeight;
@@ -378,7 +378,7 @@
     this.lastThreshold = this.tableExtraPixelsForThreshold;
     this.nextThreshold = this.lastThreshold + this.dataTableHeight;
   };
-  storkGrid.prototype.buildDataTables = function buildDataTables() {
+  StorkGrid.prototype.buildDataTables = function buildDataTables() {
     var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j;
     for (var counter = 0; counter < 2; counter++) {
       table = document.getElementById("grid" + this.rnd + "_dataTable" + counter);
@@ -443,7 +443,7 @@
       table.appendChild(tbody);
     }
   };
-  storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
+  StorkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
     var topTableIndex, topTable, topTableFixed, bottomTableIndex, bottomTable, bottomTableFixed;
     currScrollTop = currScrollTop || this.scrollY;
     currScrollDirection = currScrollDirection || "down";
@@ -491,7 +491,7 @@
       this.updateViewData(bottomTableIndex, currDataBlock + 1);
     }
   };
-  storkGrid.prototype.onDataScroll = function onDataScroll(e) {
+  StorkGrid.prototype.onDataScroll = function onDataScroll(e) {
     var currScrollTop = e.target.scrollTop;
     if (currScrollTop !== this.lastScrollTop) {
       this.onScrollY(currScrollTop);
@@ -505,7 +505,7 @@
       }
     }
   };
-  storkGrid.prototype.onScrollY = function onScrollY(currScrollTop) {
+  StorkGrid.prototype.onScrollY = function onScrollY(currScrollTop) {
     var currScrollDirection = currScrollTop >= this.lastScrollTop ? "down" : "up";
     var scrollEvent, i, evnt;
     if (this.lastScrollDirection !== currScrollDirection || this.lastScrollDirection === "down" && currScrollTop >= this.nextThreshold || this.lastScrollDirection === "up" && currScrollTop <= this.nextThreshold) {
@@ -524,7 +524,7 @@
       }
     }
   };
-  storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
+  StorkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
     changeTranslate(this.headerTable.loose, "X", -currScrollLeft);
     this.headerTable.loose.style.transform = "translateX(-" + currScrollLeft + "px)";
     if (this.headerTable.resizer_loose) {
@@ -545,7 +545,7 @@
   };
   var lastClickTime = 0;
   var lastClickElm = null;
-  storkGrid.prototype.onDataClick = function onDataClick(e) {
+  StorkGrid.prototype.onDataClick = function onDataClick(e) {
     if (e.button !== 0) {
       return;
     }
@@ -643,7 +643,7 @@
       this.repositionTables(null, null, true);
     }
   };
-  storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+  StorkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
     var TD = e.target, i = 0, dataIndex, TR, trackByData;
     while (TD.tagName.toUpperCase() !== "TD") {
       if (i++ >= 2) {
@@ -671,7 +671,7 @@
       }
     }
   };
-  storkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
+  StorkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
     if (this.trackBy) {
       if (typeof this.data[dataIndex][this.trackBy] !== "undefined" && this.data[dataIndex][this.trackBy] !== null) {
         return this.data[dataIndex][this.trackBy];
@@ -680,7 +680,7 @@
     }
     return this.data[dataIndex];
   };
-  storkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
+  StorkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
     var trackByData = this._getTrackByData(dataIndex), selectedItem, dataKeyName, tdDiv, i;
     if (this.selectedItems.has(trackByData)) {
       rowObj.row.classList.add("selected");
@@ -715,7 +715,7 @@
       }
     }
   };
-  storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
+  StorkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
     var i, j, dataIndex;
     for (i = 0; i < this.dataTables.length; i++) {
       for (j = 0; j < this.dataTables[i].rows.length; j++) {
@@ -727,7 +727,7 @@
       }
     }
   };
-  storkGrid.prototype.onCopy = function onCopy(e) {
+  StorkGrid.prototype.onCopy = function onCopy(e) {
     if (this.grid.classList.contains("focused")) {
       if (this.selectedItems.size > 0) {
         var text = "", html = "<table><tbody>", i, j, trackByData, cellText;
@@ -756,7 +756,7 @@
       }
     }
   };
-  storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
+  StorkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
     var TH = e.target, i = 0;
     while (TH.tagName.toUpperCase() !== "TH") {
       if (i++ >= 2) {
@@ -793,7 +793,7 @@
     });
     this.grid.dispatchEvent(evnt);
   };
-  storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
+  StorkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
     var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, tdDiv, dataValue;
     tableObj = this.dataTables[tableIndex];
     firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
@@ -832,7 +832,7 @@
     }
     tableObj.dataBlockIndex = dataBlockIndex;
   };
-  storkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
+  StorkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
     var colResizers = document.getElementById("grid" + this.rnd + "_columnResizers");
     var colResizersFixed = document.getElementById("grid" + this.rnd + "_columnResizers_fixed");
     var resizer, i, tbody, tr, trFixed, td, span;
@@ -889,7 +889,7 @@
       }
     }
   };
-  storkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
+  StorkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
     var self = this;
     var columnObj = self.columns[elm.storkGridProps.columnIndex];
     this._addEventListener(elm, "dragstart", function(e) {
@@ -926,20 +926,20 @@
       self.grid.dispatchEvent(evnt);
     });
   };
-  storkGrid.prototype.resize = function resize() {
+  StorkGrid.prototype.resize = function resize() {
     this.resizeCalculate();
     this.buildDataTables();
     this.repositionTables(null, null, true);
   };
-  storkGrid.prototype.setData = function setData(data) {
+  StorkGrid.prototype.setData = function setData(data) {
     this.data = data;
     this.refresh();
   };
-  storkGrid.prototype.refresh = function refresh_data() {
+  StorkGrid.prototype.refresh = function refresh_data() {
     this.calculateDataHeight();
     this.repositionTables(null, null, true);
   };
-  storkGrid.prototype.destroy = function destroy() {
+  StorkGrid.prototype.destroy = function destroy() {
     var rows = this.grid.querySelectorAll("tr");
     var cells = this.grid.querySelectorAll("th, td");
     var i, j, k;
@@ -1000,7 +1000,7 @@
     delete this.dataTableHeight;
     delete this.numDataRowsInTable;
   };
-  storkGrid.prototype.setColumns = function setColumns(columns) {
+  StorkGrid.prototype.setColumns = function setColumns(columns) {
     var options = {};
     options.columns = columns;
     options.element = this.grid;
@@ -1016,7 +1016,7 @@
     this.destroy();
     this.constructor(options);
   };
-  storkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
+  StorkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
     var target = e.target;
     while (!(target instanceof HTMLDocument) && target !== this.grid) {
       target = target.parentNode;
@@ -1027,7 +1027,7 @@
     }
     this.grid.classList.add("focused");
   };
-  storkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
+  StorkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
     var key = keyboardMap[e.keyCode];
     if (this.clickedItem && (key === "DOWN" || key === "UP")) {
       if (key === "DOWN" && this.clickedItem.dataIndex < this.data.length - 1) {
@@ -1053,5 +1053,5 @@
       this._dispatchSelectEvent("select", this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
     }
   };
-  root.storkGrid = storkGrid;
+  root.StorkGrid = StorkGrid;
 })(window);

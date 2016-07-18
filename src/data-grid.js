@@ -42,7 +42,7 @@
 	 * this initializes all of the variable and then starts the DOM build up process
 	 * @param options
 	 */
-	var storkGrid = function storkGrid(options) {
+	var StorkGrid = function StorkGrid(options) {
 		this.grid = options.element;
 		this.data = options.data || [];
 		this.rowHeight = options.rowHeight || 32;
@@ -181,7 +181,7 @@
 	 * @param options_or_useCapture
 	 * @private
 	 */
-	storkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
+	StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
 		element.addEventListener(type, listener, options_or_useCapture); // add event listener
 		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture}); // save listeners parameters
 		return this.eventListeners.length - 1; // return index for removing this specific listener later
@@ -192,7 +192,7 @@
 	 * @param index
 	 * @private
 	 */
-	storkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
+	StorkGrid.prototype._removeEventListener = function customRemoveEventListener(index) {
 		var currEL = this.eventListeners[index];
 		if(currEL) { // if this event wasn't removed before
 			currEL.element.removeEventListener(currEL.type, currEL.listener, currEL.options);
@@ -204,7 +204,7 @@
 	 * remove all event listeners from all of the grid's dom elements and empty the listeners array
 	 * @private
 	 */
-	storkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
+	StorkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
 		for(var i=0; i < this.eventListeners.length; i++) {
 			this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
 		}
@@ -218,7 +218,7 @@
 	 * @param listener
 	 * @param [options_or_useCapture]
 	 */
-	storkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
+	StorkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
 		this._addEventListener(this.grid, type, listener, options_or_useCapture);
 	};
 
@@ -228,7 +228,7 @@
 	 * @param listener
 	 * @param [options_or_useCapture]
 	 */
-	storkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
+	StorkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
 		this.grid.removeEventListener(type, listener, options_or_useCapture);
 
 		for(var i=0; i < this.eventListeners.length; i++) {
@@ -248,7 +248,7 @@
 	 * @param trackByData
 	 * @private
 	 */
-	storkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
+	StorkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
 		if(type !== 'dblselect') {
 			type = 'select';
 		}
@@ -271,7 +271,7 @@
 	 * @param {number} amount
 	 * @param {boolean} [fromBottom] - relative to the bottom of the grid or else to the top of it. defaults to True
 	 */
-	storkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
+	StorkGrid.prototype.addScrollEvent = function addScrollEvent(type, amount, fromBottom) {
 		fromBottom = fromBottom !== false;
 		this.customScrollEvents.push({type: type, amount: amount, fromBottom: fromBottom});
 	};
@@ -279,7 +279,7 @@
 	/**
 	 * populated 'width' property for all columns
 	 */
-	storkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
+	StorkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
 		this.totalDataWidthLoose = 0;
 		this.totalDataWidthFixed = 0;
 
@@ -330,7 +330,7 @@
 	/**
 	 * makes or updates the css rule for the heights of the header rows and data rows
 	 */
-	storkGrid.prototype.makeCssRules = function makeCssRules() {
+	StorkGrid.prototype.makeCssRules = function makeCssRules() {
 		var style = document.getElementById('grid'+this.rnd+'_style');
 		if(!style) {
 			style = document.createElement('style');
@@ -387,7 +387,7 @@
 	 * sets the height of each row
 	 * @param num
 	 */
-	storkGrid.prototype.setRowHeight = function setRowHeight(num) {
+	StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
 		this.rowHeight = num;
 		this.makeCssRules();
 	};
@@ -396,7 +396,7 @@
 	 * sets the height of the header
 	 * @param num
 	 */
-	storkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
+	StorkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
 		this.headerHeight = num;
 		this.makeCssRules();
 	};
@@ -404,7 +404,7 @@
 	/**
 	 * builds the header table for the column names
 	 */
-	storkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
+	StorkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
 		var table = document.getElementById('grid'+this.rnd+'_headerTable');
 		var tableFixed = document.getElementById('grid'+this.rnd+'_headerTable_fixed');
 		var i;
@@ -474,7 +474,7 @@
 	/**
 	 * inits the whole data view, with wrappers for scrolling and tables for data
 	 */
-	storkGrid.prototype.initDataView = function initDataView() {
+	StorkGrid.prototype.initDataView = function initDataView() {
 		this.dataWrapperElm = document.createElement('div');
 		this.dataWrapperElm.classList.add('data-wrapper');
 		// giving this element height before rendering fixes a memory-leak in chrome and FF
@@ -518,7 +518,7 @@
 	/**
 	 * calculates and sets the needed height for the data
 	 */
-	storkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
+	StorkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
 		this.totalDataHeight = this.rowHeight * this.data.length;
 		this.dataElm.style.height = this.totalDataHeight + 'px';
 		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
@@ -527,7 +527,7 @@
 	/**
 	 * calculates the size of child elements upon resize
 	 */
-	storkGrid.prototype.resizeCalculate = function resizeCalculate() {
+	StorkGrid.prototype.resizeCalculate = function resizeCalculate() {
 		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
 		if(this.dataViewHeight < this.rowHeight) {
 			this.dataViewHeight = this.rowHeight;
@@ -549,7 +549,7 @@
 	/**
 	 * builds two completely new <table> for the data
 	 */
-	storkGrid.prototype.buildDataTables = function buildDataTables() {
+	StorkGrid.prototype.buildDataTables = function buildDataTables() {
 		var table, tableFixed, tbody, tbodyFixed, tr, trFixed, td, tdDiv, i, j;
 
 		for(var counter=0; counter < 2; counter++) { // counter for number of blocks
@@ -636,7 +636,7 @@
 	 * @param [currScrollTop]
 	 * @param [forceUpdateViewData] - forces updating dom elements even if scroll hasn't passed to the next data block
 	 */
-	storkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
+	StorkGrid.prototype.repositionTables = function repositionTables(currScrollDirection, currScrollTop, forceUpdateViewData) {
 		var topTableIndex, topTable, topTableFixed, bottomTableIndex, bottomTable, bottomTableFixed;
 		currScrollTop = currScrollTop || this.scrollY;
 		currScrollDirection = currScrollDirection || 'down';
@@ -701,7 +701,7 @@
 	 * the onscroll handler when scrolling
 	 * @param e
 	 */
-	storkGrid.prototype.onDataScroll = function onDataScroll(e) {
+	StorkGrid.prototype.onDataScroll = function onDataScroll(e) {
 		var currScrollTop = e.target.scrollTop;
 		// trigger only when scroll vertically
 		if(currScrollTop !== this.lastScrollTop) {
@@ -727,7 +727,7 @@
 	 * when scrolling vertically on Y axis
 	 * @param currScrollTop
 	 */
-	storkGrid.prototype.onScrollY = function onScrollY(currScrollTop) {
+	StorkGrid.prototype.onScrollY = function onScrollY(currScrollTop) {
 		var currScrollDirection = currScrollTop >= this.lastScrollTop ? 'down' : 'up';
 		var scrollEvent, i, evnt;
 
@@ -769,7 +769,7 @@
 	 * when scrolling horizontally on X axis
 	 * @param currScrollLeft
 	 */
-	storkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
+	StorkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
 		changeTranslate(this.headerTable.loose, 'X', -currScrollLeft);
 		this.headerTable.loose.style.transform = 'translateX(-' + currScrollLeft + 'px)';
 		if(this.headerTable.resizer_loose) {
@@ -798,7 +798,7 @@
 	 */
 	var lastClickTime = 0;
 	var lastClickElm = null;
-	storkGrid.prototype.onDataClick = function onDataClick(e) {
+	StorkGrid.prototype.onDataClick = function onDataClick(e) {
 		if(e.button !== 0) {
 			return; // do nothing if the click wasn't with the main mouse button
 		}
@@ -922,7 +922,7 @@
 	 * an event handler for mousemove when dragging the mouse for multi selecting
 	 * @param e
 	 */
-	storkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+	StorkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
 		var TD = e.target,
 			i = 0,
 			dataIndex, TR, trackByData;
@@ -962,7 +962,7 @@
 		}
 	};
 
-	storkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
+	StorkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {
 		if (this.trackBy) { // tracking by a specific column data or by the whole row's data object
 			if(typeof this.data[dataIndex][this.trackBy] !== 'undefined' && this.data[dataIndex][this.trackBy] !== null) {
 				return this.data[dataIndex][this.trackBy];
@@ -980,7 +980,7 @@
 	 * @param rowObj
 	 * @private
 	 */
-	storkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
+	StorkGrid.prototype._toggleSelectedClasses = function _toggleSelectedClasses(dataIndex, rowObj) {
 		var trackByData = this._getTrackByData(dataIndex),
 			selectedItem, dataKeyName, tdDiv, i;
 
@@ -1032,7 +1032,7 @@
 	/**
 	 * adds/removes the 'select' class from the rows in the view (without rebuilding the DOM)
 	 */
-	storkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
+	StorkGrid.prototype.renderSelectOnRows = function renderSelectOnRows() {
 		var i, j, dataIndex;
 
 		for(i=0; i < this.dataTables.length; i++) {
@@ -1052,7 +1052,7 @@
 	 * handle on-copy for custom copying
 	 * @param e
 	 */
-	storkGrid.prototype.onCopy = function onCopy(e) {
+	StorkGrid.prototype.onCopy = function onCopy(e) {
 		if(this.grid.classList.contains('focused')) {
 			if(this.selectedItems.size > 0) { // we should copy the selected data to the clipboard
 				var text = '',
@@ -1092,7 +1092,7 @@
 	 * handler for when clicking a column header to sort it
 	 * @param e
 	 */
-	storkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
+	StorkGrid.prototype.onHeaderClick = function onHeaderClick(e) {
 		var TH = e.target,
 			i = 0;
 
@@ -1140,7 +1140,7 @@
 	 * @param tableIndex
 	 * @param dataBlockIndex
 	 */
-	storkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
+	StorkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
 			dataKeyName, dataIndex, i, tdDiv, dataValue;
 
@@ -1197,7 +1197,7 @@
 	/**
 	 * add dragable elements to resize the columns + emit events
 	 */
-	storkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
+	StorkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
 		var colResizers = document.getElementById('grid'+this.rnd+'_columnResizers');
 		var colResizersFixed = document.getElementById('grid'+this.rnd+'_columnResizers_fixed');
 		var resizer, i, tbody, tr, trFixed, td, span;
@@ -1273,7 +1273,7 @@
 	 * sets the dragging events for the resizing element
 	 * @param {HTMLElement} elm
 	 */
-	storkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
+	StorkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
 		var self = this;
 		var columnObj = self.columns[elm.storkGridProps.columnIndex];
 
@@ -1323,7 +1323,7 @@
 	/**
 	 * a method for completely calculating and rebuilding new tables when the grid's main element has changed size
 	 */
-	storkGrid.prototype.resize = function resize() {
+	StorkGrid.prototype.resize = function resize() {
 		this.resizeCalculate();
 		this.buildDataTables();
 		this.repositionTables(null, null, true);
@@ -1332,7 +1332,7 @@
 	/**
 	 * sets a new data object and then refreshes the grid
 	 */
-	storkGrid.prototype.setData = function setData(data) {
+	StorkGrid.prototype.setData = function setData(data) {
 		this.data = data;
 		this.refresh();
 	};
@@ -1341,7 +1341,7 @@
 	 * refreshes the data height and viewport.
 	 * use this when grid.data has changed
 	 */
-	storkGrid.prototype.refresh = function refresh_data() {
+	StorkGrid.prototype.refresh = function refresh_data() {
 		this.calculateDataHeight();
 		this.repositionTables(null, null, true);
 	};
@@ -1349,7 +1349,7 @@
 	/**
 	 * completely destroy the grid - its DOM elements, methods and data
 	 */
-	storkGrid.prototype.destroy = function destroy() {
+	StorkGrid.prototype.destroy = function destroy() {
 		var rows = this.grid.querySelectorAll('tr');
 		var cells = this.grid.querySelectorAll('th, td');
 		var i, j, k;
@@ -1426,7 +1426,7 @@
 	 * set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
 	 * @param {Array} columns - a columns array holding objects with the following properties: field, label, [width], [minWidth], [fixed]
 	 */
-	storkGrid.prototype.setColumns = function setColumns(columns) {
+	StorkGrid.prototype.setColumns = function setColumns(columns) {
 		var options = {};
 
 		// save all currently set options (but with new columns)
@@ -1454,7 +1454,7 @@
 	 * check if user is focused on the grid or not
 	 * @param e
 	 */
-	storkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
+	StorkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
 		var target = e.target;
 
 		while(!(target instanceof HTMLDocument) && target !== this.grid) {
@@ -1474,7 +1474,7 @@
 	 * (selects the bottom or top item)
 	 * @param e
 	 */
-	storkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
+	StorkGrid.prototype._onKeyboardNavigate = function _onKeyboardNavigate(e) {
 		var key = keyboardMap[e.keyCode];
 
 		if(this.clickedItem && (key === 'DOWN' || key === 'UP')) {
@@ -1509,5 +1509,5 @@
 		}
 	};
 
-	root.storkGrid = storkGrid;
+	root.StorkGrid = StorkGrid;
 })(window); // main scope we are running at (if 'this' is passed then we will be compatible with node 'module.reports' style)

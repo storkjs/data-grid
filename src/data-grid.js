@@ -179,11 +179,16 @@
 	 * @param type
 	 * @param listener
 	 * @param options_or_useCapture
+	 * @param isUserDefined - whether its the system (component) event listener or is it a user defined custom listener
 	 * @private
 	 */
-	StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
+	StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture, isUserDefined) {
+		isUserDefined = isUserDefined || false;
+
 		element.addEventListener(type, listener, options_or_useCapture); // add event listener
-		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture}); // save listeners parameters
+
+		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture, isUserDefined: isUserDefined}); // save listeners parameters
+
 		return this.eventListeners.length - 1; // return index for removing this specific listener later
 	};
 
@@ -197,19 +202,26 @@
 		if(currEL) { // if this event wasn't removed before
 			currEL.element.removeEventListener(currEL.type, currEL.listener, currEL.options);
 		}
-		this.eventListeners[index] = null;
+		this.eventListeners[index] = null; // change value instead of popping it out because we don't want to change the indexes of others in this list
 	};
 
 	/**
 	 * remove all event listeners from all of the grid's dom elements and empty the listeners array
 	 * @private
 	 */
-	StorkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
-		for(var i=0; i < this.eventListeners.length; i++) {
-			this.eventListeners[i].element.removeEventListener(this.eventListeners[i].type, this.eventListeners[i].listener, this.eventListeners[i].options);
-		}
+	StorkGrid.prototype._emptyEventListeners = function emptyEventListeners(keepUserDefined) {
+		keepUserDefined = keepUserDefined || false;
+		var currEL;
 
-		this.eventListeners.length = 0; // empty the listeners array
+		for(var i=0; i < this.eventListeners.length; i++) {
+			currEL = this.eventListeners[i];
+
+			if(currEL) {
+				if(!keepUserDefined || !currEL.isUserDefined) {
+					this._removeEventListener(i);
+				}
+			}
+		}
 	};
 
 	/**
@@ -219,7 +231,7 @@
 	 * @param [options_or_useCapture]
 	 */
 	StorkGrid.prototype.addEventListener = function customAddEventListener(type, listener, options_or_useCapture) {
-		this._addEventListener(this.grid, type, listener, options_or_useCapture);
+		this._addEventListener(this.grid, type, listener, options_or_useCapture, true);
 	};
 
 	/**
@@ -1358,13 +1370,14 @@
 	/**
 	 * completely destroy the grid - its DOM elements, methods and data
 	 */
-	StorkGrid.prototype.destroy = function destroy() {
+	StorkGrid.prototype.destroy = function destroy(keepUserListeners) {
+		keepUserListeners = keepUserListeners || false;
 		var rows = this.grid.querySelectorAll('tr');
 		var cells = this.grid.querySelectorAll('th, td');
 		var i, j, k;
 
 		// remove event listeners
-		this._emptyEventListeners();
+		this._emptyEventListeners(keepUserListeners);
 
 		// remove dom elements
 		for(i=0; i < cells.length; i++) {
@@ -1453,7 +1466,7 @@
 		options.selection = this.selection; // caution - using reference
 
 		// destroy the grid
-		this.destroy();
+		this.destroy(true);
 
 		// rebuild the grid
 		this.constructor(options);

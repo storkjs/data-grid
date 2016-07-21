@@ -590,6 +590,7 @@
             this.selectedItems.set(trackByData, [ selectedCellColumn ]);
             this.clickedItem = {
               dataIndex: dataIndex,
+              data: this.data[dataIndex],
               column: selectedCellColumn
             };
             this.hoveredRowElm = TR;
@@ -949,7 +950,13 @@
   };
   StorkGrid.prototype.refresh = function refresh_data() {
     this.calculateDataHeight();
+    this._updateClickedItemIndex();
     this.repositionTables(null, null, true);
+  };
+  StorkGrid.prototype._updateClickedItemIndex = function _updateClickedItemIndex() {
+    if (this.clickedItem && this.clickedItem.data) {
+      this.clickedItem.dataIndex = this.data.indexOf(this.clickedItem.data);
+    }
   };
   StorkGrid.prototype.destroy = function destroy(keepUserListeners) {
     keepUserListeners = keepUserListeners || false;

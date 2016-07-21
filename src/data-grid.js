@@ -864,7 +864,7 @@
 					}
 					else {
 						this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
-						this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn }; // save currently clicked row
+						this.clickedItem = { dataIndex: dataIndex, data: this.data[dataIndex], column: selectedCellColumn }; // save currently clicked row
 						this.hoveredRowElm = TR;
 
 						var self = this;
@@ -1364,7 +1364,18 @@
 	 */
 	StorkGrid.prototype.refresh = function refresh_data() {
 		this.calculateDataHeight();
+		this._updateClickedItemIndex();
 		this.repositionTables(null, null, true);
+	};
+
+	/**
+	 * in-charge of updating the selectedItem index when it was changed (happens after data refresh. btw sorting causes data refresh)
+	 * @private
+	 */
+	StorkGrid.prototype._updateClickedItemIndex = function _updateClickedItemIndex() {
+		if(this.clickedItem && this.clickedItem.data) {
+			this.clickedItem.dataIndex = this.data.indexOf(this.clickedItem.data);
+		}
 	};
 
 	/**

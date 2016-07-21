@@ -1271,7 +1271,6 @@
 			td.classList.add(this.columns[i].field);
 
 			resizer = document.createElement('a');
-			resizer.style.right = '-2px';
 			resizer.setAttribute('draggable', 'true');
 			resizer.storkGridProps = {
 				dragStartX: 0,
@@ -1299,6 +1298,19 @@
 		var columnObj = self.columns[elm.storkGridProps.columnIndex];
 
 		this._addEventListener(elm, 'dragstart', function(e) {
+			// unselect previous element/text selections - this solves a UI bug where phantom elements are dragged with us
+			if (window.getSelection && document.createRange) {
+				var sel = window.getSelection();
+				var range = document.createRange();
+				range.selectNodeContents(elm);
+				sel.removeAllRanges();
+				sel.addRange(range);
+			} else if (document.selection && document.body.createTextRange) {
+				var textRange = document.body.createTextRange();
+				textRange.moveToElementText(elm);
+				textRange.select();
+			}
+
 			// placeholder is empty. this will prevent seeing an image getting dragged, and instead we will move the real element itself
 			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
 			elm.storkGridProps.dragStartX = e.screenX;
@@ -1374,7 +1386,12 @@
 	 */
 	StorkGrid.prototype._updateClickedItemIndex = function _updateClickedItemIndex() {
 		if(this.clickedItem && this.clickedItem.data) {
-			this.clickedItem.dataIndex = this.data.indexOf(this.clickedItem.data);
+			var itemIndex = this.data.indexOf(this.clickedItem.data);
+			if(itemIndex >= 0) {
+				this.clickedItem.dataIndex = itemIndex;
+			} else {
+				this.clickedItem = null;
+			}
 		}
 	};
 

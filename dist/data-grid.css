@@ -79,8 +79,11 @@
   pointer-events: auto;
   position: absolute;
   top: 0;
-  width: 4px;
-  z-index: 3;
+  right: -3px;
+  width: 7px;
+  background-color: transparent;
+  border: 2px solid transparent;
+  border-width: 0 2px 0 2px;
   cursor: col-resize;
 }
 .stork-grid div.data-wrapper {

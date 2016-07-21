@@ -38,10 +38,8 @@
   border-right-width: 0;
 }
 .stork-grid div.header > table.resizers td > a.dragging {
-  background-color: #a0a0a0;
-  border: 1px dotted #b6d0dd;
-  border-top-width: 0;
-  border-bottom-width: 0;
+  background: repeating-linear-gradient(45deg, #fafafa, #fafafa 1px, #b6d0dd 1px, #b6d0dd 2px);
+  border-color: #b6d0dd;
 }
 .stork-grid div.data-wrapper {
   /* data */

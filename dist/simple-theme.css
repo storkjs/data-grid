@@ -7,6 +7,8 @@
   /* /header table */
   /* data wrapper */
   /* /data wrapper */
+  /* resizer vertical line */
+  /* /resizer vertical line */
 }
 .stork-grid table.fixed.covering {
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.3);
@@ -37,10 +39,6 @@
 .stork-grid div.header > table.columns.loose tr th:last-child {
   border-right-width: 0;
 }
-.stork-grid div.header > table.resizers td > a.dragging {
-  background: repeating-linear-gradient(45deg, #fafafa, #fafafa 1px, #b6d0dd 1px, #b6d0dd 2px);
-  border-color: #b6d0dd;
-}
 .stork-grid div.data-wrapper {
   /* data */
   /* /data */
@@ -69,4 +67,9 @@
 }
 .stork-grid div.data-wrapper > div.data table.loose tbody > tr > td:last-child {
   border-right-width: 0;
+}
+.stork-grid div.resizer-line {
+  width: 2px;
+  background: repeating-linear-gradient(0deg, #ffffff, #ffffff 2px, transparent 2px, transparent 3px);
+  opacity: 0.9;
 }

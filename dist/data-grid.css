@@ -10,6 +10,8 @@
   /* /header table */
   /* data wrapper */
   /* /data wrapper */
+  /* resizer vertical line */
+  /* /resizer vertical line */
 }
 .stork-grid:focus {
   outline: 0 none;
@@ -86,8 +88,6 @@
   right: -3px;
   width: 7px;
   background-color: transparent;
-  border: 2px solid transparent;
-  border-width: 0 2px 0 2px;
   cursor: col-resize;
 }
 .stork-grid div.data-wrapper {
@@ -125,4 +125,13 @@
 }
 .stork-grid div.data-wrapper > div.data table.loose {
   z-index: 1;
+}
+.stork-grid .resizer-line {
+  display: none;
+  z-index: 5;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 1px;
 }

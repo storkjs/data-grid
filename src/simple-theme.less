@@ -48,17 +48,6 @@
 					}
 				}
 			}
-
-			&.resizers {
-				td {
-					> a {
-						&.dragging {
-							background: repeating-linear-gradient(45deg, #fafafa, #fafafa 1px, #b6d0dd 1px, #b6d0dd 2px);
-							border-color: #b6d0dd;
-						}
-					}
-				}
-			}
 		}
 	}
 	/* /header table */
@@ -104,4 +93,12 @@
 		/* /data */
 	}
 	/* /data wrapper */
+
+	/* resizer vertical line */
+	div.resizer-line {
+		width: 2px;
+		background: repeating-linear-gradient(0deg, #ffffff, #ffffff 2px, transparent 2px, transparent 3px);
+		opacity: 0.9;
+	}
+	/* /resizer vertical line */
 }

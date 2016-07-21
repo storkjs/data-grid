@@ -14,6 +14,10 @@
 .stork-grid:focus {
   outline: 0 none;
 }
+.stork-grid.resizing-column,
+.stork-grid.resizing-column * {
+  cursor: col-resize;
+}
 .stork-grid * {
   box-sizing: border-box;
 }
@@ -89,6 +93,8 @@
 .stork-grid div.data-wrapper {
   width: 100%;
   overflow: scroll;
+  transform: translateZ(0);
+  /*translateZ hack*/
   /* data */
   /* /data */
 }

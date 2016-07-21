@@ -9,6 +9,10 @@
 		outline: 0 none;
 	}
 
+	&.resizing-column, &.resizing-column * {
+		cursor: col-resize;
+	}
+
 	* {
 		box-sizing: border-box;
 	}
@@ -99,6 +103,7 @@
 	div.data-wrapper {
 		width: 100%;
 		overflow: scroll;
+		transform: translateZ(0);/*translateZ hack*/
 
 		/* data */
 		> div.data {

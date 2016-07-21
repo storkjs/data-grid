@@ -247,7 +247,7 @@
 			if(this.eventListeners[i].element === this.grid
 				&& this.eventListeners[i].type === type
 				&& this.eventListeners[i].listener === listener) {
-				this.eventListeners.splice(i, 1);
+				this.eventListeners[i] = null;
 			}
 		}
 	};
@@ -1249,10 +1249,6 @@
 			tbody.appendChild(trFixed);
 			colResizersFixed.appendChild(tbody);
 			this.headerTable.wrapper.insertBefore(colResizersFixed, this.headerTable.wrapper.firstChild);
-
-			span = document.createElement('span'); // temporarily use of 'col' var
-			span.id = 'grid'+this.rnd+'_dragPlaceholder';
-			this.headerTable.wrapper.appendChild(span);
 		}
 		else {
 			tr = colResizers.querySelector('tr');
@@ -1296,60 +1292,66 @@
 	StorkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
 		var self = this;
 		var columnObj = self.columns[elm.storkGridProps.columnIndex];
+		var eventIndexes = { mouse_move: null, mouse_up: null };
 
 		this._addEventListener(elm, 'dragstart', function(e) {
+			e.preventDefault();
+			return false;
+		});
+
+		this._addEventListener(elm, 'mousedown', function(e) {
 			// unselect previous element/text selections - this solves a UI bug where phantom elements are dragged with us
-			if (window.getSelection && document.createRange) {
-				var sel = window.getSelection();
-				var range = document.createRange();
-				range.selectNodeContents(elm);
-				sel.removeAllRanges();
-				sel.addRange(range);
-			} else if (document.selection && document.body.createTextRange) {
-				var textRange = document.body.createTextRange();
-				textRange.moveToElementText(elm);
-				textRange.select();
+			if ( document.selection ) {
+				document.selection.empty();
+			} else if ( window.getSelection ) {
+				window.getSelection().removeAllRanges();
 			}
 
-			// placeholder is empty. this will prevent seeing an image getting dragged, and instead we will move the real element itself
-			e.dataTransfer.setDragImage(document.getElementById('grid'+self.rnd+'_dragPlaceholder'), 0, 0);
 			elm.storkGridProps.dragStartX = e.screenX;
 			elm.classList.add('dragging');
-		});
+			self.grid.classList.add('resizing-column');
 
-		this._addEventListener(elm, 'drag', function(e) {
-			if(e.screenX !== 0) { // fixes annoying bug when ending drag
-				var delta = e.screenX - elm.storkGridProps.dragStartX;
-				var newColumnWidth = columnObj.width + delta;
-				var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
+			/** on mouse move */
+			eventIndexes.mouse_move = self._addEventListener(document, 'mousemove', function(e) {
+				if(e.screenX !== 0) { // fixes annoying bug when ending drag
+					var delta = e.screenX - elm.storkGridProps.dragStartX;
+					var newColumnWidth = columnObj.width + delta;
+					var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
 
-				if(newColumnWidth < minWidth) {
-					delta = minWidth - columnObj.width;
-				}
+					if(newColumnWidth < minWidth) {
+						delta = minWidth - columnObj.width;
+					}
 
-				changeTranslate(elm, 'X', delta);
-			}
-		});
-
-		this._addEventListener(elm, 'dragend', function(e) {
-			elm.classList.remove('dragging');
-			elm.style.transform = '';
-			var delta = e.screenX - elm.storkGridProps.dragStartX;
-
-			columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
-
-			self.calculateColumnsWidths();
-			self.makeCssRules();
-
-			var evnt = new CustomEvent('resize-column', {
-				bubbles: true,
-				cancelable: true,
-				detail: {
-					columnIndex: elm.storkGridProps.columnIndex,
-					width: columnObj.width
+					changeTranslate(elm, 'X', delta);
 				}
 			});
-			self.grid.dispatchEvent(evnt);
+
+			/** on mouse up */
+			eventIndexes.mouse_up = self._addEventListener(document, 'mouseup', function(e) {
+				self.grid.classList.remove('resizing-column');
+				elm.classList.remove('dragging');
+				elm.style.transform = '';
+				var delta = e.screenX - elm.storkGridProps.dragStartX;
+
+				columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
+
+				self.calculateColumnsWidths();
+				self.makeCssRules();
+
+				var evnt = new CustomEvent('resize-column', {
+					bubbles: true,
+					cancelable: true,
+					detail: {
+						columnIndex: elm.storkGridProps.columnIndex,
+						width: columnObj.width
+					}
+				});
+				self.grid.dispatchEvent(evnt);
+
+				/** remove mouse listeners */
+				self._removeEventListener(eventIndexes.mouse_move);
+				self._removeEventListener(eventIndexes.mouse_up);
+			});
 		});
 	};
 

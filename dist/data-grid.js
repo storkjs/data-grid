@@ -173,7 +173,7 @@
     this.grid.removeEventListener(type, listener, options_or_useCapture);
     for (var i = 0; i < this.eventListeners.length; i++) {
       if (this.eventListeners[i].element === this.grid && this.eventListeners[i].type === type && this.eventListeners[i].listener === listener) {
-        this.eventListeners.splice(i, 1);
+        this.eventListeners[i] = null;
       }
     }
   };
@@ -870,9 +870,6 @@
       tbody.appendChild(trFixed);
       colResizersFixed.appendChild(tbody);
       this.headerTable.wrapper.insertBefore(colResizersFixed, this.headerTable.wrapper.firstChild);
-      span = document.createElement("span");
-      span.id = "grid" + this.rnd + "_dragPlaceholder";
-      this.headerTable.wrapper.appendChild(span);
     } else {
       tr = colResizers.querySelector("tr");
       trFixed = colResizersFixed.querySelector("tr");
@@ -904,49 +901,54 @@
   StorkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {
     var self = this;
     var columnObj = self.columns[elm.storkGridProps.columnIndex];
+    var eventIndexes = {
+      mouse_move: null,
+      mouse_up: null
+    };
     this._addEventListener(elm, "dragstart", function(e) {
-      if (window.getSelection && document.createRange) {
-        var sel = window.getSelection();
-        var range = document.createRange();
-        range.selectNodeContents(elm);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else if (document.selection && document.body.createTextRange) {
-        var textRange = document.body.createTextRange();
-        textRange.moveToElementText(elm);
-        textRange.select();
+      e.preventDefault();
+      return false;
+    });
+    this._addEventListener(elm, "mousedown", function(e) {
+      if (document.selection) {
+        document.selection.empty();
+      } else if (window.getSelection) {
+        window.getSelection().removeAllRanges();
       }
-      e.dataTransfer.setDragImage(document.getElementById("grid" + self.rnd + "_dragPlaceholder"), 0, 0);
       elm.storkGridProps.dragStartX = e.screenX;
       elm.classList.add("dragging");
-    });
-    this._addEventListener(elm, "drag", function(e) {
-      if (e.screenX !== 0) {
-        var delta = e.screenX - elm.storkGridProps.dragStartX;
-        var newColumnWidth = columnObj.width + delta;
-        var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
-        if (newColumnWidth < minWidth) {
-          delta = minWidth - columnObj.width;
-        }
-        changeTranslate(elm, "X", delta);
-      }
-    });
-    this._addEventListener(elm, "dragend", function(e) {
-      elm.classList.remove("dragging");
-      elm.style.transform = "";
-      var delta = e.screenX - elm.storkGridProps.dragStartX;
-      columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
-      self.calculateColumnsWidths();
-      self.makeCssRules();
-      var evnt = new CustomEvent("resize-column", {
-        bubbles: true,
-        cancelable: true,
-        detail: {
-          columnIndex: elm.storkGridProps.columnIndex,
-          width: columnObj.width
+      self.grid.classList.add("resizing-column");
+      eventIndexes.mouse_move = self._addEventListener(document, "mousemove", function(e) {
+        if (e.screenX !== 0) {
+          var delta = e.screenX - elm.storkGridProps.dragStartX;
+          var newColumnWidth = columnObj.width + delta;
+          var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
+          if (newColumnWidth < minWidth) {
+            delta = minWidth - columnObj.width;
+          }
+          changeTranslate(elm, "X", delta);
         }
       });
-      self.grid.dispatchEvent(evnt);
+      eventIndexes.mouse_up = self._addEventListener(document, "mouseup", function(e) {
+        self.grid.classList.remove("resizing-column");
+        elm.classList.remove("dragging");
+        elm.style.transform = "";
+        var delta = e.screenX - elm.storkGridProps.dragStartX;
+        columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
+        self.calculateColumnsWidths();
+        self.makeCssRules();
+        var evnt = new CustomEvent("resize-column", {
+          bubbles: true,
+          cancelable: true,
+          detail: {
+            columnIndex: elm.storkGridProps.columnIndex,
+            width: columnObj.width
+          }
+        });
+        self.grid.dispatchEvent(evnt);
+        self._removeEventListener(eventIndexes.mouse_move);
+        self._removeEventListener(eventIndexes.mouse_up);
+      });
     });
   };
   StorkGrid.prototype.resize = function resize() {

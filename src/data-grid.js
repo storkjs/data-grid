@@ -1367,6 +1367,7 @@
 				cancelable: true,
 				detail: {
 					columnIndex: columnIndex,
+					columnField: columnObj.field,
 					width: columnObj.width
 				}
 			});

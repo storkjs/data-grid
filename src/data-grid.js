@@ -912,7 +912,7 @@
 					}
 					else {
 						this.selectedItems.set(trackByData, [selectedCellColumn]);
-						this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
+						this.clickedItem = { dataIndex: dataIndex, data: this.data[dataIndex], column: selectedCellColumn };
 					}
 
 					this.renderSelectOnRows();

@@ -57,13 +57,13 @@ _columns_ [optional]: an Array of Objects. Each item in the array is an object t
 - _width_: a user defined width for the column.
 - _minWidth_: a user defined minimum width for when the client resizes the column.
 - _fixed_: whether this column is fixed to the left and will not be moved when scrolling horizontally.
-- _render(tdDiv, value, dataIndex, dataRowObject)_: special function that will render the data inside the TD instead of the default renderer. This function lets you decide how to print the data (instead of just printing it as plain text), even put html inside.
+- _render(tdDiv, value, dataIndex, rowData)_: special function that will render the data inside the TD instead of the default renderer. This function lets you decide how to print the data (instead of just printing it as plain text), even put html inside.
 Example:
 ```javascript
 { columns: [
   { field: 'name', label: 'Full Name', width: 75 },
   { field: 'age', label: 'Age' },
-  { field: 'weight', label: 'Weight (kg)', width: 60, render: function(tdDiv, value) { tdDiv.innerHTML = value+'!'; } }
+  { field: 'weight', label: 'Weight (kg)', width: 60, render: function(tdDiv, value, dataIndex, rowData) { tdDiv.innerHTML = value+'!'; } }
 ] }
 ```
 
@@ -119,10 +119,10 @@ _destroy_: completely destroy the grid - its DOM elements, methods and data.
 _setColumns_: set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
 
 #### Events
-_select_: when the user selected something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowDataObj`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
+_select_: when the user selected something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowData`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
 ```javascript
 myGrid.addEventListener("select", function(e) {
-  console.log(e.detail); // logs: {dataIndex: 17, rowDataObj: {name: "joe", age: 20}, column: "age", isSelect: true}
+  console.log(e.detail); // logs: {dataIndex: 17, rowData: {name: "joe", age: 20}, column: "age", isSelect: true}
 });
 ```
 

@@ -271,8 +271,8 @@
 			cancelable: true,
 			detail: {
 				dataIndex: dataIndex, /* these primitive value will help the user get extra data (did user click on first or last row? etc.) */
-				rowDataObj: this.data[dataIndex],
-				column: column, /* getting the selected cell's data by using `rowDataObj[column]` */
+				rowData: this.data[dataIndex],
+				column: column, /* getting the selected cell's data by using `rowData[column]` */
 				isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for when un-selecting */
 			}
 		});

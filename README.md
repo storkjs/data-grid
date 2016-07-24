@@ -119,10 +119,10 @@ _destroy_: completely destroy the grid - its DOM elements, methods and data.
 _setColumns_: set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
 
 #### Events
-_select_: when the user selected something from the grid. this event has a _detail_ object containing two properties - the selected column (`event.detail.column`) and the index of the selected data (`event.detail.dataIndex`). Example:
+_select_: when the user selected something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowDataObj`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
 ```javascript
 myGrid.addEventListener("select", function(e) {
-  console.log(e.detail); // logs: {column: "age", dataIndex: 17}
+  console.log(e.detail); // logs: {dataIndex: 17, rowDataObj: {name: "joe", age: 20}, column: "age", isSelect: true}
 });
 ```
 

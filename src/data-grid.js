@@ -270,9 +270,10 @@
 			bubbles: true,
 			cancelable: true,
 			detail: {
-				dataIndex: dataIndex, /* these primitive values will help us get the selected row's data by using `this.data[dataIndex]` */
-				column: column, /* and getting the selected cell's data by using `this.data[dataIndex][column]` */
-				isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for deselect */
+				dataIndex: dataIndex, /* these primitive value will help the user get extra data (did user click on first or last row? etc.) */
+				rowDataObj: this.data[dataIndex],
+				column: column, /* getting the selected cell's data by using `rowDataObj[column]` */
+				isSelect: this.selectedItems.has(trackByData) /* we emit the event for both select and deselect. `false` is for when un-selecting */
 			}
 		});
 		this.grid.dispatchEvent(evnt);

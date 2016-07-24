@@ -187,6 +187,7 @@
       cancelable: true,
       detail: {
         dataIndex: dataIndex,
+        rowDataObj: this.data[dataIndex],
         column: column,
         isSelect: this.selectedItems.has(trackByData)
       }

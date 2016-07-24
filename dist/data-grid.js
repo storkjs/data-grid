@@ -826,7 +826,7 @@
             dataValue = "";
           }
           if (this.columns[i].render) {
-            this.columns[i].render(tdDiv, dataValue);
+            this.columns[i].render(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
           } else {
             if (!tdDiv.firstChild) {
               tdDiv.appendChild(document.createTextNode(dataValue));

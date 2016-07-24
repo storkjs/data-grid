@@ -1190,7 +1190,7 @@
 					}
 
 					if(this.columns[i].render) { // user's custom renderer
-						this.columns[i].render(tdDiv, dataValue);
+						this.columns[i].render(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
 					}
 					else { // default rendering of data
 						if(!tdDiv.firstChild) {

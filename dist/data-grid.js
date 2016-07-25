@@ -61,7 +61,9 @@
     this.selectedItems = new Map();
     this.clickedItem = null;
     this.hoveredRowElm = null;
-    this.customScrollEvents = [];
+    if (!this.customScrollEvents) {
+      this.customScrollEvents = [];
+    }
     this.eventListeners = [];
     this.resizerLine = null;
     this.scrollY = 0;

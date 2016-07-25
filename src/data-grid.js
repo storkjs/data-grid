@@ -82,7 +82,9 @@
 		this.selectedItems = new Map();/*ES6*/
 		this.clickedItem = null; // physically clicked item (when user started a selection)
 		this.hoveredRowElm = null; // last row user hovered above while on mouse-move
-		this.customScrollEvents = [];
+		if(!this.customScrollEvents) { // after setColumns this will remain with values from previous construct
+			this.customScrollEvents = [];
+		}
 		this.eventListeners = [];
 		this.resizerLine = null; // the element of the vertical line when resizing column
 

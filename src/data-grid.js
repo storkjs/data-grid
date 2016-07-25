@@ -1480,7 +1480,7 @@
 		delete this.dataWrapperElm;
 		delete this.dataElm;
 		delete this.selectedItems;
-		delete this.customScrollEvents;
+		if(!keepUserListeners) { delete this.customScrollEvents; }
 		delete this.eventListeners;
 		delete this.scrollX;
 		delete this.scrollY;

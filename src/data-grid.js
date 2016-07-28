@@ -43,92 +43,9 @@
 	 * @param options
 	 */
 	var StorkGrid = function StorkGrid(options) {
-		this.grid = options.element;
-		this.data = options.data || [];
-		this.rowHeight = options.rowHeight || 32;
-		this.headerHeight = options.headerHeight || this.rowHeight;
-		this.columns = options.columns || [];
-		this.minColumnWidth = options.minColumnWidth || 50;
-		this.resizableColumns = options.resizableColumns !== false;
-		this.sortable = options.sortable !== false;
-		this.trackBy = options.trackBy || null;
-		this.onload = options.onload || null;
+		this.initProperties(options);
 
-		this.selection = {};
-		options.selection = options.selection || {};
-		this.selection.multi = options.selection.multi || false;
-		this.selection.type = options.selection.type === 'cell' ? 'cell' : 'row';
-
-		if(!this.rnd) {
-			this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
-		}
-		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
-		this.tableExtraPixelsForThreshold = 0;
-		this.rowBorders = { // top&bottom border sizes
-			header: 0, // border size of header element (do not put border on Table, TR or TH)
-			data: 0 // border size of TDs (do not put border on TR, put it directly on TDs)
-		};
-		this.headerTable = {
-			wrapper: null,
-			loose: null,
-			fixed: null,
-			resizer_loose: null,
-			resizer_fixed: null,
-			ths: []
-		};
-		this.dataTables = []; // will hold top and bottom data-tables (as objects) and within it its elements and children and some properties
-		this.dataWrapperElm = null;
-		this.dataElm = null;
-		this.selectedItems = new Map();/*ES6*/
-		this.clickedItem = null; // physically clicked item (when user started a selection)
-		this.hoveredRowElm = null; // last row user hovered above while on mouse-move
-		if(!this.customScrollEvents) { // after setColumns this will remain with values from previous construct
-			this.customScrollEvents = [];
-		}
-		this.eventListeners = [];
-		this.resizerLine = null; // the element of the vertical line when resizing column
-
-		this.scrollY = 0; // will be defined upon building the dataWrapper div!
-		this.scrollX = 0; // will be defined upon building the dataWrapper div!
-		this.maxScrollY = 0;
-		this.lastScrollTop = 0;
-		this.lastScrollDirection = 'static';
-		this.lastScrollLeft = 0;
-
-		this.lastThreshold = 0;
-		this.nextThreshold = 0;
-
-		this.totalDataWidthFixed = 0;
-		this.totalDataWidthLoose = 0;
-		this.totalDataHeight = 0;
-		this.dataViewHeight = 0;
-		this.dataTableHeight = 0;
-		this.numDataRowsInTable = 0;
-
-		/** if user didn't define columns and column names then let's try and fetch names from the keys of the first data object */
-		if(this.columns.length === 0 && this.data.length > 0) {
-			var columnName;
-			for(var key in this.data[0]) {
-				if(this.data[0].hasOwnProperty(key)) {
-					columnName = key.replace(/[-_]/, ' ');
-					// capitalize first letter of each word
-					columnName = capitalizeWords(columnName);
-					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null });
-				}
-			}
-		}
-		else { // sort columns by 'fixed' first
-			var fixedColumns = [], looseColumns = [], i;
-			for(i=0; i < this.columns.length; i++) {
-				if(this.columns[i].fixed) {
-					fixedColumns.push(this.columns[i]);
-				} else {
-					looseColumns.push(this.columns[i]);
-				}
-			}
-
-			this.columns = fixedColumns.concat(looseColumns);
-		}
+		this.initColumnsObject();
 
 		/** add grid class */
 		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
@@ -176,6 +93,97 @@
 	};
 
 	/**
+	 * initiates and resets all required properties for the grid instance
+	 * @param options
+	 */
+	StorkGrid.prototype.initProperties = function initProperties(options) {
+		this.grid = options.element;
+		this.data = options.data || [];
+		this.rowHeight = options.rowHeight || 32;
+		this.headerHeight = options.headerHeight || this.rowHeight;
+		this.columns = options.columns || [];
+		this.minColumnWidth = options.minColumnWidth || 50;
+		this.resizableColumns = options.resizableColumns !== false;
+		this.sortable = options.sortable !== false;
+		this.trackBy = options.trackBy || null;
+		this.onload = options.onload || null;
+
+		this.selection = {};
+		options.selection = options.selection || {};
+		this.selection.multi = options.selection.multi || false;
+		this.selection.type = options.selection.type === 'cell' ? 'cell' : 'row';
+
+		this.rnd = (Math.floor(Math.random() * 9) + 1) * 1000 + Date.now() % 1000; // random identifier for this grid
+		this.tableExtraSize = 0.4; // how much is each data table bigger than the view port
+		this.tableExtraPixelsForThreshold = 0;
+		this.rowBorders = { // top&bottom border sizes
+			header: 0, // border size of header element (do not put border on Table, TR or TH)
+			data: 0 // border size of TDs (do not put border on TR, put it directly on TDs)
+		};
+		this.headerTable = {
+			wrapper: null,
+			loose: null,
+			fixed: null,
+			resizer_loose: null,
+			resizer_fixed: null,
+			ths: []
+		};
+		this.dataTables = []; // will hold top and bottom data-tables (as objects) and within it its elements and children and some properties
+		this.dataWrapperElm = null;
+		this.dataElm = null;
+		this.selectedItems = new Map();/*ES6*/
+		this.clickedItem = null; // physically clicked item (when user started a selection)
+		this.hoveredRowElm = null; // last row user hovered above while on mouse-move
+		this.customScrollEvents = [];
+		this.eventListeners = [];
+		this.resizerLine = null; // the element of the vertical line when resizing column
+
+		this.scrollY = 0; // will be defined upon building the dataWrapper div!
+		this.scrollX = 0; // will be defined upon building the dataWrapper div!
+		this.maxScrollY = 0;
+		this.lastScrollTop = 0;
+		this.lastScrollDirection = 'static';
+		this.lastScrollLeft = 0;
+
+		this.lastThreshold = 0;
+		this.nextThreshold = 0;
+
+		this.totalDataWidthFixed = 0;
+		this.totalDataWidthLoose = 0;
+		this.totalDataHeight = 0;
+		this.dataViewHeight = 0;
+		this.dataTableHeight = 0;
+		this.numDataRowsInTable = 0;
+	};
+
+	StorkGrid.prototype.initColumnsObject = function initColumnsObject() {
+		/** if user didn't define columns and column names then let's try and fetch names from the keys of the first data object */
+		if(this.columns.length === 0 && this.data.length > 0) {
+			var columnName;
+			for(var key in this.data[0]) {
+				if(this.data[0].hasOwnProperty(key)) {
+					columnName = key.replace(/[-_]/, ' ');
+					// capitalize first letter of each word
+					columnName = capitalizeWords(columnName);
+					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null });
+				}
+			}
+		}
+		else { // sort columns by 'fixed' first
+			var fixedColumns = [], looseColumns = [], i;
+			for(i=0; i < this.columns.length; i++) {
+				if(this.columns[i].fixed) {
+					fixedColumns.push(this.columns[i]);
+				} else {
+					looseColumns.push(this.columns[i]);
+				}
+			}
+
+			this.columns = fixedColumns.concat(looseColumns);
+		}
+	};
+
+	/**
 	 * CUSTOM addEventListener method. this method keeps track of listeners so we can later do removeEventListener
 	 * (for example on destroy()) and prevent memory leaks.
 	 * @param element
@@ -212,17 +220,14 @@
 	 * remove all event listeners from all of the grid's dom elements and empty the listeners array
 	 * @private
 	 */
-	StorkGrid.prototype._emptyEventListeners = function emptyEventListeners(keepUserDefined) {
-		keepUserDefined = keepUserDefined || false;
+	StorkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
 		var currEL;
 
 		for(var i=0; i < this.eventListeners.length; i++) {
 			currEL = this.eventListeners[i];
 
 			if(currEL) {
-				if(!keepUserDefined || !currEL.isUserDefined) {
-					this._removeEventListener(i);
-				}
+				this._removeEventListener(i);
 			}
 		}
 	};
@@ -406,6 +411,7 @@
 	StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
 		this.rowHeight = num;
 		this.makeCssRules();
+		this.resize();
 	};
 
 	/**
@@ -415,6 +421,7 @@
 	StorkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
 		this.headerHeight = num;
 		this.makeCssRules();
+		this.resize();
 	};
 
 	/**
@@ -491,19 +498,21 @@
 	 * inits the whole data view, with wrappers for scrolling and tables for data
 	 */
 	StorkGrid.prototype.initDataView = function initDataView() {
-		this.dataWrapperElm = document.createElement('div');
-		this.dataWrapperElm.classList.add('data-wrapper');
+		if(!(this.dataWrapperElm instanceof HTMLElement)) { //runs only for the first time
+			this.dataWrapperElm = document.createElement('div');
+			this.dataWrapperElm.classList.add('data-wrapper');
+
+			this.dataElm = document.createElement('div');
+			this.dataElm.classList.add('data');
+			this.dataElm.setAttribute('tabindex', 0);
+
+			this.dataWrapperElm.appendChild(this.dataElm);
+			this.grid.appendChild(this.dataWrapperElm);
+		}
+
 		// giving this element height before rendering fixes a memory-leak in Chrome and FF
 		this.dataWrapperElm.style.height = 'calc(100% - ' + this.headerHeight + 'px)';
-
-		this.dataElm = document.createElement('div');
-		this.dataElm.classList.add('data');
-		this.dataElm.setAttribute('tabindex', 0);
-
 		this.calculateDataHeight();
-
-		this.dataWrapperElm.appendChild(this.dataElm);
-		this.grid.appendChild(this.dataWrapperElm);
 
 		var self = this;
 		Object.defineProperty(self, 'scrollY', {
@@ -1426,14 +1435,13 @@
 	/**
 	 * completely destroy the grid - its DOM elements, methods and data
 	 */
-	StorkGrid.prototype.destroy = function destroy(keepUserListeners) {
-		keepUserListeners = keepUserListeners || false;
+	StorkGrid.prototype.destroy = function destroy() {
 		var rows = this.grid.querySelectorAll('tr');
 		var cells = this.grid.querySelectorAll('th, td');
 		var i, j, k;
 
 		// remove event listeners
-		this._emptyEventListeners(keepUserListeners);
+		this._emptyEventListeners();
 
 		// remove dom elements
 		for(i=0; i < cells.length; i++) {
@@ -1482,7 +1490,7 @@
 		delete this.dataWrapperElm;
 		delete this.dataElm;
 		delete this.selectedItems;
-		if(!keepUserListeners) { delete this.customScrollEvents; }
+		delete this.customScrollEvents;
 		delete this.eventListeners;
 		delete this.scrollX;
 		delete this.scrollY;
@@ -1505,27 +1513,18 @@
 	 * @param {Array} columns - a columns array holding objects with the following properties: field, label, [width], [minWidth], [fixed]
 	 */
 	StorkGrid.prototype.setColumns = function setColumns(columns) {
-		var options = {};
-
-		// save all currently set options (but with new columns)
-		options.columns = columns;
-
-		options.element = this.grid;
-		options.data = this.data;
-		options.rowHeight = this.rowHeight;
-		options.headerHeight = this.headerHeight;
-		options.minColumnWidth = this.minColumnWidth;
-		options.resizableColumns = this.resizableColumns;
-		options.sortable = this.sortable;
-		options.trackBy = this.trackBy;
-		options.onload = this.onload; // caution - using reference
-		options.selection = this.selection; // caution - using reference
-
-		// destroy the grid
-		this.destroy(true);
-
-		// rebuild the grid
-		this.constructor(options);
+		this.columns = columns;
+		this.initColumnsObject();
+		this.makeHeaderTable();
+		this.initDataView();
+		this.updateViewData(0, 0);
+		this.updateViewData(1, 1);
+		if(this.resizableColumns) {
+			this.makeColumnsResizable();
+		}
+		this.calculateColumnsWidths();
+		this.makeCssRules();
+		this.repositionTables(null, null, true);
 	};
 
 	/**

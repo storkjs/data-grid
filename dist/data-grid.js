@@ -24,89 +24,8 @@
     }
   };
   var StorkGrid = function StorkGrid(options) {
-    this.grid = options.element;
-    this.data = options.data || [];
-    this.rowHeight = options.rowHeight || 32;
-    this.headerHeight = options.headerHeight || this.rowHeight;
-    this.columns = options.columns || [];
-    this.minColumnWidth = options.minColumnWidth || 50;
-    this.resizableColumns = options.resizableColumns !== false;
-    this.sortable = options.sortable !== false;
-    this.trackBy = options.trackBy || null;
-    this.onload = options.onload || null;
-    this.selection = {};
-    options.selection = options.selection || {};
-    this.selection.multi = options.selection.multi || false;
-    this.selection.type = options.selection.type === "cell" ? "cell" : "row";
-    if (!this.rnd) {
-      this.rnd = (Math.floor(Math.random() * 9) + 1) * 1e3 + Date.now() % 1e3;
-    }
-    this.tableExtraSize = .4;
-    this.tableExtraPixelsForThreshold = 0;
-    this.rowBorders = {
-      header: 0,
-      data: 0
-    };
-    this.headerTable = {
-      wrapper: null,
-      loose: null,
-      fixed: null,
-      resizer_loose: null,
-      resizer_fixed: null,
-      ths: []
-    };
-    this.dataTables = [];
-    this.dataWrapperElm = null;
-    this.dataElm = null;
-    this.selectedItems = new Map();
-    this.clickedItem = null;
-    this.hoveredRowElm = null;
-    if (!this.customScrollEvents) {
-      this.customScrollEvents = [];
-    }
-    this.eventListeners = [];
-    this.resizerLine = null;
-    this.scrollY = 0;
-    this.scrollX = 0;
-    this.maxScrollY = 0;
-    this.lastScrollTop = 0;
-    this.lastScrollDirection = "static";
-    this.lastScrollLeft = 0;
-    this.lastThreshold = 0;
-    this.nextThreshold = 0;
-    this.totalDataWidthFixed = 0;
-    this.totalDataWidthLoose = 0;
-    this.totalDataHeight = 0;
-    this.dataViewHeight = 0;
-    this.dataTableHeight = 0;
-    this.numDataRowsInTable = 0;
-    if (this.columns.length === 0 && this.data.length > 0) {
-      var columnName;
-      for (var key in this.data[0]) {
-        if (this.data[0].hasOwnProperty(key)) {
-          columnName = key.replace(/[-_]/, " ");
-          columnName = capitalizeWords(columnName);
-          this.columns.push({
-            field: key,
-            label: columnName,
-            width: 0,
-            minWidth: 0,
-            fixed: false,
-            render: null
-          });
-        }
-      }
-    } else {
-      var fixedColumns = [], looseColumns = [], i;
-      for (i = 0; i < this.columns.length; i++) {
-        if (this.columns[i].fixed) {
-          fixedColumns.push(this.columns[i]);
-        } else {
-          looseColumns.push(this.columns[i]);
-        }
-      }
-      this.columns = fixedColumns.concat(looseColumns);
-    }
+    this.initProperties(options);
+    this.initColumnsObject();
     this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
     this.grid.setAttribute("tabindex", 0);
     this.makeHeaderTable();
@@ -138,6 +57,89 @@
     }
     this.grid.dispatchEvent(evnt);
   };
+  StorkGrid.prototype.initProperties = function initProperties(options) {
+    this.grid = options.element;
+    this.data = options.data || [];
+    this.rowHeight = options.rowHeight || 32;
+    this.headerHeight = options.headerHeight || this.rowHeight;
+    this.columns = options.columns || [];
+    this.minColumnWidth = options.minColumnWidth || 50;
+    this.resizableColumns = options.resizableColumns !== false;
+    this.sortable = options.sortable !== false;
+    this.trackBy = options.trackBy || null;
+    this.onload = options.onload || null;
+    this.selection = {};
+    options.selection = options.selection || {};
+    this.selection.multi = options.selection.multi || false;
+    this.selection.type = options.selection.type === "cell" ? "cell" : "row";
+    this.rnd = (Math.floor(Math.random() * 9) + 1) * 1e3 + Date.now() % 1e3;
+    this.tableExtraSize = .4;
+    this.tableExtraPixelsForThreshold = 0;
+    this.rowBorders = {
+      header: 0,
+      data: 0
+    };
+    this.headerTable = {
+      wrapper: null,
+      loose: null,
+      fixed: null,
+      resizer_loose: null,
+      resizer_fixed: null,
+      ths: []
+    };
+    this.dataTables = [];
+    this.dataWrapperElm = null;
+    this.dataElm = null;
+    this.selectedItems = new Map();
+    this.clickedItem = null;
+    this.hoveredRowElm = null;
+    this.customScrollEvents = [];
+    this.eventListeners = [];
+    this.resizerLine = null;
+    this.scrollY = 0;
+    this.scrollX = 0;
+    this.maxScrollY = 0;
+    this.lastScrollTop = 0;
+    this.lastScrollDirection = "static";
+    this.lastScrollLeft = 0;
+    this.lastThreshold = 0;
+    this.nextThreshold = 0;
+    this.totalDataWidthFixed = 0;
+    this.totalDataWidthLoose = 0;
+    this.totalDataHeight = 0;
+    this.dataViewHeight = 0;
+    this.dataTableHeight = 0;
+    this.numDataRowsInTable = 0;
+  };
+  StorkGrid.prototype.initColumnsObject = function initColumnsObject() {
+    if (this.columns.length === 0 && this.data.length > 0) {
+      var columnName;
+      for (var key in this.data[0]) {
+        if (this.data[0].hasOwnProperty(key)) {
+          columnName = key.replace(/[-_]/, " ");
+          columnName = capitalizeWords(columnName);
+          this.columns.push({
+            field: key,
+            label: columnName,
+            width: 0,
+            minWidth: 0,
+            fixed: false,
+            render: null
+          });
+        }
+      }
+    } else {
+      var fixedColumns = [], looseColumns = [], i;
+      for (i = 0; i < this.columns.length; i++) {
+        if (this.columns[i].fixed) {
+          fixedColumns.push(this.columns[i]);
+        } else {
+          looseColumns.push(this.columns[i]);
+        }
+      }
+      this.columns = fixedColumns.concat(looseColumns);
+    }
+  };
   StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture, isUserDefined) {
     isUserDefined = isUserDefined || false;
     element.addEventListener(type, listener, options_or_useCapture);
@@ -157,15 +159,12 @@
     }
     this.eventListeners[index] = null;
   };
-  StorkGrid.prototype._emptyEventListeners = function emptyEventListeners(keepUserDefined) {
-    keepUserDefined = keepUserDefined || false;
+  StorkGrid.prototype._emptyEventListeners = function emptyEventListeners() {
     var currEL;
     for (var i = 0; i < this.eventListeners.length; i++) {
       currEL = this.eventListeners[i];
       if (currEL) {
-        if (!keepUserDefined || !currEL.isUserDefined) {
-          this._removeEventListener(i);
-        }
+        this._removeEventListener(i);
       }
     }
   };
@@ -275,10 +274,12 @@
   StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
     this.rowHeight = num;
     this.makeCssRules();
+    this.resize();
   };
   StorkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
     this.headerHeight = num;
     this.makeCssRules();
+    this.resize();
   };
   StorkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
     var table = document.getElementById("grid" + this.rnd + "_headerTable");
@@ -337,15 +338,17 @@
     table.appendChild(thead);
   };
   StorkGrid.prototype.initDataView = function initDataView() {
-    this.dataWrapperElm = document.createElement("div");
-    this.dataWrapperElm.classList.add("data-wrapper");
+    if (!(this.dataWrapperElm instanceof HTMLElement)) {
+      this.dataWrapperElm = document.createElement("div");
+      this.dataWrapperElm.classList.add("data-wrapper");
+      this.dataElm = document.createElement("div");
+      this.dataElm.classList.add("data");
+      this.dataElm.setAttribute("tabindex", 0);
+      this.dataWrapperElm.appendChild(this.dataElm);
+      this.grid.appendChild(this.dataWrapperElm);
+    }
     this.dataWrapperElm.style.height = "calc(100% - " + this.headerHeight + "px)";
-    this.dataElm = document.createElement("div");
-    this.dataElm.classList.add("data");
-    this.dataElm.setAttribute("tabindex", 0);
     this.calculateDataHeight();
-    this.dataWrapperElm.appendChild(this.dataElm);
-    this.grid.appendChild(this.dataWrapperElm);
     var self = this;
     Object.defineProperty(self, "scrollY", {
       configurable: true,
@@ -991,12 +994,11 @@
       }
     }
   };
-  StorkGrid.prototype.destroy = function destroy(keepUserListeners) {
-    keepUserListeners = keepUserListeners || false;
+  StorkGrid.prototype.destroy = function destroy() {
     var rows = this.grid.querySelectorAll("tr");
     var cells = this.grid.querySelectorAll("th, td");
     var i, j, k;
-    this._emptyEventListeners(keepUserListeners);
+    this._emptyEventListeners();
     for (i = 0; i < cells.length; i++) {
       cells[i].parentNode.removeChild(cells[i]);
     }
@@ -1036,9 +1038,7 @@
     delete this.dataWrapperElm;
     delete this.dataElm;
     delete this.selectedItems;
-    if (!keepUserListeners) {
-      delete this.customScrollEvents;
-    }
+    delete this.customScrollEvents;
     delete this.eventListeners;
     delete this.scrollX;
     delete this.scrollY;
@@ -1056,20 +1056,18 @@
     delete this.numDataRowsInTable;
   };
   StorkGrid.prototype.setColumns = function setColumns(columns) {
-    var options = {};
-    options.columns = columns;
-    options.element = this.grid;
-    options.data = this.data;
-    options.rowHeight = this.rowHeight;
-    options.headerHeight = this.headerHeight;
-    options.minColumnWidth = this.minColumnWidth;
-    options.resizableColumns = this.resizableColumns;
-    options.sortable = this.sortable;
-    options.trackBy = this.trackBy;
-    options.onload = this.onload;
-    options.selection = this.selection;
-    this.destroy(true);
-    this.constructor(options);
+    this.columns = columns;
+    this.initColumnsObject();
+    this.makeHeaderTable();
+    this.initDataView();
+    this.updateViewData(0, 0);
+    this.updateViewData(1, 1);
+    if (this.resizableColumns) {
+      this.makeColumnsResizable();
+    }
+    this.calculateColumnsWidths();
+    this.makeCssRules();
+    this.repositionTables(null, null, true);
   };
   StorkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
     var target = e.target;

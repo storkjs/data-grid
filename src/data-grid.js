@@ -1193,24 +1193,14 @@
 
 				for (i = 0; i < this.columns.length; i++) {
 					dataKeyName = this.columns[i].field;
-					tdDiv = rowObj.tds[i].firstChild;
-
-					// validate values
 					dataValue = this.data[dataIndex][dataKeyName];
-					if(typeof dataValue !== 'string' && typeof dataValue !== 'number') {
-						dataValue = '';
-					}
+					tdDiv = rowObj.tds[i].firstChild;
 
 					if(this.columns[i].render) { // user's custom renderer
 						this.columns[i].render(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
 					}
 					else { // default rendering of data
-						if(!tdDiv.firstChild) {
-							tdDiv.appendChild(document.createTextNode(dataValue)); // add text-node at the first data render
-						}
-						else if (tdDiv.firstChild) {
-							tdDiv.firstChild.nodeValue = dataValue; // render content
-						}
+						this.defaultRender(tdDiv, dataValue);
 					}
 				}
 			}
@@ -1225,6 +1215,20 @@
 		}
 
 		tableObj.dataBlockIndex = dataBlockIndex;
+	};
+
+	StorkGrid.prototype.defaultRender = function defaultRender(tdDiv, dataValue) {
+		//validate data value
+		if(typeof dataValue !== 'string' && typeof dataValue !== 'number') {
+			dataValue = '';
+		}
+
+		if(!tdDiv.firstChild) {
+			tdDiv.appendChild(document.createTextNode(dataValue)); // add text-node at the first data render
+		}
+		else if (tdDiv.firstChild) {
+			tdDiv.firstChild.nodeValue = dataValue; // render content
+		}
 	};
 
 	/**

@@ -826,19 +826,12 @@
         this._toggleSelectedClasses(dataIndex, rowObj);
         for (i = 0; i < this.columns.length; i++) {
           dataKeyName = this.columns[i].field;
-          tdDiv = rowObj.tds[i].firstChild;
           dataValue = this.data[dataIndex][dataKeyName];
-          if (typeof dataValue !== "string" && typeof dataValue !== "number") {
-            dataValue = "";
-          }
+          tdDiv = rowObj.tds[i].firstChild;
           if (this.columns[i].render) {
             this.columns[i].render(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
           } else {
-            if (!tdDiv.firstChild) {
-              tdDiv.appendChild(document.createTextNode(dataValue));
-            } else if (tdDiv.firstChild) {
-              tdDiv.firstChild.nodeValue = dataValue;
-            }
+            this.defaultRender(tdDiv, dataValue);
           }
         }
       } else {
@@ -851,6 +844,16 @@
       }
     }
     tableObj.dataBlockIndex = dataBlockIndex;
+  };
+  StorkGrid.prototype.defaultRender = function defaultRender(tdDiv, dataValue) {
+    if (typeof dataValue !== "string" && typeof dataValue !== "number") {
+      dataValue = "";
+    }
+    if (!tdDiv.firstChild) {
+      tdDiv.appendChild(document.createTextNode(dataValue));
+    } else if (tdDiv.firstChild) {
+      tdDiv.firstChild.nodeValue = dataValue;
+    }
   };
   StorkGrid.prototype.makeColumnsResizable = function makeColumnsResizable() {
     var colResizers = document.getElementById("grid" + this.rnd + "_columnResizers");

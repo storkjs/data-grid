@@ -78,7 +78,8 @@
 		if(this.sortable) {
 			this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false); // on click on header
 		}
-		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataClick.bind(this), false); // on click on data rows
+		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
+		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
 		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
 		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false); // on scroll
 		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true); // document check if we are focused on the grid
@@ -269,7 +270,7 @@
 	 * @private
 	 */
 	StorkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
-		if(type !== 'dblselect') {
+		if(type !== 'dblselect' && type !== 'data-click') {
 			type = 'select';
 		}
 
@@ -826,12 +827,39 @@
 	};
 
 	/**
+	 * when mouse-clicking a row or cell (different from select and drag)
+	 * @param e
+	 */
+	StorkGrid.prototype.onDataClick = function onDataClick(e) {
+		var TD = e.target,
+			i = 0,
+			dataIndex, TR, selectedCellColumn, trackByData;
+
+		while(TD.tagName.toUpperCase() !== 'TD') {
+			if(i++ >= 2) {
+				return; // user clicked on something that is too far from our table-cell
+			}
+			TD = TD.parentNode;
+		}
+
+		TR = TD.parentNode;
+
+		dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
+		selectedCellColumn = TD.storkGridProps.column;
+
+		if(dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+			trackByData = this._getTrackByData(dataIndex);
+			this._dispatchSelectEvent('data-click', dataIndex, selectedCellColumn, trackByData);
+		}
+	};
+
+	/**
 	 * the onclick handler when clicking on the data viewport
 	 * @param e
 	 */
 	var lastClickTime = 0;
 	var lastClickElm = null;
-	StorkGrid.prototype.onDataClick = function onDataClick(e) {
+	StorkGrid.prototype.onDataSelect = function onDataSelect(e) {
 		if(e.button !== 0) {
 			return; // do nothing if the click wasn't with the main mouse button
 		}
@@ -881,7 +909,7 @@
 
 						var self = this;
 						var eventIndexes = { mouse_move: null, mouse_up: null };
-						eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataClickMove.bind(this), false);
+						eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataSelectMove.bind(this), false);
 						eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
 							self._removeEventListener(eventIndexes.mouse_move);
 							self._removeEventListener(eventIndexes.mouse_up);
@@ -955,7 +983,7 @@
 	 * an event handler for mousemove when dragging the mouse for multi selecting
 	 * @param e
 	 */
-	StorkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+	StorkGrid.prototype.onDataSelectMove = function onDataSelectMove(e) {
 		var TD = e.target,
 			i = 0,
 			dataIndex, TR, trackByData;
@@ -1217,6 +1245,11 @@
 		tableObj.dataBlockIndex = dataBlockIndex;
 	};
 
+	/**
+	 * the default rendering function of values in cells
+	 * @param tdDiv
+	 * @param dataValue
+	 */
 	StorkGrid.prototype.defaultRender = function defaultRender(tdDiv, dataValue) {
 		//validate data value
 		if(typeof dataValue !== 'string' && typeof dataValue !== 'number') {

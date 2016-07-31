@@ -115,6 +115,9 @@
 				}
 			});
 
+			testGrid.addEventListener('data-click', function(e) {
+				console.log('cell/row click: ', e.detail);
+			}, false);
 			testGrid.addEventListener('select', function(e) {
 				console.log('select: ', e.detail);
 			}, false);

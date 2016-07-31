@@ -128,6 +128,13 @@ myGrid.addEventListener("select", function(e) {
 
 _dblselect_: same as _select_ but emitted when user double clicks the grid. :small_orange_diamond:_notice: on the first click of the double-click a `select` event is still emitted and then on the second click a `dblclick` event is emitted._
 
+_data-click_: when the user performs a full click on something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowData`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
+```javascript
+myGrid.addEventListener("data-click", function(e) {
+  console.log(e.detail); // logs: {dataIndex: 17, rowData: {name: "joe", age: 20}, column: "age", isSelect: true}
+});
+```
+
 _sort_: when the user clicks on a column header this event is emitted with a `detail` object holding two properties - the column name (`event.detail.column`) and the current state (`event.detail.state`) which can be _ascending_ or _descending_ or _null_ for when sort is cancelled.
 :small_orange_diamond:_notice: this is just an event. the actual sort and grid refresh is not done by the grid._
 

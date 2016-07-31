@@ -40,7 +40,8 @@
     if (this.sortable) {
       this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
     }
-    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataClick.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
     this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
@@ -180,7 +181,7 @@
     }
   };
   StorkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
-    if (type !== "dblselect") {
+    if (type !== "dblselect" && type !== "data-click") {
       type = "select";
     }
     var evnt = new CustomEvent(type, {
@@ -561,9 +562,25 @@
     }
     this.lastScrollLeft = currScrollLeft;
   };
+  StorkGrid.prototype.onDataClick = function onDataClick(e) {
+    var TD = e.target, i = 0, dataIndex, TR, selectedCellColumn, trackByData;
+    while (TD.tagName.toUpperCase() !== "TD") {
+      if (i++ >= 2) {
+        return;
+      }
+      TD = TD.parentNode;
+    }
+    TR = TD.parentNode;
+    dataIndex = parseInt(TR.storkGridProps.dataIndex, 10);
+    selectedCellColumn = TD.storkGridProps.column;
+    if (dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER) {
+      trackByData = this._getTrackByData(dataIndex);
+      this._dispatchSelectEvent("data-click", dataIndex, selectedCellColumn, trackByData);
+    }
+  };
   var lastClickTime = 0;
   var lastClickElm = null;
-  StorkGrid.prototype.onDataClick = function onDataClick(e) {
+  StorkGrid.prototype.onDataSelect = function onDataSelect(e) {
     if (e.button !== 0) {
       return;
     }
@@ -605,7 +622,7 @@
               mouse_move: null,
               mouse_up: null
             };
-            eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataClickMove.bind(this), false);
+            eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataSelectMove.bind(this), false);
             eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
               self._removeEventListener(eventIndexes.mouse_move);
               self._removeEventListener(eventIndexes.mouse_up);
@@ -663,7 +680,7 @@
       this.repositionTables(null, null, true);
     }
   };
-  StorkGrid.prototype.onDataClickMove = function onDataClickMove(e) {
+  StorkGrid.prototype.onDataSelectMove = function onDataSelectMove(e) {
     var TD = e.target, i = 0, dataIndex, TR, trackByData;
     while (TD.tagName.toUpperCase() !== "TD") {
       if (i++ >= 2) {

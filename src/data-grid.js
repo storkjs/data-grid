@@ -38,7 +38,7 @@
 	};
 
 	/**
-	 * construct for the StorkJS Data Grid.
+	 * construct for the StorkJS Data Grid...
 	 * this initializes all of the variable and then starts the DOM build up process
 	 * @param options
 	 */

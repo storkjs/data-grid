@@ -166,10 +166,21 @@
 
 				sortState.column = e.detail.column;
 
-				if(sortState.column !== sortState.prevColumn) { sortState.state = 'ascending'; }
-				else if(sortState.state === null) { sortState.state = 'ascending'; }
-				else if(sortState.state === 'ascending') { sortState.state = 'descending'; }
-				else { sortState.state = null; }
+				if(sortState.column !== sortState.prevColumn) {
+					sortState.state = 'ascending';
+				}
+				else {
+					switch(sortState.state) {
+						case null:
+							sortState.state = 'ascending';
+							break;
+						case 'ascending':
+							sortState.state = 'descending';
+							break;
+						default:
+							sortState.state = null
+					}
+				}
 
 				if(sortState.prevState !== null) { testGrid.removeColumnClass(sortState.prevColumn, sortState.prevState); }
 				if(sortState.state !== null) { testGrid.addColumnClass(sortState.column, sortState.state); }

@@ -38,7 +38,7 @@
 	};
 
 	/**
-	 * construct for the StorkJS Data Grid.
+	 * construct for the StorkJS Data Grid...
 	 * this initializes all of the variable and then starts the DOM build up process
 	 * @param options
 	 */
@@ -569,7 +569,8 @@
 	 * calculates and sets the needed height for the data
 	 */
 	StorkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
-		this.totalDataHeight = this.rowHeight * this.data.length;
+		var rows = this.data ? this.data.length : 0;
+		this.totalDataHeight = this.rowHeight * rows;
 		this.dataElm.style.height = this.totalDataHeight + 'px';
 		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
 	};

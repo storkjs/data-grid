@@ -110,13 +110,21 @@ _resizeCalculate_: re-calculates the viewport's height and the inner tables scro
 
 _resize_: a method for completely calculating and rebuilding new inner data tables when the grid's main element has changed its size.
 
-_setData_: sets a new data object and then refreshes the grid.
+_setData(data)_: sets a new data object and then refreshes the grid.
+arguments: _data_ {object}.
 
 _refresh_: calculates the height of the data and the maximum scroll available, and updates the height of the rows container and then repositions the data rows. use this in cases where the grid's data was altered by reference and the grid wasn't aware of it.
 
 _destroy_: completely destroy the grid - its DOM elements, methods and data.
 
-_setColumns_: set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
+_setColumns(columns)_: set a new columns for the grid. can be used to re-arrange the columns or set some as fixed etc..
+arguments: _columns_ {object}.
+
+_addColumnClass(field, className)_: add a class to a specific column header (to a TH).
+arguments: _field_ {string}, _className_ {string}.
+
+_removeColumnClass(field, className)_: remove a class off a specific column header (off a TH).
+arguments: _field_ {string}, _className_ {string}.
 
 #### Events
 _select_: when the user selected something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowData`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
@@ -135,7 +143,8 @@ myGrid.addEventListener("data-click", function(e) {
 });
 ```
 
-_sort_: when the user clicks on a column header this event is emitted with a `detail` object holding two properties - the column name (`event.detail.column`) and the current state (`event.detail.state`) which can be _ascending_ or _descending_ or _null_ for when sort is cancelled.
+_column-click_: when the user clicks on a column header this event is emitted with a `detail` object holding one property - the column field name (`event.detail.column`).
+this event can be used to sort the column and then add an 'ascending' or 'descending' class to the column via _addColumnClass_.
 :small_orange_diamond:_notice: this is just an event. the actual sort and grid refresh is not done by the grid._
 
 _resize-column_: is emitted after the user has resized a column's width. this event has a `detail` object containing two properties - the index of the resized column (`event.detail.columnIndex`) and the new width of the column (`event.detail.width`).

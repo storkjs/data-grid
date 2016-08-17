@@ -37,9 +37,7 @@
     }
     this.calculateColumnsWidths();
     this.makeCssRules();
-    if (this.sortable) {
-      this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
-    }
+    this._addEventListener(this.headerTable.wrapper, "click", this.onHeaderClick.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
@@ -66,7 +64,6 @@
     this.columns = options.columns || [];
     this.minColumnWidth = options.minColumnWidth || 50;
     this.resizableColumns = options.resizableColumns !== false;
-    this.sortable = options.sortable !== false;
     this.trackBy = options.trackBy || null;
     this.onload = options.onload || null;
     this.selection = {};
@@ -323,8 +320,7 @@
       thDiv.appendChild(document.createTextNode(this.columns[i].label));
       th.appendChild(thDiv);
       th.storkGridProps = {
-        column: this.columns[i].field,
-        sortState: null
+        column: this.columns[i].field
       };
       this.headerTable.ths.push(th);
       if (this.columns[i].fixed) {
@@ -337,6 +333,22 @@
     tableFixed.appendChild(theadFixed);
     thead.appendChild(tr);
     table.appendChild(thead);
+  };
+  StorkGrid.prototype.addColumnClass = function addColumnClass(field, className) {
+    var TH = this.headerTable.wrapper.querySelector("th." + field);
+    if (TH) {
+      TH.classList.add(className);
+    } else {
+      console.warn("Invalid column given to addColumnClass");
+    }
+  };
+  StorkGrid.prototype.removeColumnClass = function removeColumnClass(field, className) {
+    var TH = this.headerTable.wrapper.querySelector("th." + field);
+    if (TH) {
+      TH.classList.remove(className);
+    } else {
+      console.warn("Invalid column given to removeColumnClass");
+    }
   };
   StorkGrid.prototype.initDataView = function initDataView() {
     if (!(this.dataWrapperElm instanceof HTMLElement)) {
@@ -801,31 +813,11 @@
       }
       TH = TH.parentNode;
     }
-    for (i = 0; i < this.headerTable.ths.length; i++) {
-      if (this.headerTable.ths[i] === TH) {
-        continue;
-      }
-      this.headerTable.ths[i].classList.remove("ascending");
-      this.headerTable.ths[i].classList.remove("descending");
-      this.headerTable.ths[i].storkGridProps.sortState = null;
-    }
-    if (TH.storkGridProps.sortState === "ascending") {
-      TH.classList.remove("ascending");
-      TH.classList.add("descending");
-      TH.storkGridProps.sortState = "descending";
-    } else if (TH.storkGridProps.sortState === "descending") {
-      TH.classList.remove("descending");
-      TH.storkGridProps.sortState = null;
-    } else {
-      TH.classList.add("ascending");
-      TH.storkGridProps.sortState = "ascending";
-    }
-    var evnt = new CustomEvent("sort", {
+    var evnt = new CustomEvent("column-click", {
       bubbles: true,
       cancelable: true,
       detail: {
-        column: TH.storkGridProps.column,
-        state: TH.storkGridProps.sortState
+        column: TH.storkGridProps.column
       }
     });
     this.grid.dispatchEvent(evnt);
@@ -1036,7 +1028,6 @@
     delete this.columns;
     delete this.minColumnWidth;
     delete this.resizableColumns;
-    delete this.sortable;
     delete this.trackBy;
     delete this.selection;
     delete this.onload;

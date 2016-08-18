@@ -29,11 +29,15 @@
 }
 .stork-grid div.header > table.columns tr th {
   border-right: 1px solid #a0a0a0;
+  padding: 0 10px;
 }
-.stork-grid div.header > table.columns tr th.ascending div::after {
+.stork-grid div.header > table.columns tr th > span {
+  white-space: nowrap;
+}
+.stork-grid div.header > table.columns tr th.ascending span::after {
   content: " ↓";
 }
-.stork-grid div.header > table.columns tr th.descending div::after {
+.stork-grid div.header > table.columns tr th.descending span::after {
   content: " ↑";
 }
 .stork-grid div.header > table.columns.loose tr th:last-child {

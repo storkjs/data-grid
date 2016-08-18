@@ -34,7 +34,6 @@
   border-collapse: collapse;
   padding: 0;
 }
-.stork-grid table th > div,
 .stork-grid table td > div {
   overflow: hidden;
 }

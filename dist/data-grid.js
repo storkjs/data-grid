@@ -206,10 +206,11 @@
     this.totalDataWidthFixed = 0;
     var userDefinedWidth = 0, numColumnsNotDefined = 0, i, availableWidth, availableWidthPerColumn, roundedPixels;
     for (i = 0; i < this.columns.length; i++) {
+      this.calculateColumnHeaderContentWidth(this.columns[i]);
       this.columns[i].width = this.columns[i].width || 0;
       this.columns[i].minWidth = this.columns[i].minWidth || 0;
       if (this.columns[i].width) {
-        this.columns[i].width = Math.max(this.columns[i].width, this.columns[i].minWidth, this.minColumnWidth);
+        this.columns[i].width = Math.max(this.columns[i].width, this.columns[i].minWidth, this.columns[i].contentWidth, this.minColumnWidth);
         userDefinedWidth += this.columns[i].width;
       } else {
         numColumnsNotDefined++;
@@ -312,13 +313,13 @@
     var theadFixed = document.createElement("thead");
     var tr = document.createElement("tr");
     var trFixed = document.createElement("tr");
-    var th, thDiv;
+    var th, thSpan;
     for (i = 0; i < this.columns.length; i++) {
       th = document.createElement("th");
       th.classList.add(this.columns[i].field);
-      thDiv = document.createElement("div");
-      thDiv.appendChild(document.createTextNode(this.columns[i].label));
-      th.appendChild(thDiv);
+      thSpan = document.createElement("span");
+      thSpan.appendChild(document.createTextNode(this.columns[i].label));
+      th.appendChild(thSpan);
       th.storkGridProps = {
         column: this.columns[i].field
       };
@@ -913,7 +914,7 @@
         dragStartX: 0,
         columnIndex: i
       };
-      this.setResizeByDragging(resizer, this.columns[i]);
+      this.setResizeByDragging(resizer);
       td.appendChild(resizer);
       if (this.columns[i].fixed) {
         trFixed.appendChild(td);
@@ -947,6 +948,7 @@
       mouse_move: null,
       mouse_up: null
     };
+    this.calculateColumnHeaderContentWidth(columnObj);
     self.resizerLine.style.left = mouseStartingPosX - self.dataElm.getCoordinates().x + "px";
     self.resizerLine.style.display = "block";
     self.grid.classList.add("resizing-column");
@@ -954,7 +956,7 @@
       if (e.pageX !== 0) {
         var delta = e.pageX - mouseStartingPosX;
         var newColumnWidth = columnObj.width + delta;
-        var minWidth = Math.max(columnObj.minWidth, self.minColumnWidth);
+        var minWidth = Math.max(columnObj.minWidth, columnObj.contentWidth, self.minColumnWidth);
         if (newColumnWidth < minWidth) {
           delta = minWidth - columnObj.width;
         }
@@ -966,7 +968,7 @@
       self.resizerLine.style.display = "";
       self.resizerLine.style.transform = "";
       var delta = e.pageX - mouseStartingPosX;
-      columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, self.minColumnWidth);
+      columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, columnObj.contentWidth, self.minColumnWidth);
       self.calculateColumnsWidths();
       self.makeCssRules();
       var evnt = new CustomEvent("resize-column", {
@@ -982,6 +984,16 @@
       self._removeEventListener(eventIndexes.mouse_move);
       self._removeEventListener(eventIndexes.mouse_up);
     });
+  };
+  StorkGrid.prototype.calculateColumnHeaderContentWidth = function calculateColumnHeaderContentWidth(columnObj) {
+    var elm = this.headerTable.wrapper.querySelector("th." + columnObj.field);
+    var contentWidth = elm.firstChild ? Math.ceil(elm.firstChild.offsetWidth) : 0;
+    var thStyle = elm.currentStyle || window.getComputedStyle(elm);
+    var paddingLeft = parseInt(thStyle.paddingLeft);
+    var paddingRight = parseInt(thStyle.paddingRight);
+    var borderLeft = parseInt(thStyle.borderLeftWidth);
+    var borderRight = parseInt(thStyle.borderRightWidth);
+    columnObj.contentWidth = borderLeft + paddingLeft + contentWidth + paddingRight + borderRight;
   };
   StorkGrid.prototype.resize = function resize() {
     this.resizeCalculate();

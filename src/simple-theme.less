@@ -32,11 +32,15 @@
 
 					th {
 						border-right: 1px solid #a0a0a0;
+						padding: 0 10px;
 
-						&.ascending div::after {
+						& > span {
+							white-space: nowrap;
+						}
+						&.ascending span::after {
 							content: " ↓";
 						}
-						&.descending div::after {
+						&.descending span::after {
 							content: " ↑";
 						}
 					}

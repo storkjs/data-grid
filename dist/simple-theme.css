@@ -17,31 +17,36 @@
 .stork-grid table tr th > div {
   text-overflow: ellipsis;
 }
-.stork-grid div.header {
-  background-color: #b6d0dd;
+.stork-grid div.header-wrapper {
   border-bottom: 1px solid #555555;
 }
-.stork-grid div.header > table {
-  cursor: pointer;
-}
-.stork-grid div.header > table.columns tr {
+.stork-grid div.header-wrapper div.header {
   background-color: #b6d0dd;
 }
-.stork-grid div.header > table.columns tr th {
+.stork-grid div.header-wrapper div.header > table {
+  cursor: pointer;
+}
+.stork-grid div.header-wrapper div.header > table.columns tr {
+  background-color: #b6d0dd;
+}
+.stork-grid div.header-wrapper div.header > table.columns tr th {
   border-right: 1px solid #a0a0a0;
   padding: 0 10px;
 }
-.stork-grid div.header > table.columns tr th > span {
+.stork-grid div.header-wrapper div.header > table.columns tr th > span {
   white-space: nowrap;
 }
-.stork-grid div.header > table.columns tr th.ascending span::after {
+.stork-grid div.header-wrapper div.header > table.columns tr th.ascending span::after {
   content: " ↓";
 }
-.stork-grid div.header > table.columns tr th.descending span::after {
+.stork-grid div.header-wrapper div.header > table.columns tr th.descending span::after {
   content: " ↑";
 }
-.stork-grid div.header > table.columns.loose tr th:last-child {
+.stork-grid div.header-wrapper div.header > table.columns.loose tr th:last-child {
   border-right-width: 0;
+}
+.stork-grid div.header-wrapper div.scrollbar-concealer {
+  background-color: #b6d0dd;
 }
 .stork-grid div.data-wrapper {
   /* data */

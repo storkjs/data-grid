@@ -37,12 +37,19 @@
 .stork-grid table td > div {
   overflow: hidden;
 }
-.stork-grid div.header {
+.stork-grid div.header-wrapper {
   position: relative;
   width: 100%;
   overflow: hidden;
 }
-.stork-grid div.header > table {
+.stork-grid div.header-wrapper div.header {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.stork-grid div.header-wrapper div.header > table {
   position: absolute;
   top: 0;
   left: 0;
@@ -56,31 +63,31 @@
   /* Internet Explorer/Edge */
   user-select: none;
 }
-.stork-grid div.header > table.columns tr th {
+.stork-grid div.header-wrapper div.header > table.columns tr th {
   border-collapse: collapse;
   overflow: hidden;
 }
-.stork-grid div.header > table.columns.fixed {
+.stork-grid div.header-wrapper div.header > table.columns.fixed {
   z-index: 3;
 }
-.stork-grid div.header > table.columns.loose {
+.stork-grid div.header-wrapper div.header > table.columns.loose {
   z-index: 1;
   position: relative;
   /*very important - this lets the parent assume height*/
 }
-.stork-grid div.header > table.resizers {
+.stork-grid div.header-wrapper div.header > table.resizers {
   pointer-events: none;
 }
-.stork-grid div.header > table.resizers.fixed {
+.stork-grid div.header-wrapper div.header > table.resizers.fixed {
   z-index: 4;
 }
-.stork-grid div.header > table.resizers.loose {
+.stork-grid div.header-wrapper div.header > table.resizers.loose {
   z-index: 2;
 }
-.stork-grid div.header > table.resizers td {
+.stork-grid div.header-wrapper div.header > table.resizers td {
   position: relative;
 }
-.stork-grid div.header > table.resizers td > a {
+.stork-grid div.header-wrapper div.header > table.resizers td > a {
   pointer-events: auto;
   position: absolute;
   top: 0;
@@ -88,6 +95,13 @@
   width: 7px;
   background-color: transparent;
   cursor: col-resize;
+}
+.stork-grid div.header-wrapper div.scrollbar-concealer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  height: 100%;
 }
 .stork-grid div.data-wrapper {
   width: 100%;

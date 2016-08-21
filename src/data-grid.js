@@ -75,7 +75,7 @@
 		this.makeCssRules();
 
 		/** Events */
-		this._addEventListener(this.headerTable.wrapper, 'click', this.onHeaderClick.bind(this), false); // on click on header
+		this._addEventListener(this.headerTable.container, 'click', this.onHeaderClick.bind(this), false); // on click on header
 		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
 		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
 		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
@@ -119,7 +119,7 @@
 			data: 0 // border size of TDs (do not put border on TR, put it directly on TDs)
 		};
 		this.headerTable = {
-			wrapper: null,
+			container: null,
 			loose: null,
 			fixed: null,
 			resizer_loose: null,
@@ -359,7 +359,7 @@
 			document.getElementsByTagName('head')[0].appendChild(style);
 		}
 
-		var headerStyle = this.headerTable.wrapper.currentStyle || window.getComputedStyle(this.headerTable.wrapper);
+		var headerStyle = this.headerTable.container.currentStyle || window.getComputedStyle(this.headerTable.container);
 		this.rowBorders.header = parseInt(headerStyle.borderTopWidth, 10) + parseInt(headerStyle.borderBottomWidth, 10);
 
 		if(this.dataTables[0].rows[0].tds.length > 0) {
@@ -367,17 +367,25 @@
 			this.rowBorders.data = parseInt(cellStyle.borderTopWidth, 10) + parseInt(cellStyle.borderBottomWidth, 10);
 		}
 
+		var headerScrollbarWidth = this.headerTable.container.offsetWidth - this.headerTable.container.clientWidth;
+		if(!headerScrollbarWidth || headerScrollbarWidth < 0) {
+			headerScrollbarWidth = 15; //browsers default
+		}
+
 		// header height
-		var html = '.stork-grid'+this.rnd+' div.header { height: ' + this.headerHeight + 'px; }';
+		var html = '.stork-grid'+this.rnd+' div.header-wrapper { height: ' + this.headerHeight + 'px; }';
 		html += '.stork-grid'+this.rnd+' div.header > table th,' +
 			'.stork-grid'+this.rnd+' div.header > table.resizers a { height: ' + (this.headerHeight - this.rowBorders.header) + 'px; }';
 		// header content max-height
 		html += '.stork-grid'+this.rnd+' div.header > table th > div { max-height: ' + (this.headerHeight - this.rowBorders.header) + 'px; }';
+		//scrollbar-concealer width
+		html += '.stork-grid'+this.rnd+' div.header-wrapper > div.scrollbar-concealer { width: ' + headerScrollbarWidth + 'px; }';
 		// data rows height
 		html += '.stork-grid'+this.rnd+' div.data > table td { height: ' + this.rowHeight + 'px; }';
 		// data rows content max-height
 		html += '.stork-grid'+this.rnd+' div.data > table td > div { max-height: ' + (this.rowHeight - this.rowBorders.data) + 'px; }';
 
+		//columns widths
 		for(var i=0; i < this.columns.length; i++) {
 			html += '.stork-grid'+this.rnd+' th.'+this.columns[i].field+',' +
 				'.stork-grid'+this.rnd+' td.'+this.columns[i].field+' { width: ' + this.columns[i].width + 'px; }';
@@ -432,9 +440,11 @@
 		var i;
 
 		if(!table) {
+			var headerWrapper = document.createElement('div');
+			headerWrapper.classList.add('header-wrapper');
 			var headerDiv = document.createElement('div');
 			headerDiv.classList.add('header');
-			this.headerTable.wrapper = headerDiv;
+			this.headerTable.container = headerDiv;
 
 			table = document.createElement('table');
 			table.id = 'grid'+this.rnd+'_headerTable';
@@ -450,7 +460,13 @@
 
 			headerDiv.appendChild(tableFixed);
 			headerDiv.appendChild(table);
-			this.grid.appendChild(headerDiv);
+
+			var scrollbarConcealer = document.createElement('div');
+			scrollbarConcealer.classList.add('scrollbar-concealer');
+
+			headerWrapper.appendChild(headerDiv);
+			headerWrapper.appendChild(scrollbarConcealer);
+			this.grid.appendChild(headerWrapper);
 		}
 		else {
 			while(table.firstChild) {
@@ -498,7 +514,7 @@
 	 * @param className
 	 */
 	StorkGrid.prototype.addColumnClass = function addColumnClass(field, className) {
-		var TH = this.headerTable.wrapper.querySelector('th.' + field);
+		var TH = this.headerTable.container.querySelector('th.' + field);
 		if(TH) {
 			TH.classList.add(className);
 		} else {
@@ -512,7 +528,7 @@
 	 * @param className
 	 */
 	StorkGrid.prototype.removeColumnClass = function removeColumnClass(field, className) {
-		var TH = this.headerTable.wrapper.querySelector('th.' + field);
+		var TH = this.headerTable.container.querySelector('th.' + field);
 		if(TH) {
 			TH.classList.remove(className);
 		} else {
@@ -1294,14 +1310,14 @@
 
 			tbody.appendChild(tr);
 			colResizers.appendChild(tbody);
-			this.headerTable.wrapper.insertBefore(colResizers, this.headerTable.wrapper.firstChild);
+			this.headerTable.container.insertBefore(colResizers, this.headerTable.container.firstChild);
 
 			tbody = document.createElement('tbody');
 			trFixed = document.createElement('tr');
 
 			tbody.appendChild(trFixed);
 			colResizersFixed.appendChild(tbody);
-			this.headerTable.wrapper.insertBefore(colResizersFixed, this.headerTable.wrapper.firstChild);
+			this.headerTable.container.insertBefore(colResizersFixed, this.headerTable.container.firstChild);
 
 			// the vertical line for when resizing
 			div = document.createElement('div');
@@ -1438,7 +1454,7 @@
 	 * @param columnObj - the column metadata object (not the html-element)
 	 */
 	StorkGrid.prototype.calculateColumnHeaderContentWidth = function calculateColumnHeaderContentWidth(columnObj) {
-		var elm = this.headerTable.wrapper.querySelector('th.' + columnObj.field);
+		var elm = this.headerTable.container.querySelector('th.' + columnObj.field);
 		var contentWidth = elm.firstChild ? Math.ceil(elm.firstChild.offsetWidth) : 0;
 		var thStyle = elm.currentStyle || window.getComputedStyle(elm);
 		var paddingLeft = parseInt(thStyle.paddingLeft);

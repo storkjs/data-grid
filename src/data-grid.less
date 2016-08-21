@@ -35,63 +35,79 @@
 	/* /all tables */
 
 	/* header table */
-	div.header {
+	div.header-wrapper {
 		position: relative;
 		width: 100%;
 		overflow: hidden;
 
-		> table {
+		div.header {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			overflow-x: hidden;
+			overflow-y: scroll;
+
+			> table {
+				position: absolute;
+				top: 0;
+				left: 0;
+
+				-webkit-touch-callout: none; /* iOS Safari */
+				-webkit-user-select: none;   /* Chrome/Safari/Opera */
+				-moz-user-select: none;      /* Firefox */
+				-ms-user-select: none;       /* Internet Explorer/Edge */
+				user-select: none;
+
+				&.columns {
+					tr {
+						th {
+							border-collapse: collapse;
+							overflow: hidden;
+						}
+					}
+
+					&.fixed {
+						z-index: 3;
+					}
+					&.loose {
+						z-index: 1;
+						position: relative; /*very important - this lets the parent assume height*/
+					}
+				}
+
+				&.resizers {
+					pointer-events: none;
+
+					&.fixed {
+						z-index: 4;
+					}
+					&.loose {
+						z-index: 2;
+					}
+
+					td {
+						position: relative;
+
+						> a {
+							pointer-events: auto;
+							position: absolute;
+							top: 0;
+							right: -3px;
+							width: 7px;
+							background-color: transparent;
+							cursor: col-resize;
+						}
+					}
+				}
+			}
+		}
+
+		div.scrollbar-concealer {
 			position: absolute;
 			top: 0;
-			left: 0;
-
-			-webkit-touch-callout: none; /* iOS Safari */
-			-webkit-user-select: none;   /* Chrome/Safari/Opera */
-			-moz-user-select: none;      /* Firefox */
-			-ms-user-select: none;       /* Internet Explorer/Edge */
-			user-select: none;
-
-			&.columns {
-				tr {
-					th {
-						border-collapse: collapse;
-						overflow: hidden;
-					}
-				}
-
-				&.fixed {
-					z-index: 3;
-				}
-				&.loose {
-					z-index: 1;
-					position: relative; /*very important - this lets the parent assume height*/
-				}
-			}
-
-			&.resizers {
-				pointer-events: none;
-
-				&.fixed {
-					z-index: 4;
-				}
-				&.loose {
-					z-index: 2;
-				}
-
-				td {
-					position: relative;
-
-					> a {
-						pointer-events: auto;
-						position: absolute;
-						top: 0;
-						right: -3px;
-						width: 7px;
-						background-color: transparent;
-						cursor: col-resize;
-					}
-				}
-			}
+			right: 0;
+			z-index: 1;
+			height: 100%;
 		}
 	}
 	/* /header table */

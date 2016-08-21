@@ -19,39 +19,46 @@
 	/* /all tables */
 
 	/* header table */
-	div.header {
-		background-color: #b6d0dd;
+	div.header-wrapper {
 		border-bottom: 1px solid #555555;
 
-		> table {
-			cursor: pointer;
+		div.header {
+			background-color: #b6d0dd;
 
-			&.columns {
-				tr {
-					background-color: #b6d0dd;
+			> table {
+				cursor: pointer;
 
-					th {
-						border-right: 1px solid #a0a0a0;
-						padding: 0 10px;
+				&.columns {
+					tr {
+						background-color: #b6d0dd;
 
-						& > span {
-							white-space: nowrap;
-						}
-						&.ascending span::after {
-							content: " ↓";
-						}
-						&.descending span::after {
-							content: " ↑";
+						th {
+							border-right: 1px solid #a0a0a0;
+							padding: 0 10px;
+
+							& > span {
+								white-space: nowrap;
+							}
+							&.ascending span::after {
+								content: " ↓";
+							}
+							&.descending span::after {
+								content: " ↑";
+							}
 						}
 					}
-				}
 
-				&.loose {
-					tr th:last-child {
-						border-right-width: 0;
+					&.loose {
+						tr th:last-child {
+							border-right-width: 0;
+						}
 					}
 				}
 			}
+		}
+
+		div.scrollbar-concealer {
+			background-color: #b6d0dd;
 		}
 	}
 	/* /header table */

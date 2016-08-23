@@ -509,32 +509,46 @@
 	};
 
 	/**
+	 * a closure function for returning a function of either adding or removing a class from a column
+	 * @param operation
+	 */
+	var addRemoveColumnClass = function addRemoveColumnClass(operation) {
+		operation = operation==='remove' ? 'remove' : 'add';
+
+		return function(field, className, alsoFromDataCells) {
+			alsoFromDataCells = alsoFromDataCells === true;
+
+			var TH = this.headerTable.container.querySelector('th.' + field);
+
+			if(TH) {
+				TH.classList[operation](className);
+
+				if(alsoFromDataCells) {
+					var TDs = this.dataElm.querySelectorAll('td.' + field);
+					for(var i = 0; i < TDs.length; i++) {
+						TDs[i].classList[operation](className);
+					}
+				}
+			} else {
+				console.warn('Invalid column given to addColumnClass');
+			}
+		};
+	};
+
+	/**
 	 * add a class to a specific column header
 	 * @param field
 	 * @param className
+	 * @param alsoFromDataCells
 	 */
-	StorkGrid.prototype.addColumnClass = function addColumnClass(field, className) {
-		var TH = this.headerTable.container.querySelector('th.' + field);
-		if(TH) {
-			TH.classList.add(className);
-		} else {
-			console.warn('Invalid column given to addColumnClass');
-		}
-	};
+	StorkGrid.prototype.addColumnClass = addRemoveColumnClass('add');
 
 	/**
 	 * remove a class off a specific column header
 	 * @param field
 	 * @param className
 	 */
-	StorkGrid.prototype.removeColumnClass = function removeColumnClass(field, className) {
-		var TH = this.headerTable.container.querySelector('th.' + field);
-		if(TH) {
-			TH.classList.remove(className);
-		} else {
-			console.warn('Invalid column given to removeColumnClass');
-		}
-	};
+	StorkGrid.prototype.removeColumnClass = addRemoveColumnClass('remove');
 
 	/**
 	 * inits the whole data view, with wrappers for scrolling and tables for data

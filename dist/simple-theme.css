@@ -74,6 +74,10 @@
 .stork-grid div.data-wrapper > div.data table tbody > tr > td.selected {
   background-color: rgba(0, 0, 0, 0.2);
 }
+.stork-grid div.data-wrapper > div.data table tbody > tr > td.ascending,
+.stork-grid div.data-wrapper > div.data table tbody > tr > td.descending {
+  background-color: rgba(0, 180, 255, 0.07);
+}
 .stork-grid div.data-wrapper > div.data table.loose tbody > tr > td:last-child {
   border-right-width: 0;
 }

@@ -346,22 +346,26 @@
     thead.appendChild(tr);
     table.appendChild(thead);
   };
-  StorkGrid.prototype.addColumnClass = function addColumnClass(field, className) {
-    var TH = this.headerTable.container.querySelector("th." + field);
-    if (TH) {
-      TH.classList.add(className);
-    } else {
-      console.warn("Invalid column given to addColumnClass");
-    }
+  var addRemoveColumnClass = function addRemoveColumnClass(operation) {
+    operation = operation === "remove" ? "remove" : "add";
+    return function(field, className, alsoFromDataCells) {
+      alsoFromDataCells = alsoFromDataCells === true;
+      var TH = this.headerTable.container.querySelector("th." + field);
+      if (TH) {
+        TH.classList[operation](className);
+        if (alsoFromDataCells) {
+          var TDs = this.dataElm.querySelectorAll("td." + field);
+          for (var i = 0; i < TDs.length; i++) {
+            TDs[i].classList[operation](className);
+          }
+        }
+      } else {
+        console.warn("Invalid column given to addColumnClass");
+      }
+    };
   };
-  StorkGrid.prototype.removeColumnClass = function removeColumnClass(field, className) {
-    var TH = this.headerTable.container.querySelector("th." + field);
-    if (TH) {
-      TH.classList.remove(className);
-    } else {
-      console.warn("Invalid column given to removeColumnClass");
-    }
-  };
+  StorkGrid.prototype.addColumnClass = addRemoveColumnClass("add");
+  StorkGrid.prototype.removeColumnClass = addRemoveColumnClass("remove");
   StorkGrid.prototype.initDataView = function initDataView() {
     if (!(this.dataWrapperElm instanceof HTMLElement)) {
       this.dataWrapperElm = document.createElement("div");

@@ -182,8 +182,8 @@
 					}
 				}
 
-				if(sortState.prevState !== null) { testGrid.removeColumnClass(sortState.prevColumn, sortState.prevState); }
-				if(sortState.state !== null) { testGrid.addColumnClass(sortState.column, sortState.state); }
+				if(sortState.prevState !== null) { testGrid.removeColumnClass(sortState.prevColumn, sortState.prevState, true); }
+				if(sortState.state !== null) { testGrid.addColumnClass(sortState.column, sortState.state, true); }
 
 				testGrid.data.sort(sortColumn(sortState.column, sortState.state));
 				testGrid.refresh();

@@ -515,15 +515,15 @@
 	var addRemoveColumnClass = function addRemoveColumnClass(operation) {
 		operation = operation==='remove' ? 'remove' : 'add';
 
-		return function(field, className, alsoFromDataCells) {
-			alsoFromDataCells = alsoFromDataCells === true;
+		return function(field, className, alsoForDataCells) {
+			alsoForDataCells = alsoForDataCells === true;
 
 			var TH = this.headerTable.container.querySelector('th.' + field);
 
 			if(TH) {
 				TH.classList[operation](className);
 
-				if(alsoFromDataCells) {
+				if(alsoForDataCells) {
 					var TDs = this.dataElm.querySelectorAll('td.' + field);
 					for(var i = 0; i < TDs.length; i++) {
 						TDs[i].classList[operation](className);
@@ -539,7 +539,7 @@
 	 * add a class to a specific column header
 	 * @param field
 	 * @param className
-	 * @param alsoFromDataCells
+	 * @param alsoForDataCells
 	 */
 	StorkGrid.prototype.addColumnClass = addRemoveColumnClass('add');
 
@@ -547,6 +547,7 @@
 	 * remove a class off a specific column header
 	 * @param field
 	 * @param className
+	 * @param alsoForDataCells
 	 */
 	StorkGrid.prototype.removeColumnClass = addRemoveColumnClass('remove');
 

@@ -400,7 +400,13 @@
   StorkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
     var rows = this.data ? this.data.length : 0;
     this.totalDataHeight = this.rowHeight * rows;
-    this.dataElm.style.height = this.totalDataHeight + "px";
+    if (this.totalDataHeight > 0) {
+      this.dataElm.style.height = this.totalDataHeight + "px";
+      this.dataElm.style.visibility = "visible";
+    } else {
+      this.dataElm.style.height = "1px";
+      this.dataElm.style.visibility = "hidden";
+    }
     this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
   };
   StorkGrid.prototype.resizeCalculate = function resizeCalculate() {

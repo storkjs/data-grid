@@ -588,7 +588,14 @@
 	StorkGrid.prototype.calculateDataHeight = function calculateDataHeight() {
 		var rows = this.data ? this.data.length : 0;
 		this.totalDataHeight = this.rowHeight * rows;
-		this.dataElm.style.height = this.totalDataHeight + 'px';
+		if(this.totalDataHeight > 0) { //there is data to show
+			this.dataElm.style.height = this.totalDataHeight + 'px';
+			this.dataElm.style.visibility = 'visible';
+		}
+		else { //there is no data to show. but we still want to force width which might trigger a scrollbar
+			this.dataElm.style.height = '1px';
+			this.dataElm.style.visibility = 'hidden';
+		}
 		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
 	};
 

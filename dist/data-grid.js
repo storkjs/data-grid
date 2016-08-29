@@ -37,13 +37,7 @@
     }
     this.calculateColumnsWidths();
     this.makeCssRules();
-    this._addEventListener(this.headerTable.container, "click", this.onHeaderClick.bind(this), false);
-    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
-    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
-    this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
-    this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
-    this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
-    this._addEventListener(document, "copy", this.onCopy.bind(this), true);
+    this.setEventListeners();
     var evnt = new CustomEvent("grid-loaded", {
       bubbles: true,
       cancelable: true,
@@ -274,6 +268,17 @@
     }
     this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + "px";
     this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + "px";
+  };
+  StorkGrid.prototype.setEventListeners = function setEventListeners() {
+    this._addEventListener(this.headerTable.container, "click", this.onHeaderClick.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "wheel", this.onDataWheelScroll.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "keydown", this.onDataKeyboardNavigate.bind(this), false);
+    this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
+    this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
+    this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);
+    this._addEventListener(document, "copy", this.onCopy.bind(this), true);
   };
   StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
     this.rowHeight = num;
@@ -741,6 +746,21 @@
         }
         this.renderSelectOnRows();
       }
+    }
+  };
+  StorkGrid.prototype.onDataWheelScroll = function onDataWheelScroll(event) {
+    if (event.deltaX !== 0) {
+      event.preventDefault();
+      var deltaX = Math.min(40, event.deltaX);
+      deltaX = Math.max(-40, event.deltaX);
+      this.scrollX += deltaX;
+    }
+  };
+  StorkGrid.prototype.onDataKeyboardNavigate = function onDataKeyboardNavigate(event) {
+    var key = keyboardMap[event.keyCode];
+    if (key === "LEFT" || key === "RIGHT") {
+      event.preventDefault();
+      this.scrollX += key === "LEFT" ? -40 : 40;
     }
   };
   StorkGrid.prototype._getTrackByData = function _getTrackByData(dataIndex) {

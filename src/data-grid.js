@@ -75,13 +75,7 @@
 		this.makeCssRules();
 
 		/** Events */
-		this._addEventListener(this.headerTable.container, 'click', this.onHeaderClick.bind(this), false); // on click on header
-		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
-		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
-		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
-		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false); // on scroll
-		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true); // document check if we are focused on the grid
-		this._addEventListener(document, 'copy', this.onCopy.bind(this), true); // on copy
+		this.setEventListeners();
 
 		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
@@ -409,6 +403,18 @@
 		}
 		this.dataTables[0].table.style.marginLeft = this.totalDataWidthFixed + 'px';
 		this.dataTables[1].table.style.marginLeft = this.totalDataWidthFixed + 'px';
+	};
+
+	StorkGrid.prototype.setEventListeners = function setEventListeners() {
+		this._addEventListener(this.headerTable.container, 'click', this.onHeaderClick.bind(this), false); // on click on header
+		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
+		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
+		this._addEventListener(this.dataWrapperElm, 'wheel', this.onDataWheelScroll.bind(this), false); // on horizontal wheel scroll
+		this._addEventListener(this.dataWrapperElm, 'keydown', this.onDataKeyboardNavigate.bind(this), false); // on horizontal keyboard scroll
+		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
+		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false); // on scroll
+		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true); // document check if we are focused on the grid
+		this._addEventListener(document, 'copy', this.onCopy.bind(this), true); // on copy
 	};
 
 	/**
@@ -1084,6 +1090,35 @@
 
 				this.renderSelectOnRows();
 			}
+		}
+	};
+
+	/**
+	 * preventing native on-wheel scroll because chrome's smooth scrolling makes the fixed columns render real ugly
+	 * @param event
+	 */
+	StorkGrid.prototype.onDataWheelScroll = function onDataWheelScroll(event) {
+		if(event.deltaX !== 0) {
+			event.preventDefault();
+
+			var deltaX = Math.min(40, event.deltaX);
+			deltaX = Math.max(-40, event.deltaX); //limit deltaX between 40 to -40
+
+			this.scrollX += deltaX;
+		}
+	};
+
+	/**
+	 * preventing native on-key scroll (left & right) because chrome's smooth scrolling makes the fixed columns render real ugly
+	 * @param event
+	 */
+	StorkGrid.prototype.onDataKeyboardNavigate = function onDataKeyboardNavigate(event) {
+		var key = keyboardMap[event.keyCode];
+
+		if(key === 'LEFT' || key === 'RIGHT') {
+			event.preventDefault();
+
+			this.scrollX += key === 'LEFT' ? -40 : 40;
 		}
 	};
 

@@ -95,6 +95,7 @@
 		this.rowHeight = options.rowHeight || 32;
 		this.headerHeight = options.headerHeight || this.rowHeight;
 		this.columns = options.columns || [];
+		this.columnClasses = options.columnClasses || {};
 		this.minColumnWidth = options.minColumnWidth || 50;
 		this.resizableColumns = options.resizableColumns !== false;
 		this.trackBy = options.trackBy || null;
@@ -529,14 +530,30 @@
 			if(TH) {
 				TH.classList[operation](className);
 
+				//save user columns in a cache
+				if(TH.classList.contains(className)) {
+					if(!this.columnClasses.hasOwnProperty(field)) {
+						this.columnClasses[field] = {};
+					}
+
+					this.columnClasses[field][className] = false; //save class name with 'alsoForDataCells' false
+				}
+				else if(this.columnClasses.hasOwnProperty(field) && this.columnClasses[field].hasOwnProperty(className)) { //delete from cache
+					delete this.columnClasses[field][className];
+				}
+
 				if(alsoForDataCells) {
 					var TDs = this.dataElm.querySelectorAll('td.' + field);
 					for(var i = 0; i < TDs.length; i++) {
 						TDs[i].classList[operation](className);
 					}
+
+					if(this.columnClasses.hasOwnProperty(field) && this.columnClasses[field].hasOwnProperty(className)) {
+						this.columnClasses[field][className] = true; //set 'alsoForDataCells' true
+					}
 				}
 			} else {
-				console.warn('Invalid column given to addColumnClass');
+				console.warn('Invalid column given to add/remove columnClass');
 			}
 		};
 	};
@@ -1594,6 +1611,7 @@
 		delete this.rowHeight;
 		delete this.headerHeight;
 		delete this.columns;
+		delete this.columnClasses;
 		delete this.minColumnWidth;
 		delete this.resizableColumns;
 		delete this.trackBy;
@@ -1656,6 +1674,18 @@
 		this.calculateColumnsWidths();
 		this.makeCssRules();
 		this.repositionTables(null, null, true);
+
+		//re-add user's custom column classes
+		var keyField, keyClass;
+		for(keyField in this.columnClasses) {
+			if(this.columnClasses.hasOwnProperty(keyField)) {
+				for(keyClass in this.columnClasses[keyField]) {
+					if(this.columnClasses[keyField].hasOwnProperty(keyClass)) {
+						this.addColumnClass(keyField, keyClass, this.columnClasses[keyField][keyClass]);
+					}
+				}
+			}
+		}
 	};
 
 	/**

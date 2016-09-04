@@ -56,6 +56,7 @@
     this.rowHeight = options.rowHeight || 32;
     this.headerHeight = options.headerHeight || this.rowHeight;
     this.columns = options.columns || [];
+    this.columnClasses = options.columnClasses || {};
     this.minColumnWidth = options.minColumnWidth || 50;
     this.resizableColumns = options.resizableColumns !== false;
     this.trackBy = options.trackBy || null;
@@ -358,14 +359,25 @@
       var TH = this.headerTable.container.querySelector("th." + field);
       if (TH) {
         TH.classList[operation](className);
+        if (TH.classList.contains(className)) {
+          if (!this.columnClasses.hasOwnProperty(field)) {
+            this.columnClasses[field] = {};
+          }
+          this.columnClasses[field][className] = false;
+        } else if (this.columnClasses.hasOwnProperty(field) && this.columnClasses[field].hasOwnProperty(className)) {
+          delete this.columnClasses[field][className];
+        }
         if (alsoForDataCells) {
           var TDs = this.dataElm.querySelectorAll("td." + field);
           for (var i = 0; i < TDs.length; i++) {
             TDs[i].classList[operation](className);
           }
+          if (this.columnClasses.hasOwnProperty(field) && this.columnClasses[field].hasOwnProperty(className)) {
+            this.columnClasses[field][className] = true;
+          }
         }
       } else {
-        console.warn("Invalid column given to addColumnClass");
+        console.warn("Invalid column given to add/remove columnClass");
       }
     };
   };
@@ -1080,6 +1092,7 @@
     delete this.rowHeight;
     delete this.headerHeight;
     delete this.columns;
+    delete this.columnClasses;
     delete this.minColumnWidth;
     delete this.resizableColumns;
     delete this.trackBy;
@@ -1133,6 +1146,16 @@
     this.calculateColumnsWidths();
     this.makeCssRules();
     this.repositionTables(null, null, true);
+    var keyField, keyClass;
+    for (keyField in this.columnClasses) {
+      if (this.columnClasses.hasOwnProperty(keyField)) {
+        for (keyClass in this.columnClasses[keyField]) {
+          if (this.columnClasses[keyField].hasOwnProperty(keyClass)) {
+            this.addColumnClass(keyField, keyClass, this.columnClasses[keyField][keyClass]);
+          }
+        }
+      }
+    }
   };
   StorkGrid.prototype._onClickCheckFocus = function _onClickCheckFocus(e) {
     var target = e.target;

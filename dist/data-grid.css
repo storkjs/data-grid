@@ -106,7 +106,7 @@
 .stork-grid div.data-wrapper {
   width: 100%;
   overflow: scroll;
-  transform: translateZ(0);
+  /*transform: translateZ(0);*/
   /*translateZ hack*/
   /* data */
   /* /data */

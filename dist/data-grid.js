@@ -1055,7 +1055,12 @@
   };
   StorkGrid.prototype.setData = function setData(data) {
     this.data = data;
-    this.refresh();
+    if (this.columns.length === 0) {
+      this.initColumnsObject();
+      this.setColumns(this.columns);
+    } else {
+      this.refresh();
+    }
   };
   StorkGrid.prototype.refresh = function refresh_data() {
     this.calculateDataHeight();

@@ -346,7 +346,7 @@
 			}
 		}
 
-		this.onScrollX(this.scrollX);
+		this.onScrollX(this.scrollX); //trigger a scroll in case the user has just resized a fixed column to be too wide
 	};
 
 	/**

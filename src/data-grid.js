@@ -17,6 +17,10 @@
 	 * @param amount
 	 */
 	var changeTranslate = function changeTranslate(elm, direction, amount) {
+		if(!elm) {
+			return;
+		}
+
 		if(!elm.storkGridProps) {
 			elm.storkGridProps = {};
 		}
@@ -892,12 +896,13 @@
 	 * @param currScrollLeft
 	 */
 	StorkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
-		changeTranslate(this.headerTable.loose, 'X', -currScrollLeft);
-		if(this.headerTable.resizer_loose) {
-			changeTranslate(this.headerTable.resizer_loose, 'X', -currScrollLeft);
-		}
+		//scroll the header (even though the overflow-x is hidden) so it will behave exactly like the data tables
+		this.headerTable.container.scrollLeft = currScrollLeft;
+
 		changeTranslate(this.dataTables[0].tableFixed, 'X', currScrollLeft);
 		changeTranslate(this.dataTables[1].tableFixed, 'X', currScrollLeft);
+		changeTranslate(this.headerTable.fixed, 'X', currScrollLeft);
+		changeTranslate(this.headerTable.resizer_fixed, 'X', currScrollLeft); //element might not exist
 
 		if(this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
 			this.dataTables[0].tableFixed.classList.add('covering');

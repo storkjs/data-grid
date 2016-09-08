@@ -149,6 +149,7 @@
 		this.totalDataWidthLoose = 0;
 		this.totalDataHeight = 0;
 		this.dataViewHeight = 0;
+		this.dataViewWidth = 0;
 		this.dataTableHeight = 0;
 		this.numDataRowsInTable = 0;
 	};
@@ -344,6 +345,8 @@
 				this.totalDataWidthLoose += this.columns[i].width;
 			}
 		}
+
+		this.onScrollX(this.scrollX);
 	};
 
 	/**
@@ -653,7 +656,8 @@
 			this.dataWrapperElm.style.maxHeight = window.innerHeight + 'px';
 		}
 
-		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the height of a viewport the client can see
+		this.dataViewHeight = this.dataWrapperElm.clientHeight; // the HEIGHT of a viewport the client can see
+		this.dataViewWidth = this.dataWrapperElm.clientWidth; // the WIDTH of a viewport the client can see
 
 		if(this.dataViewHeight < this.rowHeight) {
 			this.dataViewHeight = this.rowHeight;
@@ -899,23 +903,41 @@
 		//scroll the header (even though the overflow-x is hidden) so it will behave exactly like the data tables
 		this.headerTable.container.scrollLeft = currScrollLeft;
 
-		changeTranslate(this.dataTables[0].tableFixed, 'X', currScrollLeft);
-		changeTranslate(this.dataTables[1].tableFixed, 'X', currScrollLeft);
-		changeTranslate(this.headerTable.fixed, 'X', currScrollLeft);
-		changeTranslate(this.headerTable.resizer_fixed, 'X', currScrollLeft); //element might not exist
+		if(this.totalDataWidthFixed < this.dataViewWidth) { //move object with the scroll so they will look fixed
+			changeTranslate(this.dataTables[0].tableFixed, 'X', currScrollLeft);
+			changeTranslate(this.dataTables[1].tableFixed, 'X', currScrollLeft);
+			changeTranslate(this.headerTable.fixed, 'X', currScrollLeft);
+			changeTranslate(this.headerTable.resizer_fixed, 'X', currScrollLeft); //element might not exist
 
-		if(this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
-			this.dataTables[0].tableFixed.classList.add('covering');
-			this.dataTables[1].tableFixed.classList.add('covering');
-			this.headerTable.fixed.classList.add('covering');
-		}
-		else if(currScrollLeft < 5 && this.lastScrollLeft >= 5) {
-			this.dataTables[0].tableFixed.classList.remove('covering');
-			this.dataTables[1].tableFixed.classList.remove('covering');
-			this.headerTable.fixed.classList.remove('covering');
-		}
+			if(this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
+				this.dataTables[0].tableFixed.classList.add('covering');
+				this.dataTables[1].tableFixed.classList.add('covering');
+				this.headerTable.fixed.classList.add('covering');
+			}
+			else if(currScrollLeft < 5 && this.lastScrollLeft >= 5) {
+				this.dataTables[0].tableFixed.classList.remove('covering');
+				this.dataTables[1].tableFixed.classList.remove('covering');
+				this.headerTable.fixed.classList.remove('covering');
+			}
 
-		this.lastScrollLeft = currScrollLeft;
+			this.lastScrollLeft = currScrollLeft;
+		}
+		else {
+			//fixed-columns are too wide, so in order not to fuck up the grid (not to stuck the user with columns too wide he can't shrink)
+			//this fixed columns will act as loose columns and move away when the user scrolls
+			changeTranslate(this.dataTables[0].tableFixed, 'X', 0);
+			changeTranslate(this.dataTables[1].tableFixed, 'X', 0);
+			changeTranslate(this.headerTable.fixed, 'X', 0);
+			changeTranslate(this.headerTable.resizer_fixed, 'X', 0); //element might not exist
+
+			if(this.headerTable.fixed.classList.contains('covering')) {
+				this.dataTables[0].tableFixed.classList.remove('covering');
+				this.dataTables[1].tableFixed.classList.remove('covering');
+				this.headerTable.fixed.classList.remove('covering');
+			}
+
+			this.lastScrollLeft = 0;
+		}
 	};
 
 	/**
@@ -1663,6 +1685,7 @@
 		delete this.totalDataWidthLoose;
 		delete this.totalDataHeight;
 		delete this.dataViewHeight;
+		delete this.dataViewWidth;
 		delete this.dataTableHeight;
 		delete this.numDataRowsInTable;
 	};

@@ -104,6 +104,7 @@
     this.totalDataWidthLoose = 0;
     this.totalDataHeight = 0;
     this.dataViewHeight = 0;
+    this.dataViewWidth = 0;
     this.dataTableHeight = 0;
     this.numDataRowsInTable = 0;
   };
@@ -234,6 +235,7 @@
         this.totalDataWidthLoose += this.columns[i].width;
       }
     }
+    this.onScrollX(this.scrollX);
   };
   StorkGrid.prototype.makeCssRules = function makeCssRules() {
     var style = document.getElementById("grid" + this.rnd + "_style");
@@ -439,6 +441,7 @@
       this.dataWrapperElm.style.maxHeight = window.innerHeight + "px";
     }
     this.dataViewHeight = this.dataWrapperElm.clientHeight;
+    this.dataViewWidth = this.dataWrapperElm.clientWidth;
     if (this.dataViewHeight < this.rowHeight) {
       this.dataViewHeight = this.rowHeight;
       console.warn("The Data Wrapper element was set too low. Height can't be less than the height of one row!");
@@ -601,20 +604,33 @@
   };
   StorkGrid.prototype.onScrollX = function onScrollX(currScrollLeft) {
     this.headerTable.container.scrollLeft = currScrollLeft;
-    changeTranslate(this.dataTables[0].tableFixed, "X", currScrollLeft);
-    changeTranslate(this.dataTables[1].tableFixed, "X", currScrollLeft);
-    changeTranslate(this.headerTable.fixed, "X", currScrollLeft);
-    changeTranslate(this.headerTable.resizer_fixed, "X", currScrollLeft);
-    if (this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
-      this.dataTables[0].tableFixed.classList.add("covering");
-      this.dataTables[1].tableFixed.classList.add("covering");
-      this.headerTable.fixed.classList.add("covering");
-    } else if (currScrollLeft < 5 && this.lastScrollLeft >= 5) {
-      this.dataTables[0].tableFixed.classList.remove("covering");
-      this.dataTables[1].tableFixed.classList.remove("covering");
-      this.headerTable.fixed.classList.remove("covering");
+    if (this.totalDataWidthFixed < this.dataViewWidth) {
+      changeTranslate(this.dataTables[0].tableFixed, "X", currScrollLeft);
+      changeTranslate(this.dataTables[1].tableFixed, "X", currScrollLeft);
+      changeTranslate(this.headerTable.fixed, "X", currScrollLeft);
+      changeTranslate(this.headerTable.resizer_fixed, "X", currScrollLeft);
+      if (this.totalDataWidthFixed > 0 && currScrollLeft >= 5 && this.lastScrollLeft < 5) {
+        this.dataTables[0].tableFixed.classList.add("covering");
+        this.dataTables[1].tableFixed.classList.add("covering");
+        this.headerTable.fixed.classList.add("covering");
+      } else if (currScrollLeft < 5 && this.lastScrollLeft >= 5) {
+        this.dataTables[0].tableFixed.classList.remove("covering");
+        this.dataTables[1].tableFixed.classList.remove("covering");
+        this.headerTable.fixed.classList.remove("covering");
+      }
+      this.lastScrollLeft = currScrollLeft;
+    } else {
+      changeTranslate(this.dataTables[0].tableFixed, "X", 0);
+      changeTranslate(this.dataTables[1].tableFixed, "X", 0);
+      changeTranslate(this.headerTable.fixed, "X", 0);
+      changeTranslate(this.headerTable.resizer_fixed, "X", 0);
+      if (this.headerTable.fixed.classList.contains("covering")) {
+        this.dataTables[0].tableFixed.classList.remove("covering");
+        this.dataTables[1].tableFixed.classList.remove("covering");
+        this.headerTable.fixed.classList.remove("covering");
+      }
+      this.lastScrollLeft = 0;
     }
-    this.lastScrollLeft = currScrollLeft;
   };
   StorkGrid.prototype.onDataClick = function onDataClick(e) {
     var TD = e.target, i = 0, dataIndex, TR, selectedCellColumn, trackByData;
@@ -1137,6 +1153,7 @@
     delete this.totalDataWidthLoose;
     delete this.totalDataHeight;
     delete this.dataViewHeight;
+    delete this.dataViewWidth;
     delete this.dataTableHeight;
     delete this.numDataRowsInTable;
   };

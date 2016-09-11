@@ -137,15 +137,13 @@
       this.columns = fixedColumns.concat(looseColumns);
     }
   };
-  StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture, isUserDefined) {
-    isUserDefined = isUserDefined || false;
+  StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
     element.addEventListener(type, listener, options_or_useCapture);
     this.eventListeners.push({
       element: element,
       type: type,
       listener: listener,
-      options: options_or_useCapture,
-      isUserDefined: isUserDefined
+      options: options_or_useCapture
     });
     return this.eventListeners.length - 1;
   };

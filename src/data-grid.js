@@ -188,15 +188,12 @@
 	 * @param type
 	 * @param listener
 	 * @param options_or_useCapture
-	 * @param isUserDefined - whether its the system (component) event listener or is it a user defined custom listener
 	 * @private
 	 */
-	StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture, isUserDefined) {
-		isUserDefined = isUserDefined || false;
-
+	StorkGrid.prototype._addEventListener = function customAddEventListener(element, type, listener, options_or_useCapture) {
 		element.addEventListener(type, listener, options_or_useCapture); // add event listener
 
-		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture, isUserDefined: isUserDefined}); // save listeners parameters
+		this.eventListeners.push({element: element, type: type, listener: listener, options: options_or_useCapture}); // save listeners parameters
 
 		return this.eventListeners.length - 1; // return index for removing this specific listener later
 	};

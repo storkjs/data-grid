@@ -936,7 +936,7 @@
 				this.headerTable.fixed.classList.remove('covering');
 			}
 
-			this.lastScrollLeft = 0;
+			this.lastScrollLeft = -1;
 		}
 	};
 

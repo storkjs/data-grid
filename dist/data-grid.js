@@ -629,7 +629,7 @@
         this.dataTables[1].tableFixed.classList.remove("covering");
         this.headerTable.fixed.classList.remove("covering");
       }
-      this.lastScrollLeft = 0;
+      this.lastScrollLeft = -1;
     }
   };
   StorkGrid.prototype.onDataClick = function onDataClick(e) {

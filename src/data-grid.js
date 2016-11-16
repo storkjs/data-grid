@@ -72,6 +72,7 @@
 		this.trackBy = options.trackBy || null;
 		this.onload = options.onload || null;
 		this.asyncLoading = options.asyncLoading || false;
+		this.debug = options.debug || false;
 
 		this.selection = {};
 		options.selection = options.selection || {};
@@ -673,7 +674,9 @@
 
 		if(this.dataViewHeight < this.rowHeight) {
 			this.dataViewHeight = this.rowHeight;
-			console.warn('The Data Wrapper element was set too low. Height can\'t be less than the height of one row!');
+			if(this.debug) {
+				console.warn('The Data Wrapper element was set too low. Height can\'t be less than the height of one row!');
+			}
 		}
 		this.maxScrollY = Math.max(this.dataWrapperElm.scrollHeight - this.dataViewHeight, 0);
 

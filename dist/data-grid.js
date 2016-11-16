@@ -102,8 +102,6 @@
     if (this.resizableColumns) {
       this.makeColumnsResizable();
     }
-    this.calculateColumnsWidths();
-    this.makeCssRules();
     this.setEventListeners();
     var evnt = new CustomEvent("grid-loaded", {
       bubbles: true,
@@ -213,11 +211,11 @@
     var userDefinedWidth = 0, numColumnsNotDefined = 0, i, availableWidth, availableWidthPerColumn, roundedPixels;
     for (i = 0; i < this.columns.length; i++) {
       this.calculateColumnHeaderContentWidth(this.columns[i]);
-      this.columns[i].width = this.columns[i].width || 0;
-      this.columns[i].minWidth = this.columns[i].minWidth || 0;
-      if (this.columns[i].width) {
-        this.columns[i].width = Math.max(this.columns[i].width, this.columns[i].minWidth, this.columns[i].contentWidth, this.minColumnWidth);
-        userDefinedWidth += this.columns[i].width;
+      this.columns[i]._width = this.columns[i].width || 0;
+      this.columns[i]._minWidth = this.columns[i].minWidth || 0;
+      if (this.columns[i]._width) {
+        this.columns[i]._width = Math.max(this.columns[i]._width, this.columns[i]._minWidth, this.columns[i].contentWidth, this.minColumnWidth);
+        userDefinedWidth += this.columns[i]._width;
       } else {
         numColumnsNotDefined++;
       }
@@ -229,17 +227,17 @@
     }
     roundedPixels = availableWidth % numColumnsNotDefined;
     for (i = 0; i < this.columns.length; i++) {
-      if (!this.columns[i].width) {
-        this.columns[i].width = Math.max(this.columns[i].minWidth, this.minColumnWidth, availableWidthPerColumn);
-        if (roundedPixels && this.columns[i].width === availableWidthPerColumn) {
-          this.columns[i].width += roundedPixels;
+      if (!this.columns[i]._width) {
+        this.columns[i]._width = Math.max(this.columns[i]._minWidth, this.minColumnWidth, availableWidthPerColumn);
+        if (roundedPixels && this.columns[i]._width === availableWidthPerColumn) {
+          this.columns[i]._width += roundedPixels;
           roundedPixels = 0;
         }
       }
       if (this.columns[i].fixed) {
-        this.totalDataWidthFixed += this.columns[i].width;
+        this.totalDataWidthFixed += this.columns[i]._width;
       } else {
-        this.totalDataWidthLoose += this.columns[i].width;
+        this.totalDataWidthLoose += this.columns[i]._width;
       }
     }
     this.onScrollX(this.scrollX);
@@ -269,7 +267,7 @@
     html += ".stork-grid" + this.rnd + " div.data > table td { height: " + this.rowHeight + "px; }";
     html += ".stork-grid" + this.rnd + " div.data > table td > div { max-height: " + (this.rowHeight - this.rowBorders.data) + "px; }";
     for (var i = 0; i < this.columns.length; i++) {
-      html += ".stork-grid" + this.rnd + " th." + this.columns[i].field + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].field + " { width: " + this.columns[i].width + "px; }";
+      html += ".stork-grid" + this.rnd + " th." + this.columns[i].field + "," + ".stork-grid" + this.rnd + " td." + this.columns[i].field + " { width: " + this.columns[i]._width + "px; }";
     }
     html += ".stork-grid" + this.rnd + " div.header > table.loose," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.loose { width: " + this.totalDataWidthLoose + "px; }";
     html += ".stork-grid" + this.rnd + " div.header > table.fixed," + ".stork-grid" + this.rnd + " div.data-wrapper > div.data > table.fixed { width: " + this.totalDataWidthFixed + "px; }";
@@ -295,12 +293,10 @@
   };
   StorkGrid.prototype.setRowHeight = function setRowHeight(num) {
     this.rowHeight = num;
-    this.makeCssRules();
     this.resize();
   };
   StorkGrid.prototype.setHeaderHeight = function setHeaderHeight(num) {
     this.headerHeight = num;
-    this.makeCssRules();
     this.resize();
   };
   StorkGrid.prototype.makeHeaderTable = function makeHeaderTable() {
@@ -1035,10 +1031,10 @@
     eventIndexes.mouse_move = self._addEventListener(document, "mousemove", function(e) {
       if (e.pageX !== 0) {
         var delta = e.pageX - mouseStartingPosX;
-        var newColumnWidth = columnObj.width + delta;
-        var minWidth = Math.max(columnObj.minWidth, columnObj.contentWidth, self.minColumnWidth);
+        var newColumnWidth = columnObj._width + delta;
+        var minWidth = Math.max(columnObj._minWidth, columnObj.contentWidth, self.minColumnWidth);
         if (newColumnWidth < minWidth) {
-          delta = minWidth - columnObj.width;
+          delta = minWidth - columnObj._width;
         }
         changeTranslate(self.resizerLine, "X", delta);
       }
@@ -1048,7 +1044,7 @@
       self.resizerLine.style.display = "";
       self.resizerLine.style.transform = "";
       var delta = e.pageX - mouseStartingPosX;
-      columnObj.width = Math.max(columnObj.width + delta, columnObj.minWidth, columnObj.contentWidth, self.minColumnWidth);
+      columnObj.width = Math.max(columnObj._width + delta, columnObj._minWidth, columnObj.contentWidth, self.minColumnWidth);
       self.calculateColumnsWidths();
       self.makeCssRules();
       var evnt = new CustomEvent("resize-column", {
@@ -1057,7 +1053,7 @@
         detail: {
           columnIndex: columnIndex,
           columnField: columnObj.field,
-          width: columnObj.width
+          width: columnObj._width
         }
       });
       self.grid.dispatchEvent(evnt);
@@ -1078,6 +1074,8 @@
   StorkGrid.prototype.resize = function resize() {
     this.resizeCalculate();
     this.buildDataTables();
+    this.calculateColumnsWidths();
+    this.makeCssRules();
     this.repositionTables(null, null, true);
   };
   StorkGrid.prototype.setData = function setData(data) {

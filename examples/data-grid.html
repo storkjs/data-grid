@@ -32,7 +32,8 @@
 			align-items: center;
 		}
 		#grid {
-			width: 980px;
+			width: 99%;
+			max-width: 980px;
 			height: 870px;
 		}
 
@@ -41,7 +42,7 @@
 			justify-content: space-between;
 			align-items: flex-start;
 
-			width: 440px;
+			width: 640px;
 			padding-bottom: 10px;
 		}
 
@@ -194,6 +195,10 @@
 			testGrid.addEventListener('resize-column', function(e) {
 				console.log(e.detail);
 			}, false);
+			
+			window.addEventListener('resize', function() {
+				testGrid.resize();
+			});
 		});
 
 		var destroyGrid = function destroyGrid() {
@@ -201,7 +206,6 @@
 				testGrid.destroy();
 			}
 		};
-
 		var rearrange = function rearrange() {
 			if(testGrid && testGrid.grid) {
 				testGrid.setColumns([
@@ -209,13 +213,18 @@
 					{field: 'random_integer', label: 'Integer', width: 110, fixed: true},
 					{field: 'random_float', label: 'Float', width: 110},
 					{field: 'city', label: 'City', width: 115, minWidth: 75},
-					{field: 'id', label: 'ID', width: 70}
+					{field: 'id', label: 'ID'}
 				]);
 			}
 		};
-
 		var removeInfiniteTopScroll = function removeInfiniteTopScroll() {
 			testGrid.removeEventListener('almostHitTop', almostHitTop, false);
+		};
+		var biggerHeader = function biggerHeader() {
+			testGrid.setHeaderHeight(70);
+		};
+		var biggerRows = function biggerRows() {
+			testGrid.setRowHeight(40);
 		};
 	</script>
 </head>
@@ -225,6 +234,8 @@
 		<button class="destroy-grid" onclick="destroyGrid();">Destroy grid</button>
 		<button class="rearrange-cols" onclick="rearrange();">Rearrange columns</button>
 		<button class="remove-scroll-event" onclick="removeInfiniteTopScroll();">Disable infinite top scroll</button>
+		<button class="bigger-header" onclick="biggerHeader();">Bigger Header</button>
+		<button class="bigger-rows" onclick="biggerRows();">Bigger Rows</button>
 	</div>
 	<div id="grid"></div>
 </div>

@@ -111,7 +111,8 @@
 				trackBy: 'id',
 				onload: function(e) { // another way to add onLoad listener
 					e.detail.gridObj.scrollY += 2000;
-				}
+				},
+				asyncLoading: true
 			});
 
 			testGrid.addEventListener('data-click', function(e) {

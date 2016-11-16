@@ -83,6 +83,9 @@ _onload_ [optional]: function to run after the grid finished constructing. defau
 } }
 ```
 
+_asyncLoading_ [optional]: should the data grid load asynchronous thus letting other scripts run before it. defaults to _false_. Example:
+`{ asyncLoading: true }`
+
 #### Methods
 _setRowHeight(height)_: sets the height of each row. arguments: _height_ {integer}.
 

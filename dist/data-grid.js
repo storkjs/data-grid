@@ -28,30 +28,11 @@
   };
   var StorkGrid = function StorkGrid(options) {
     this.initProperties(options);
-    this.initColumnsObject();
-    this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
-    this.grid.setAttribute("tabindex", 0);
-    this.makeHeaderTable();
-    this.initDataView();
-    this.updateViewData(0, 0);
-    this.updateViewData(1, 1);
-    if (this.resizableColumns) {
-      this.makeColumnsResizable();
+    if (this.asyncLoading) {
+      setTimeout(this.bootstrap.bind(this), 1);
+    } else {
+      this.bootstrap();
     }
-    this.calculateColumnsWidths();
-    this.makeCssRules();
-    this.setEventListeners();
-    var evnt = new CustomEvent("grid-loaded", {
-      bubbles: true,
-      cancelable: true,
-      detail: {
-        gridObj: this
-      }
-    });
-    if (this.onload) {
-      this.onload(evnt);
-    }
-    this.grid.dispatchEvent(evnt);
   };
   StorkGrid.prototype.initProperties = function initProperties(options) {
     this.grid = options.element;
@@ -64,6 +45,7 @@
     this.resizableColumns = options.resizableColumns !== false;
     this.trackBy = options.trackBy || null;
     this.onload = options.onload || null;
+    this.asyncLoading = options.asyncLoading || false;
     this.selection = {};
     options.selection = options.selection || {};
     this.selection.multi = options.selection.multi || false;
@@ -107,6 +89,32 @@
     this.dataViewWidth = 0;
     this.dataTableHeight = 0;
     this.numDataRowsInTable = 0;
+  };
+  StorkGrid.prototype.bootstrap = function bootstrap() {
+    this.initColumnsObject();
+    this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
+    this.grid.setAttribute("tabindex", 0);
+    this.makeHeaderTable();
+    this.initDataView();
+    this.updateViewData(0, 0);
+    this.updateViewData(1, 1);
+    if (this.resizableColumns) {
+      this.makeColumnsResizable();
+    }
+    this.calculateColumnsWidths();
+    this.makeCssRules();
+    this.setEventListeners();
+    var evnt = new CustomEvent("grid-loaded", {
+      bubbles: true,
+      cancelable: true,
+      detail: {
+        gridObj: this
+      }
+    });
+    if (this.onload) {
+      this.onload(evnt);
+    }
+    this.grid.dispatchEvent(evnt);
   };
   StorkGrid.prototype.initColumnsObject = function initColumnsObject() {
     if (this.columns.length === 0 && this.data.length > 0) {

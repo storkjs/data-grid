@@ -49,44 +49,11 @@
 	var StorkGrid = function StorkGrid(options) {
 		this.initProperties(options);
 
-		this.initColumnsObject();
-
-		/** add grid class */
-		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
-
-		/** make grid a focusable element (also enables capturing key presses */
-		this.grid.setAttribute('tabindex', 0);
-
-		/** init HEADER table */
-		this.makeHeaderTable();
-
-		/** handle data rows blocks */
-		this.initDataView();
-
-		/** insert data into the data-tables */
-		this.updateViewData(0, 0);
-		this.updateViewData(1, 1);
-
-		/** add column resizing buttons */
-		if(this.resizableColumns) {
-			this.makeColumnsResizable();
+		if(this.asyncLoading) {
+			setTimeout(this.bootstrap.bind(this), 1);
+		} else {
+			this.bootstrap();
 		}
-
-		/** determine column widths */
-		this.calculateColumnsWidths();
-
-		/** add css rules */
-		this.makeCssRules();
-
-		/** Events */
-		this.setEventListeners();
-
-		/** grid finished loading its data and DOM */
-		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
-		if(this.onload) {
-			this.onload(evnt);
-		}
-		this.grid.dispatchEvent(evnt);
 	};
 
 	/**
@@ -104,6 +71,7 @@
 		this.resizableColumns = options.resizableColumns !== false;
 		this.trackBy = options.trackBy || null;
 		this.onload = options.onload || null;
+		this.asyncLoading = options.asyncLoading || false;
 
 		this.selection = {};
 		options.selection = options.selection || {};
@@ -154,6 +122,53 @@
 		this.numDataRowsInTable = 0;
 	};
 
+	/**
+	 * init the whole loading up process
+	 */
+	StorkGrid.prototype.bootstrap = function bootstrap() {
+		this.initColumnsObject();
+
+		/** add grid class */
+		this.grid.classList.add('stork-grid', 'stork-grid'+this.rnd);
+
+		/** make grid a focusable element (also enables capturing key presses */
+		this.grid.setAttribute('tabindex', 0);
+
+		/** init HEADER table */
+		this.makeHeaderTable();
+
+		/** handle data rows blocks */
+		this.initDataView();
+
+		/** insert data into the data-tables */
+		this.updateViewData(0, 0);
+		this.updateViewData(1, 1);
+
+		/** add column resizing buttons */
+		if(this.resizableColumns) {
+			this.makeColumnsResizable();
+		}
+
+		/** determine column widths */
+		this.calculateColumnsWidths();
+
+		/** add css rules */
+		this.makeCssRules();
+
+		/** Events */
+		this.setEventListeners();
+
+		/** grid finished loading its data and DOM */
+		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
+		if(this.onload) {
+			this.onload(evnt);
+		}
+		this.grid.dispatchEvent(evnt);
+	};
+
+	/**
+	 * init the columns object which holds the columns metadata and adds column-names if needed or sorts to fixed and loose columns
+	 */
 	StorkGrid.prototype.initColumnsObject = function initColumnsObject() {
 		/** if user didn't define columns and column names then let's try and fetch names from the keys of the first data object */
 		if(this.columns.length === 0 && this.data.length > 0) {

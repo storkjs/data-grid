@@ -126,6 +126,9 @@
 			testGrid.addEventListener('dblselect', function(e) {
 				console.log('double select: ', e.detail);
 			}, false);
+			testGrid.addEventListener('enter-select', function(e) {
+				console.log('enter select: ', e.detail);
+			}, false);
 
 			testGrid.addScrollEvent('almostHitBottom', 100); // when to emit
 			testGrid.addEventListener('almostHitBottom', function(e) {

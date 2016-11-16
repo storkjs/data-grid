@@ -139,6 +139,8 @@ myGrid.addEventListener("select", function(e) {
 
 _dblselect_: same as _select_ but emitted when user double clicks the grid. :small_orange_diamond:_notice: on the first click of the double-click a `select` event is still emitted and then on the second click a `dblclick` event is emitted._
 
+_enter-select_: same as _select_ but emitted when user presses ENTER for selecting data on the grid.
+
 _data-click_: when the user performs a full click on something from the grid. this event has a _detail_ object containing four properties - the index of the selected data (`event.detail.dataIndex`), the row's data object (`event.detail.rowData`), the selected column (`event.detail.column`) and whether it is a select or un-select (`event.detail.isSelect`). Example:
 ```javascript
 myGrid.addEventListener("data-click", function(e) {
@@ -214,6 +216,9 @@ myGrid.addEventListener("select", function(e) {
 }, false);
 myGrid.addEventListener("dblselect", function(e) {
   console.log('double clicked column', e.detail); // logs: {column: "age", dataIndex: 17}
+}, false);
+myGrid.addEventListener("enter-select", function(e) {
+  console.log('enter pressed', e.detail); // logs: {column: "age", dataIndex: 17}
 }, false);
 
 // a way to make an infinite scroll. just load ajax content instead of this dummy

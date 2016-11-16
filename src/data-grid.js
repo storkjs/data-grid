@@ -274,7 +274,7 @@
 	 * @private
 	 */
 	StorkGrid.prototype._dispatchSelectEvent = function _dispatchSelectEvent(type, dataIndex, column, trackByData) {
-		if(type !== 'dblselect' && type !== 'data-click') {
+		if(type !== 'dblselect' && type !== 'data-click' && type !== 'enter-select') {
 			type = 'select';
 		}
 
@@ -1171,6 +1171,12 @@
 			event.preventDefault();
 
 			this.scrollX += key === 'LEFT' ? -40 : 40;
+		}
+		else if(key === 'ENTER') {
+			if(this.clickedItem) {
+				var trackByData = this._getTrackByData(this.clickedItem.dataIndex);
+				this._dispatchSelectEvent('enter-select', this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
+			}
 		}
 	};
 

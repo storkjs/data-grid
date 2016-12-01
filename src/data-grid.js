@@ -303,15 +303,40 @@
 	};
 
 	/**
-	 * populated 'width' property for all columns
+	 * get the columns with the current shortest width
+	 * @param columns
+	 */
+	var getNarrowestColumns = function getNarrowestColumns(columns) {
+		var ret = { columns: null, differenceFromNextNarrowestColumn: 0 },
+			i;
+
+		for(i=0; i < columns.length; i++) {
+			if(!ret.columns) {
+				ret.columns = [ columns[i] ];
+			}
+			else if(ret.columns[0]._width > columns[i]._width) {
+				ret.differenceFromNextNarrowestColumn = ret.columns[0]._width - columns[i]._width;
+				ret.columns = [ columns[i] ]; //create a new array with the narrowest column and thus ignoring all previous columns we thought to be the narrowset
+			}
+			else if(ret && ret.columns[0]._width === columns[i]._width) {
+				ret.columns.push(columns[i]);
+			}
+		}
+
+		return ret;
+	};
+
+	/**
+	 * populate 'width' property for all columns
 	 */
 	StorkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
 		this.totalDataWidthLoose = 0;
 		this.totalDataWidthFixed = 0;
 
-		var userDefinedWidth = 0,
-			numColumnsNotDefined = 0,
-			i, availableWidth, availableWidthPerColumn, roundedPixels;
+		var definedWidth = 0,
+			dynamicColumns = [],/*columns which the user didn't specifically defined width*/
+			iteration = 0,
+			i, remainingWidth, narrowestColumns, differenceFromNextNarrowestColumn;
 
 		for(i=0; i < this.columns.length; i++) {
 			this.calculateColumnHeaderContentWidth(this.columns[i]);
@@ -319,34 +344,48 @@
 			this.columns[i]._width = this.columns[i].width || 0;
 			this.columns[i]._minWidth = this.columns[i].minWidth || 0;
 
-			if(this.columns[i]._width) {
-				// user has set an initial width but let's make sure it's not smaller than the allowed minimum
-				this.columns[i]._width = Math.max(this.columns[i]._width, this.columns[i]._minWidth, this.columns[i].contentWidth, this.minColumnWidth);
+			if(!this.columns[i]._width) { //user hasn't set an initial width
+				dynamicColumns.push(this.columns[i]);
+			}
 
-				userDefinedWidth += this.columns[i]._width;
-			}
-			else {
-				numColumnsNotDefined++;
-			}
+			//any column should not be narrower than its allowed minimum
+			this.columns[i]._width = Math.max(this.columns[i]._width, this.columns[i]._minWidth, this.columns[i].contentWidth, this.minColumnWidth);
+
+			definedWidth += this.columns[i]._width;
 		}
 
-		availableWidth = this.dataWrapperElm.clientWidth - userDefinedWidth;
-		availableWidthPerColumn = 0;
-		if(numColumnsNotDefined > 0) {
-			availableWidthPerColumn = Math.floor(availableWidth / numColumnsNotDefined);
-		}
-		roundedPixels = availableWidth % numColumnsNotDefined;
+		/**
+		 * this part is tricky - we loop over the columns and stretch the narrowest column(s) to be as wide as the next narrowest column
+		 * and then again and again until we fill the whole grid's width.
+		 * in this way we allow dynamic columns with bigger minWidth to stay wider than other columns if the grid is too small
+		 * and when the grid is larger the columns will even out.
+		 */
+		if(dynamicColumns.length > 0) {
+			remainingWidth = this.dataWrapperElm.clientWidth - definedWidth;
 
-		for(i=0; i < this.columns.length; i++) {
-			if(!this.columns[i]._width) { // user didn't set any initial width so let's choose the largest minimum or fill the empty space of the wrapper if there is any
-				this.columns[i]._width = Math.max(this.columns[i]._minWidth, this.minColumnWidth, availableWidthPerColumn);
+			if(remainingWidth > 0) {
+				while(remainingWidth > 0 && iteration++ < 50) {
+					narrowestColumns = getNarrowestColumns(dynamicColumns);
 
-				if(roundedPixels && this.columns[i]._width === availableWidthPerColumn) {
-					this.columns[i]._width += roundedPixels;
-					roundedPixels = 0; // add the missing pixels only once - to the first element
+					differenceFromNextNarrowestColumn = narrowestColumns.differenceFromNextNarrowestColumn;
+
+					if(differenceFromNextNarrowestColumn * narrowestColumns.columns.length > remainingWidth || differenceFromNextNarrowestColumn === 0) {
+						differenceFromNextNarrowestColumn = remainingWidth / narrowestColumns.columns.length;
+					}
+
+					for(i=0; i < narrowestColumns.columns.length; i++) {
+						narrowestColumns.columns[i]._width += differenceFromNextNarrowestColumn;
+						remainingWidth -= differenceFromNextNarrowestColumn;
+					}
+
+					if(remainingWidth < 1) {
+						remainingWidth = 0;
+					}
 				}
 			}
+		}
 
+		for(i=0; i < this.columns.length; i++) {
 			if(this.columns[i].fixed) {
 				this.totalDataWidthFixed += this.columns[i]._width;
 			} else {

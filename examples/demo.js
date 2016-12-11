@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 			type: 'row'
 		},
 		columns: window.columns,
-		minColumnWidth: 110,
+		minColumnWidth: 40,
 		resizableColumns: true,
 		trackBy: 'id',
 		onload: function(e) { // another way to add onLoad listener

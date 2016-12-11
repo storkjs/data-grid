@@ -205,27 +205,19 @@
       fromBottom: fromBottom
     });
   };
-  var getNarrowestColumns = function getNarrowestColumns(columns) {
-    var ret = {
-      columns: null,
-      differenceFromNextNarrowestColumn: 0
-    }, i;
-    for (i = 0; i < columns.length; i++) {
-      if (!ret.columns) {
-        ret.columns = [ columns[i] ];
-      } else if (ret.columns[0]._width > columns[i]._width) {
-        ret.differenceFromNextNarrowestColumn = ret.columns[0]._width - columns[i]._width;
-        ret.columns = [ columns[i] ];
-      } else if (ret && ret.columns[0]._width === columns[i]._width) {
-        ret.columns.push(columns[i]);
-      }
+  var compareNarrowest = function compareNarrowest(a, b) {
+    if (a._width < b._width) {
+      return -1;
     }
-    return ret;
+    if (a._width > b._width) {
+      return 1;
+    }
+    return 0;
   };
   StorkGrid.prototype.calculateColumnsWidths = function calculateColumnsWidths() {
     this.totalDataWidthLoose = 0;
     this.totalDataWidthFixed = 0;
-    var definedWidth = 0, dynamicColumns = [], iteration = 0, i, remainingWidth, narrowestColumns, differenceFromNextNarrowestColumn;
+    var definedWidth = 0, dynamicColumns = [], iteration = 0, remainingWidth, differenceFromNextColumn, i, k;
     for (i = 0; i < this.columns.length; i++) {
       this.calculateColumnHeaderContentWidth(this.columns[i]);
       this.columns[i]._width = this.columns[i].width || 0;
@@ -237,20 +229,24 @@
       definedWidth += this.columns[i]._width;
     }
     if (dynamicColumns.length > 0) {
+      dynamicColumns.sort(compareNarrowest);
       remainingWidth = this.dataWrapperElm.clientWidth - definedWidth;
       if (remainingWidth > 0) {
-        while (remainingWidth > 0 && iteration++ < 50) {
-          narrowestColumns = getNarrowestColumns(dynamicColumns);
-          differenceFromNextNarrowestColumn = narrowestColumns.differenceFromNextNarrowestColumn;
-          if (differenceFromNextNarrowestColumn * narrowestColumns.columns.length > remainingWidth || differenceFromNextNarrowestColumn === 0) {
-            differenceFromNextNarrowestColumn = remainingWidth / narrowestColumns.columns.length;
+        for (i = 0; i < dynamicColumns.length - 1; i++) {
+          if (dynamicColumns[i]._width < dynamicColumns[i + 1]._width) {
+            differenceFromNextColumn = dynamicColumns[i + 1]._width - dynamicColumns[i]._width;
+            differenceFromNextColumn = Math.min(differenceFromNextColumn, remainingWidth / (i + 1));
+            for (k = 0; k <= i; k++) {
+              dynamicColumns[k]._width += differenceFromNextColumn;
+              remainingWidth -= differenceFromNextColumn;
+            }
           }
-          for (i = 0; i < narrowestColumns.columns.length; i++) {
-            narrowestColumns.columns[i]._width += differenceFromNextNarrowestColumn;
-            remainingWidth -= differenceFromNextNarrowestColumn;
-          }
-          if (remainingWidth < 1) {
-            remainingWidth = 0;
+        }
+        if (remainingWidth > 0) {
+          differenceFromNextColumn = remainingWidth / dynamicColumns.length;
+          for (i = 0; i < dynamicColumns.length; i++) {
+            dynamicColumns[i]._width += differenceFromNextColumn;
+            remainingWidth -= differenceFromNextColumn;
           }
         }
       }

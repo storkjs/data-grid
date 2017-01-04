@@ -956,6 +956,8 @@
     tableObj.dataBlockIndex = dataBlockIndex;
   };
   StorkGrid.prototype.defaultRender = function defaultRender(tdDiv, dataValue) {
+    tdDiv.parentNode.classList.toggle("true", dataValue === true);
+    tdDiv.parentNode.classList.toggle("false", dataValue === false);
     if (typeof dataValue !== "string" && typeof dataValue !== "number") {
       dataValue = "";
     }

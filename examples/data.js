@@ -1,5 +1,5 @@
 window.bigData = [];
-window.columnNames = ['id', 'country','city','animal','plant','inanimate','boy','girl','random_float','random_integer'];
+window.columnNames = ['id', 'country','city','animal','plant','inanimate','isok','kidName','random_float','random_integer'];
 
 var i,
 	countries = ['this country takes like three lines','Israel','USA','Germany','France','Pitcairn'],
@@ -7,8 +7,8 @@ var i,
 	animals = ['Monkey','Ape','Dog','Cat','Mouse','Rat','Pangolin'],
 	plants = ['Rose','Daisy','Tulip'],
 	inanimates = ['stone','pen','table','sand','roof','metal','can','thread','board','dust'],
-	boy = ['Noam','Michael'],
-	girl = ['Naama','Mikaela','Judy'],
+	isok = [true, false],
+	kidName = ['Noam','Michael','Naama','Mikaela','Judy'],
 	allData = [],
 	tmp;
 for(i=0; i < 10000; i++) {
@@ -19,8 +19,8 @@ for(i=0; i < 10000; i++) {
 	tmp[ window.columnNames[3] ] = animals[ i % animals.length ];
 	tmp[ window.columnNames[4] ] = plants[ i % plants.length ];
 	tmp[ window.columnNames[5] ] = inanimates[ i % inanimates.length ];
-	tmp[ window.columnNames[6] ] = boy[ i % boy.length ];
-	tmp[ window.columnNames[7] ] = girl[ i % girl.length ];
+	tmp[ window.columnNames[6] ] = isok[ i % isok.length ];
+	tmp[ window.columnNames[7] ] = kidName[ i % kidName.length ];
 	tmp[ window.columnNames[8] ] = Math.ceil(Math.random() * 999999) / 100;
 	tmp[ window.columnNames[9] ] = Math.ceil(Math.random() * 99);
 	allData.push(tmp);

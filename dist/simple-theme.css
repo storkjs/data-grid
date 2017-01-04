@@ -78,6 +78,12 @@
 .stork-grid div.data-wrapper > div.data table tbody > tr > td.descending {
   background-color: rgba(0, 180, 255, 0.07);
 }
+.stork-grid div.data-wrapper > div.data table tbody > tr > td.true::after {
+  content: '\2714';
+}
+.stork-grid div.data-wrapper > div.data table tbody > tr > td.false::after {
+  content: '\00d7';
+}
 .stork-grid div.data-wrapper > div.data table.loose tbody > tr > td:last-child {
   border-right-width: 0;
 }

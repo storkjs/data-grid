@@ -95,6 +95,13 @@
 						&.ascending, &.descending {
 							background-color: rgba(0,180,255,0.07);
 						}
+
+						&.true::after {
+							content: '\2714';
+						}
+						&.false::after {
+							content: '\00d7';
+						}
 					}
 				}
 

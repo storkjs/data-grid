@@ -1419,6 +1419,10 @@
 	 * @param dataValue
 	 */
 	StorkGrid.prototype.defaultRender = function defaultRender(tdDiv, dataValue) {
+		//handle class for booleans
+		tdDiv.parentNode.classList.toggle('true', dataValue === true);
+		tdDiv.parentNode.classList.toggle('false', dataValue === false);
+
 		//validate data value
 		if(typeof dataValue !== 'string' && typeof dataValue !== 'number') {
 			dataValue = '';

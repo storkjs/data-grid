@@ -303,7 +303,7 @@
     this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "wheel", this.onDataWheelScroll.bind(this), false);
-    this._addEventListener(this.dataWrapperElm, "keydown", this.onDataKeyboardNavigate.bind(this), false);
+    this._addEventListener(this.grid, "keydown", this.onDataKeyboardNavigate.bind(this), false);
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "scroll", this.onDataScroll.bind(this), false);
     this._addEventListener(document, "click", this._onClickCheckFocus.bind(this), true);

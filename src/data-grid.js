@@ -459,7 +459,7 @@
 		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
 		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
 		this._addEventListener(this.dataWrapperElm, 'wheel', this.onDataWheelScroll.bind(this), false); // on horizontal wheel scroll
-		this._addEventListener(this.dataWrapperElm, 'keydown', this.onDataKeyboardNavigate.bind(this), false); // on horizontal keyboard scroll
+		this._addEventListener(this.grid, 'keydown', this.onDataKeyboardNavigate.bind(this), false); // on horizontal keyboard scroll
 		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
 		this._addEventListener(this.dataWrapperElm, 'scroll', this.onDataScroll.bind(this), false); // on scroll
 		this._addEventListener(document, 'click', this._onClickCheckFocus.bind(this), true); // document check if we are focused on the grid

@@ -103,6 +103,10 @@
       this.makeColumnsResizable();
     }
     this.setEventListeners();
+    if (!this.grid.stork) {
+      this.grid.stork = {};
+    }
+    this.grid.stork.grid = this;
     var evnt = new CustomEvent("grid-loaded", {
       bubbles: true,
       cancelable: true,
@@ -1142,6 +1146,7 @@
       this.grid.removeChild(this.grid.firstChild);
     }
     this.grid.classList.remove("stork-grid", "stork-grid" + this.rnd);
+    delete this.grid.stork.grid;
     delete this.grid;
     delete this.data;
     delete this.rowHeight;

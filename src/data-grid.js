@@ -153,6 +153,12 @@
 		/** Events */
 		this.setEventListeners();
 
+		/** hold the instance on the dom element in order to make it always accessible */
+		if(!this.grid.stork) {
+			this.grid.stork = {};
+		}
+		this.grid.stork.grid = this;
+
 		/** grid finished loading its data and DOM */
 		var evnt = new CustomEvent('grid-loaded', { bubbles: true, cancelable: true, detail: {gridObj: this} });
 		if(this.onload) {
@@ -1692,6 +1698,7 @@
 
 		// remove properties
 		this.grid.classList.remove('stork-grid', 'stork-grid'+this.rnd);
+		delete this.grid.stork.grid;
 		delete this.grid;
 		delete this.data;
 		delete this.rowHeight;

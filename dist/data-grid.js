@@ -180,7 +180,7 @@
   StorkGrid.prototype.removeEventListener = function customRemoveEventListener(type, listener, options_or_useCapture) {
     this.grid.removeEventListener(type, listener, options_or_useCapture);
     for (var i = 0; i < this.eventListeners.length; i++) {
-      if (this.eventListeners[i].element === this.grid && this.eventListeners[i].type === type && this.eventListeners[i].listener === listener) {
+      if (this.eventListeners[i] && this.eventListeners[i].element === this.grid && this.eventListeners[i].type === type && this.eventListeners[i].listener === listener) {
         this.eventListeners[i] = null;
       }
     }
@@ -407,7 +407,7 @@
           }
         }
       } else {
-        console.warn("Invalid column given to add/remove columnClass");
+        console.warn("Invalid column given to add/remove columnClass. field: " + field + ", className: " + className);
       }
     };
   };
@@ -943,7 +943,7 @@
           dataValue = this.data[dataIndex][dataKeyName];
           tdDiv = rowObj.tds[i].firstChild;
           if (this.columns[i].render) {
-            this.columns[i].render(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
+            this.columns[i].render.bind(this)(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
           } else {
             this.defaultRender(tdDiv, dataValue);
           }

@@ -57,6 +57,7 @@ _columns_ [optional]: an Array of Objects. Each item in the array is an object t
 - _width_: a user defined width for the column.
 - _minWidth_: a user defined minimum width for when the client resizes the column.
 - _fixed_: whether this column is fixed to the left and will not be moved when scrolling horizontally.
+- _sortable_: if false than clicking the column will do nothing (becomes unsortable) and also adds a class to indicate this.
 - _render(tdDiv, value, dataIndex, rowData)_: special function that will render the data inside the TD instead of the default renderer. This function lets you decide how to print the data (instead of just printing it as plain text), even put html inside.
 Example:
 ```javascript

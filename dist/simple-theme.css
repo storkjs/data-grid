@@ -42,6 +42,9 @@
 .stork-grid div.header-wrapper div.header > table.columns tr th.descending span::after {
   content: " ↑";
 }
+.stork-grid div.header-wrapper div.header > table.columns tr th.unsortable {
+  cursor: default;
+}
 .stork-grid div.header-wrapper div.header > table.columns.loose tr th:last-child {
   border-right-width: 0;
 }

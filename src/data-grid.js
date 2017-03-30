@@ -546,11 +546,15 @@
 		for(i=0; i < this.columns.length; i++) {
 			th = document.createElement('th');
 			th.classList.add(this.columns[i].field);
+			if (this.columns[i].sortable === false) {
+				th.classList.add('unsortable');
+			}
 			thSpan = document.createElement('span');
 			thSpan.appendChild(document.createTextNode(this.columns[i].label));
 			th.appendChild(thSpan);
 			th.storkGridProps = {
-				column: this.columns[i].field
+				column: this.columns[i].field,
+				sortable: this.columns[i].sortable
 			};
 			this.headerTable.ths.push(th);
 
@@ -1361,14 +1365,16 @@
 			TH = TH.parentNode;
 		}
 
-		var evnt = new CustomEvent('column-click', {
-			bubbles: true,
-			cancelable: true,
-			detail: {
-				column: TH.storkGridProps.column
-			}
-		});
-		this.grid.dispatchEvent(evnt);
+		if (TH.storkGridProps.sortable !== false) {
+			var evnt = new CustomEvent('column-click', {
+				bubbles: true,
+				cancelable: true,
+				detail: {
+					column: TH.storkGridProps.column
+				}
+			});
+			this.grid.dispatchEvent(evnt);
+		}
 	};
 
 	/**

@@ -96,12 +96,12 @@
     this.grid.classList.add("stork-grid", "stork-grid" + this.rnd);
     this.grid.setAttribute("tabindex", 0);
     this.makeHeaderTable();
-    this.initDataView();
-    this.updateViewData(0, 0);
-    this.updateViewData(1, 1);
     if (this.resizableColumns) {
       this.makeColumnsResizable();
     }
+    this.initDataView();
+    this.updateViewData(0, 0);
+    this.updateViewData(1, 1);
     this.setEventListeners();
     if (!this.grid.stork) {
       this.grid.stork = {};
@@ -132,7 +132,8 @@
             width: 0,
             minWidth: 0,
             fixed: false,
-            render: null
+            render: null,
+            sortable: true
           });
         }
       }

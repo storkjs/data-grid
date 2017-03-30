@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 	document.getElementById('grid').addEventListener('grid-loaded', function(e) {
 		e.detail.gridObj.scrollY += 500;
 	}, { capture: false });
-	
+
 	testGrid = new StorkGrid({
 		debug: true,
 		element: document.getElementById('grid'),
@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		},
 		asyncLoading: true
 	});
-	
+
 	testGrid.addEventListener('data-click', function(e) {
 		console.log('cell/row click: ', e.detail);
 	}, false);
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 	testGrid.addEventListener('enter-select', function(e) {
 		console.log('enter select: ', e.detail);
 	}, false);
-	
+
 	testGrid.addScrollEvent('almostHitBottom', 100); // when to emit
 	testGrid.addEventListener('almostHitBottom', function(e) {
 		var dataLength = testGrid.data.length;
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 			testGrid.refresh();
 		}
 	}, false);
-	
+
 	var forceRefresh = false;
 	var loadedDataTO;
 	testGrid.addScrollEvent('almostHitTop', 100, false); // when to emit
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 			clearTimeout(loadedDataTO);
 			loadedDataTO = setTimeout(function() { forceRefresh = false; }, 500);
 		}
-		
+
 		// will keep refreshing the view on each scroll up, for 500ms since last successful 'loadBulk'.
 		// this solves a bug when user drags the scrollbar up and the browser keeps emitting 'scrollTop=0'
 		if(forceRefresh) {
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		}
 	};
 	testGrid.addEventListener('almostHitTop', almostHitTop, false);
-	
+
 	var sortState = {
 		prevColumn: '',
 		prevState: null,
@@ -95,9 +95,9 @@ document.addEventListener("DOMContentLoaded", function(e) {
 	testGrid.addEventListener('column-click', function(e) {
 		sortState.prevColumn = sortState.column;
 		sortState.prevState = sortState.state;
-		
+
 		sortState.column = e.detail.column;
-		
+
 		if(sortState.column !== sortState.prevColumn) {
 			sortState.state = 'ascending';
 		}
@@ -113,18 +113,18 @@ document.addEventListener("DOMContentLoaded", function(e) {
 					sortState.state = null
 			}
 		}
-		
+
 		if(sortState.prevState !== null) { testGrid.removeColumnClass(sortState.prevColumn, sortState.prevState, true); }
 		if(sortState.state !== null) { testGrid.addColumnClass(sortState.column, sortState.state, true); }
-		
+
 		testGrid.data.sort(sortColumn(sortState.column, sortState.state));
 		testGrid.refresh();
 	}, false);
-	
+
 	testGrid.addEventListener('resize-column', function(e) {
 		console.log(e.detail);
 	}, false);
-	
+
 	window.addEventListener('resize', function() {
 		testGrid.resize();
 	});

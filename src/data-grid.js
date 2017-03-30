@@ -138,17 +138,17 @@
 		/** init HEADER table */
 		this.makeHeaderTable();
 
+		/** add column resizing buttons */
+		if(this.resizableColumns) {
+			this.makeColumnsResizable();
+		}
+
 		/** handle data rows blocks */
 		this.initDataView(); //will call 'resize()' which triggers quazillion functions
 
 		/** insert data into the data-tables */
 		this.updateViewData(0, 0);
 		this.updateViewData(1, 1);
-
-		/** add column resizing buttons */
-		if(this.resizableColumns) {
-			this.makeColumnsResizable();
-		}
 
 		/** Events */
 		this.setEventListeners();
@@ -179,7 +179,7 @@
 					columnName = key.replace(/[-_]/, ' ');
 					// capitalize first letter of each word
 					columnName = capitalizeWords(columnName);
-					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null });
+					this.columns.push({ field: key, label: columnName, width: 0, minWidth: 0, fixed: false, render: null, sortable: true });
 				}
 			}
 		}

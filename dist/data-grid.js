@@ -90,6 +90,7 @@
     this.dataViewWidth = 0;
     this.dataTableHeight = 0;
     this.numDataRowsInTable = 0;
+    this.disableOnFocus = false;
   };
   StorkGrid.prototype.bootstrap = function bootstrap() {
     this.initColumnsObject();
@@ -307,6 +308,7 @@
     this._addEventListener(this.headerTable.container, "click", this.onHeaderClick.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "click", this.onDataClick.bind(this), false);
     this._addEventListener(this.dataWrapperElm, "mousedown", this.onDataSelect.bind(this), false);
+    this._addEventListener(this.grid, "focus", this.onGridFocus.bind(this).bind(this), false);
     this._addEventListener(this.dataWrapperElm, "wheel", this.onDataWheelScroll.bind(this), false);
     this._addEventListener(this.grid, "keydown", this.onDataKeyboardNavigate.bind(this), false);
     this._addEventListener(this.grid, "keydown", this._onKeyboardNavigate.bind(this), false);
@@ -424,7 +426,6 @@
       this.dataWrapperElm.classList.add("data-wrapper");
       this.dataElm = document.createElement("div");
       this.dataElm.classList.add("data");
-      this.dataElm.setAttribute("tabindex", 0);
       this.dataWrapperElm.appendChild(this.dataElm);
       this.grid.appendChild(this.dataWrapperElm);
     }
@@ -711,24 +712,23 @@
           if (this.clickedItem && this.clickedItem.dataIndex === dataIndex) {
             this.clickedItem = null;
             this.hoveredRowElm = null;
+            this.disableOnFocus = true;
           } else {
             this.selectedItems.set(trackByData, [ selectedCellColumn ]);
-            this.clickedItem = {
-              dataIndex: dataIndex,
-              data: this.data[dataIndex],
-              column: selectedCellColumn
-            };
+            this._setClickedItem(dataIndex, selectedCellColumn);
             this.hoveredRowElm = TR;
-            var self = this;
-            var eventIndexes = {
-              mouse_move: null,
-              mouse_up: null
-            };
-            eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataSelectMove.bind(this), false);
-            eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
-              self._removeEventListener(eventIndexes.mouse_move);
-              self._removeEventListener(eventIndexes.mouse_up);
-            }, false);
+            if (!e.skipSelectMove) {
+              var self = this;
+              var eventIndexes = {
+                mouse_move: null,
+                mouse_up: null
+              };
+              eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, "mousemove", this.onDataSelectMove.bind(this), false);
+              eventIndexes.mouse_up = this._addEventListener(document, "mouseup", function() {
+                self._removeEventListener(eventIndexes.mouse_move);
+                self._removeEventListener(eventIndexes.mouse_up);
+              }, false);
+            }
           }
           this.renderSelectOnRows();
         } else {
@@ -739,33 +739,31 @@
             if (this.selection.type === "row") {
               this.selectedItems.delete(trackByData);
               this.clickedItem = null;
+              this.disableOnFocus = true;
             } else {
               selectedItem = this.selectedItems.get(trackByData);
               var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
               if (indexOfColumn === -1) {
                 selectedItem.push(selectedCellColumn);
-                this.clickedItem = {
-                  dataIndex: dataIndex,
-                  column: selectedCellColumn
-                };
+                this._setClickedItem(dataIndex, selectedCellColumn);
               } else {
                 selectedItem.splice(indexOfColumn, 1);
                 if (selectedItem.length === 0) {
                   this.selectedItems.delete(trackByData);
                 }
                 this.clickedItem = null;
+                this.disableOnFocus = true;
               }
             }
           } else {
             this.selectedItems.set(trackByData, [ selectedCellColumn ]);
-            this.clickedItem = {
-              dataIndex: dataIndex,
-              data: this.data[dataIndex],
-              column: selectedCellColumn
-            };
+            this._setClickedItem(dataIndex, selectedCellColumn);
           }
           this.renderSelectOnRows();
         }
+        setTimeout(function() {
+          this.disableOnFocus = false;
+        }.bind(this), 150);
       } else {
         eventName = "dblselect";
       }
@@ -784,6 +782,9 @@
   };
   StorkGrid.prototype.onDataSelectMove = function onDataSelectMove(e) {
     var TD = e.target, i = 0, dataIndex, TR, trackByData;
+    if (!this.clickedItem) {
+      return;
+    }
     while (TD.tagName.toUpperCase() !== "TD") {
       if (i++ >= 2) {
         return;
@@ -1138,6 +1139,29 @@
       }
     }
   };
+  StorkGrid.prototype.onGridFocus = function onGridFocus(e) {
+    setTimeout(function() {
+      if (!this.clickedItem && !this.disableOnFocus) {
+        var dataIndex = Math.floor(this.scrollY / this.rowHeight), i, j, tr, td;
+        loop1: for (i = 0; i < this.dataTables.length; i++) {
+          for (j = 0; j < this.dataTables[i].rows.length; j++) {
+            tr = this.dataTables[i].rows[j].row;
+            if (dataIndex === tr.storkGridProps.dataIndex) {
+              td = tr.querySelector("td");
+              this.onDataSelect({
+                button: 0,
+                target: td,
+                skipSelectMove: true
+              });
+              var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+              this.scrollY = clickedItemY;
+              break loop1;
+            }
+          }
+        }
+      }
+    }.bind(this), 1);
+  };
   StorkGrid.prototype.destroy = function destroy() {
     var rows = this.grid.querySelectorAll("tr");
     var cells = this.grid.querySelectorAll("th, td");
@@ -1261,6 +1285,16 @@
       this.renderSelectOnRows();
       this._dispatchSelectEvent("select", this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
     }
+  };
+  StorkGrid.prototype._setClickedItem = function _setClickedItem(dataIndex, selectedCellColumn) {
+    if (!selectedCellColumn && this.clickedItem && this.clickedItem.column) {
+      selectedCellColumn = this.clickedItem.column;
+    }
+    this.clickedItem = {
+      dataIndex: dataIndex,
+      data: this.data[dataIndex],
+      column: selectedCellColumn
+    };
   };
   root.StorkGrid = StorkGrid;
 })(window);

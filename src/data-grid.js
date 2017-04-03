@@ -121,6 +121,8 @@
 		this.dataViewWidth = 0;
 		this.dataTableHeight = 0;
 		this.numDataRowsInTable = 0;
+
+		this.disableOnFocus = false;
 	};
 
 	/**
@@ -465,6 +467,7 @@
 		this._addEventListener(this.headerTable.container, 'click', this.onHeaderClick.bind(this), false); // on click on header
 		this._addEventListener(this.dataWrapperElm, 'click', this.onDataClick.bind(this), false); // on click on data rows
 		this._addEventListener(this.dataWrapperElm, 'mousedown', this.onDataSelect.bind(this), false); // on start selecting on data rows
+		this._addEventListener(this.grid, 'focus', this.onGridFocus.bind(this).bind(this), false); // on focus data rows via keyboard
 		this._addEventListener(this.dataWrapperElm, 'wheel', this.onDataWheelScroll.bind(this), false); // on horizontal wheel scroll
 		this._addEventListener(this.grid, 'keydown', this.onDataKeyboardNavigate.bind(this), false); // on horizontal keyboard scroll
 		this._addEventListener(this.grid, 'keydown', this._onKeyboardNavigate.bind(this), false); // on arrows up/down
@@ -641,7 +644,6 @@
 
 			this.dataElm = document.createElement('div');
 			this.dataElm.classList.add('data');
-			this.dataElm.setAttribute('tabindex', 0);
 
 			this.dataWrapperElm.appendChild(this.dataElm);
 			this.grid.appendChild(this.dataWrapperElm);
@@ -1067,19 +1069,22 @@
 					if(this.clickedItem && this.clickedItem.dataIndex === dataIndex) { // only way to deselect
 						this.clickedItem = null;
 						this.hoveredRowElm = null;
+						this.disableOnFocus = true; //an onFocus will be triggered in 1ms
 					}
 					else {
 						this.selectedItems.set(trackByData, [selectedCellColumn]); // add current row to selection range
-						this.clickedItem = { dataIndex: dataIndex, data: this.data[dataIndex], column: selectedCellColumn }; // save currently clicked row
+						this._setClickedItem(dataIndex, selectedCellColumn); // save currently clicked row
 						this.hoveredRowElm = TR;
 
-						var self = this;
-						var eventIndexes = { mouse_move: null, mouse_up: null };
-						eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataSelectMove.bind(this), false);
-						eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
-							self._removeEventListener(eventIndexes.mouse_move);
-							self._removeEventListener(eventIndexes.mouse_up);
-						}, false);
+						if (!e.skipSelectMove) {
+							var self = this;
+							var eventIndexes = { mouse_move: null, mouse_up: null };
+							eventIndexes.mouse_move = this._addEventListener(this.dataWrapperElm, 'mousemove', this.onDataSelectMove.bind(this), false);
+							eventIndexes.mouse_up = this._addEventListener(document, 'mouseup', function() {
+								self._removeEventListener(eventIndexes.mouse_move);
+								self._removeEventListener(eventIndexes.mouse_up);
+							}, false);
+						}
 					}
 
 					this.renderSelectOnRows();
@@ -1096,6 +1101,7 @@
 						if(this.selection.type === 'row') { // whole rows
 							this.selectedItems.delete(trackByData); // unselect row
 							this.clickedItem = null;
+							this.disableOnFocus = true; //an onFocus will be triggered in 1ms
 						}
 						else { // individual cells
 							selectedItem = this.selectedItems.get(trackByData);
@@ -1103,7 +1109,7 @@
 							var indexOfColumn = selectedItem.indexOf(selectedCellColumn);
 							if(indexOfColumn === -1) { // clicked on a cell not chosen before in this row
 								selectedItem.push(selectedCellColumn);
-								this.clickedItem = { dataIndex: dataIndex, column: selectedCellColumn };
+								this._setClickedItem(dataIndex, selectedCellColumn);
 							}
 							else { // clicked on an already selected cell so let's remove it
 								selectedItem.splice(indexOfColumn, 1); // unselect cell
@@ -1113,16 +1119,23 @@
 								}
 
 								this.clickedItem = null;
+								this.disableOnFocus = true; //an onFocus will be triggered in 1ms
 							}
 						}
 					}
 					else {
 						this.selectedItems.set(trackByData, [selectedCellColumn]);
-						this.clickedItem = { dataIndex: dataIndex, data: this.data[dataIndex], column: selectedCellColumn };
+						this._setClickedItem(dataIndex, selectedCellColumn);
 					}
 
 					this.renderSelectOnRows();
 				}
+
+				setTimeout(function() {
+					//for any mouse click we disable the following onFocus,
+					//because onFocus is for keyboard only
+					this.disableOnFocus = false;
+				}.bind(this), 150);
 			}
 			else { // it's a double click
 				eventName = 'dblselect';
@@ -1153,6 +1166,10 @@
 		var TD = e.target,
 			i = 0,
 			dataIndex, TR, trackByData;
+
+		if (!this.clickedItem) { //in case were blurred out of the browser in re-focused
+			return;
+		}
 
 		while (TD.tagName.toUpperCase() !== 'TD') {
 			if (i++ >= 2) {
@@ -1681,6 +1698,35 @@
 	};
 
 	/**
+	 * when focusing on the grid decide if a row should be selected so the user can use the arrows to scroll
+	 * @param e
+	 */
+	StorkGrid.prototype.onGridFocus = function onGridFocus(e) {
+		setTimeout(function() { //let mouse clicks run first
+			if (!this.clickedItem && !this.disableOnFocus) {
+				var dataIndex = Math.floor(this.scrollY / this.rowHeight),
+					i, j, tr, td;
+
+				loop1: for(i=0; i < this.dataTables.length; i++) {
+					for(j=0; j < this.dataTables[i].rows.length; j++) {
+						tr = this.dataTables[i].rows[j].row;
+
+						if(dataIndex === tr.storkGridProps.dataIndex) {
+							td = tr.querySelector('td');
+							this.onDataSelect({button: 0, target: td, skipSelectMove: true});
+
+							var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+							this.scrollY = clickedItemY;
+
+							break loop1;
+						}
+					}
+				}
+			}
+		}.bind(this), 1);
+	};
+
+	/**
 	 * completely destroy the grid - its DOM elements, methods and data
 	 */
 	StorkGrid.prototype.destroy = function destroy() {
@@ -1846,6 +1892,20 @@
 
 			this._dispatchSelectEvent('select', this.clickedItem.dataIndex, this.clickedItem.column, trackByData);
 		}
+	};
+
+	/**
+	 * sets the clicked item.
+	 * DON'T forget to use 'renderSelectOnRows()' after using this method
+	 * @param dataIndex
+	 * @param [selectedCellColumn]
+	 * @private
+	 */
+	StorkGrid.prototype._setClickedItem = function _setClickedItem(dataIndex, selectedCellColumn) {
+		if (!selectedCellColumn && this.clickedItem && this.clickedItem.column) {
+			selectedCellColumn = this.clickedItem.column;
+		}
+		this.clickedItem = { dataIndex: dataIndex, data: this.data[dataIndex], column: selectedCellColumn };
 	};
 
 	root.StorkGrid = StorkGrid;

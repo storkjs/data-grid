@@ -1,6 +1,6 @@
 {
-  "name": "storkjs-datagrid",
-  "version": "1.0.0",
+  "name": "stork-grid",
+  "version": "1.11.1",
   "description": "worlds most efficient and smooth big data grid",
   "license": "MIT",
   "author": {

@@ -936,7 +936,7 @@
     }
   };
   StorkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
-    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, tdDiv, dataValue;
+    var tableObj, firstBlockRow, lastBlockRow, row, rowObj, dataKeyName, dataIndex, i, tdDiv, dataValue, dataDisplayValue;
     tableObj = this.dataTables[tableIndex];
     firstBlockRow = dataBlockIndex * this.numDataRowsInTable;
     lastBlockRow = (dataBlockIndex + 1) * this.numDataRowsInTable - 1;
@@ -950,8 +950,14 @@
           dataKeyName = this.columns[i].field;
           dataValue = this.data[dataIndex][dataKeyName];
           tdDiv = rowObj.tds[i].firstChild;
+          dataDisplayValue = null;
+          if (this.data[dataIndex].hasOwnProperty(dataKeyName + "_displayValue")) {
+            dataDisplayValue = this.data[dataIndex][dataKeyName + "_displayValue"];
+          }
           if (this.columns[i].render) {
             this.columns[i].render.bind(this)(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
+          } else if (dataDisplayValue !== null) {
+            this.defaultRender(tdDiv, dataDisplayValue);
           } else {
             this.defaultRender(tdDiv, dataValue);
           }

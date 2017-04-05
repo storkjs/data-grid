@@ -1401,7 +1401,7 @@
 	 */
 	StorkGrid.prototype.updateViewData = function updateViewData(tableIndex, dataBlockIndex) {
 		var tableObj, firstBlockRow, lastBlockRow, row, rowObj,
-			dataKeyName, dataIndex, i, tdDiv, dataValue;
+			dataKeyName, dataIndex, i, tdDiv, dataValue, dataDisplayValue;
 
 		tableObj = this.dataTables[tableIndex];
 
@@ -1422,8 +1422,18 @@
 					dataValue = this.data[dataIndex][dataKeyName];
 					tdDiv = rowObj.tds[i].firstChild;
 
+					//special value just for the printing in the view.
+					//sorting etc will still work on the original value
+					dataDisplayValue = null;
+					if (this.data[dataIndex].hasOwnProperty(dataKeyName + '_displayValue')) {
+						dataDisplayValue = this.data[dataIndex][dataKeyName + '_displayValue'];
+					}
+
 					if(this.columns[i].render) { // user's custom renderer
 						this.columns[i].render.bind(this)(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
+					}
+					else if (dataDisplayValue !== null) {
+						this.defaultRender(tdDiv, dataDisplayValue);
 					}
 					else { // default rendering of data
 						this.defaultRender(tdDiv, dataValue);

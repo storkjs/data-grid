@@ -1707,18 +1707,20 @@
 				var dataIndex = Math.floor(this.scrollY / this.rowHeight),
 					i, j, tr, td;
 
-				loop1: for(i=0; i < this.dataTables.length; i++) {
-					for(j=0; j < this.dataTables[i].rows.length; j++) {
-						tr = this.dataTables[i].rows[j].row;
+				if(dataIndex >= 0 && dataIndex < this.data.length && dataIndex <= Number.MAX_SAFE_INTEGER/*ES6*/) {
+					loop1: for (i = 0; i < this.dataTables.length; i++) {
+						for (j = 0; j < this.dataTables[i].rows.length; j++) {
+							tr = this.dataTables[i].rows[j].row;
 
-						if(dataIndex === tr.storkGridProps.dataIndex) {
-							td = tr.querySelector('td');
-							this.onDataSelect({button: 0, target: td, skipSelectMove: true});
+							if (dataIndex === tr.storkGridProps.dataIndex) {
+								td = tr.querySelector('td');
+								this.onDataSelect({button: 0, target: td, skipSelectMove: true});
 
-							var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
-							this.scrollY = clickedItemY;
+								var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+								this.scrollY = clickedItemY;
 
-							break loop1;
+								break loop1;
+							}
 						}
 					}
 				}

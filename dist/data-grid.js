@@ -948,16 +948,13 @@
         this._toggleSelectedClasses(dataIndex, rowObj);
         for (i = 0; i < this.columns.length; i++) {
           dataKeyName = this.columns[i].field;
-          dataValue = this.data[dataIndex][dataKeyName];
           tdDiv = rowObj.tds[i].firstChild;
-          dataDisplayValue = null;
+          dataValue = this.data[dataIndex][dataKeyName];
           if (this.data[dataIndex].hasOwnProperty(dataKeyName + "_displayValue")) {
-            dataDisplayValue = this.data[dataIndex][dataKeyName + "_displayValue"];
+            dataValue = this.data[dataIndex][dataKeyName + "_displayValue"];
           }
           if (this.columns[i].render) {
             this.columns[i].render.bind(this)(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
-          } else if (dataDisplayValue !== null) {
-            this.defaultRender(tdDiv, dataDisplayValue);
           } else {
             this.defaultRender(tdDiv, dataValue);
           }

@@ -1419,21 +1419,17 @@
 
 				for (i = 0; i < this.columns.length; i++) {
 					dataKeyName = this.columns[i].field;
-					dataValue = this.data[dataIndex][dataKeyName];
 					tdDiv = rowObj.tds[i].firstChild;
+					dataValue = this.data[dataIndex][dataKeyName];
 
 					//special value just for the printing in the view.
 					//sorting etc will still work on the original value
-					dataDisplayValue = null;
 					if (this.data[dataIndex].hasOwnProperty(dataKeyName + '_displayValue')) {
-						dataDisplayValue = this.data[dataIndex][dataKeyName + '_displayValue'];
+						dataValue = this.data[dataIndex][dataKeyName + '_displayValue'];
 					}
 
 					if(this.columns[i].render) { // user's custom renderer
 						this.columns[i].render.bind(this)(tdDiv, dataValue, dataIndex, this.data[dataIndex]);
-					}
-					else if (dataDisplayValue !== null) {
-						this.defaultRender(tdDiv, dataDisplayValue);
 					}
 					else { // default rendering of data
 						this.defaultRender(tdDiv, dataValue);

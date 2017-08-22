@@ -1722,8 +1722,10 @@
 								td = tr.querySelector('td');
 								this.onDataSelect({button: 0, target: td, skipSelectMove: true});
 
-								var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
-								this.scrollY = clickedItemY;
+								if (this.clickedItem) {
+									var clickedItemY = this.clickedItem.dataIndex * this.rowHeight;
+									this.scrollY = clickedItemY;
+								}
 
 								break loop1;
 							}

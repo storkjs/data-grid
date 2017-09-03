@@ -1529,6 +1529,19 @@
 			td = document.createElement('td');
 			td.classList.add(this.columns[i].field);
 
+			if(this.columns[i].fixed) {
+				trFixed.appendChild(td);
+			}
+			else {
+				tr.appendChild(td);
+			}
+
+			if (this.columns[i].resizable === false) {
+				//user chose to disable resizing for this specific column so we keep
+				//the TDs but don't put the draggable A
+				continue;
+			}
+
 			resizer = document.createElement('a');
 			resizer.setAttribute('draggable', 'true');
 			resizer.storkGridProps = {
@@ -1539,12 +1552,6 @@
 			this.setResizeByDragging(resizer);
 
 			td.appendChild(resizer);
-			if(this.columns[i].fixed) {
-				trFixed.appendChild(td);
-			}
-			else {
-				tr.appendChild(td);
-			}
 		}
 	};
 

@@ -21,10 +21,10 @@
 		};
 
 		window.columns = [
-			{ field: 'id', label: 'ID', width: 70, fixed: true },
+			{ field: 'id', label: 'ID', width: 70, fixed: true, resizable: false },
 			{ field: 'country', label: 'Country', width: 110, minWidth: 70 },
 			{ field: 'city', label: 'City', width: 115, minWidth: 75, fixed: true },
-			{ field: 'animal', label: 'Animal', width: 110 },
+			{ field: 'animal', label: 'Animal', width: 110, resizable: false },
 			{ field: 'plant', label: 'Plant', width: 120, render: renderPlant },
 			{ field: 'inanimate', label: 'Inanimate', width: 50 },
 			{ field: 'isok', label: 'Is Ok', sortable: false },

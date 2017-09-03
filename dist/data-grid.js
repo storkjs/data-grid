@@ -1024,6 +1024,14 @@
     for (i = 0; i < this.columns.length; i++) {
       td = document.createElement("td");
       td.classList.add(this.columns[i].field);
+      if (this.columns[i].fixed) {
+        trFixed.appendChild(td);
+      } else {
+        tr.appendChild(td);
+      }
+      if (this.columns[i].resizable === false) {
+        continue;
+      }
       resizer = document.createElement("a");
       resizer.setAttribute("draggable", "true");
       resizer.storkGridProps = {
@@ -1032,11 +1040,6 @@
       };
       this.setResizeByDragging(resizer);
       td.appendChild(resizer);
-      if (this.columns[i].fixed) {
-        trFixed.appendChild(td);
-      } else {
-        tr.appendChild(td);
-      }
     }
   };
   StorkGrid.prototype.setResizeByDragging = function setResizeByDragging(elm) {

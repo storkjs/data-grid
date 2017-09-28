@@ -1768,7 +1768,9 @@
 
 		// remove properties
 		this.grid.classList.remove('stork-grid', 'stork-grid'+this.rnd);
-		delete this.grid.stork.grid;
+		if (this.grid && this.grid.stork) {
+			delete this.grid.stork.grid;
+		}
 		delete this.grid;
 		delete this.data;
 		delete this.rowHeight;

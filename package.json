@@ -1,6 +1,6 @@
 {
   "name": "stork-grid",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "worlds most efficient and smooth big data grid",
   "license": "MIT",
   "author": {
@@ -20,6 +20,7 @@
     "node": ">=4.0.0"
   },
   "scripts": {
-    "watch": "grunt watch-files"
+    "watch": "grunt watch-files",
+    "dist": "grunt dist"
   }
 }

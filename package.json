@@ -1,11 +1,16 @@
 {
   "name": "stork-grid",
-  "version": "1.11.2",
+  "version": "1.11.3",
   "description": "worlds most efficient and smooth big data grid",
   "license": "MIT",
   "author": {
     "name": "Noam Lin",
     "email": "noam.lin@ebs.com"
+  },
+  "homepage": "https://github.com/storkjs/data-grid",
+  "repository": {
+      "type": "git",
+      "url": "git+https://github.com/storkjs/data-grid.git"
   },
   "private": false,
   "dependencies": {},
